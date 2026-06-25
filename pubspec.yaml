@@ -1,0 +1,23 @@
+name: encarta_reader_workspace
+description: >-
+  Pub workspace root for the Encarta Reader — a faithful-in-spirit reader for
+  the recovered Microsoft Encarta 2009 corpus.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: '>=3.12.0-0 <4.0.0'
+
+# Pub workspace = single shared lockfile across all member packages.
+# NOTE: `dart pub` requires EXPLICIT member paths here (globs like packages/*
+# are NOT supported), and listing a path that does not yet exist makes
+# `pub get` fail. Each unit therefore APPENDS its own package as it is created.
+# This unit (Unit 1) adds packages/encarta_data. Later units append:
+#   - packages/encarta_render
+#   - packages/encarta_assets
+#   - app/encarta_reader
+workspace:
+  - packages/encarta_data
+
+dev_dependencies:
+  lints: ^5.0.0

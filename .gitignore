@@ -3,3 +3,13 @@ build/
 .superpowers/
 *.iml
 .idea/
+# Dart / pub
+pubspec.lock
+doc/api/
+# drift / build_runner
+*.g.dart.lock
+.build_runner.fingerprint
+# coverage
+coverage/
+# macOS
+.DS_Store
