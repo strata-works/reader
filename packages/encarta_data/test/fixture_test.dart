@@ -34,6 +34,22 @@ void main() {
     ).first['n'] as int;
     expect(unmapped, 0);
 
+    // article_fts must not be empty — one FTS row per article.
+    final ftsN = db.select('SELECT count(*) AS n FROM article_fts').first['n'] as int;
+    expect(ftsN, equals(articleN),
+        reason: 'every article must have an FTS row');
+
+    // All four source tiers must be represented.
+    final tierN = db.select('SELECT count(DISTINCT source) AS n FROM article').first['n'] as int;
+    expect(tierN, greaterThanOrEqualTo(4),
+        reason: 'CONTDLX, CONTSTD, CONTSTC, CONTKDC must all be present');
+
+    // FTS MATCH smoke-check: searching for a common word must return results.
+    final matchN = db.select(
+      "SELECT count(*) AS n FROM article_fts WHERE article_fts MATCH 'the'",
+    ).first['n'] as int;
+    expect(matchN, greaterThan(0), reason: 'FTS MATCH smoke-check failed');
+
     // home-group media is present so featured()'s probe has something to read.
     final home = db.select(
       "SELECT count(*) AS n FROM media WHERE \"group\" = 'home'",

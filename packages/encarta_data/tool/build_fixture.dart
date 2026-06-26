@@ -39,7 +39,7 @@ void main() {
   out.parent.createSync(recursive: true);
 
   final dst = sqlite3.open(outDb);
-  dst.execute("ATTACH DATABASE '$srcDb' AS src");
+  dst.execute("ATTACH DATABASE 'file:$srcDb?mode=ro' AS src");
 
   dst.execute('''
     CREATE TABLE article (refid INTEGER PRIMARY KEY, source TEXT, title TEXT, xml BLOB);
