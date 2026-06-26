@@ -33,3 +33,23 @@ class Article {
   @override
   int get hashCode => Object.hash(refid, title, source, xmlBytes.length);
 }
+
+/// A search result: target article id, its title, and the bm25 rank
+/// (lower = more relevant; bm25 returns negative scores).
+class SearchHit {
+  const SearchHit({required this.refid, required this.title, required this.rank});
+
+  final int refid;
+  final String title;
+  final double rank;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SearchHit &&
+      other.refid == refid &&
+      other.title == title &&
+      other.rank == rank;
+
+  @override
+  int get hashCode => Object.hash(refid, title, rank);
+}

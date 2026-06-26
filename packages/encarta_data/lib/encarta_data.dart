@@ -2,4 +2,4 @@
 library;
 
 export 'src/encarta_db.dart' show EncartaDb;
-export 'src/models.dart' show Article;
+export 'src/models.dart' show Article, SearchHit;
