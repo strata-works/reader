@@ -2057,6 +2057,27 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.read<int>('unmapped'));
   }
 
+  Selectable<FtsSeedArticleResult> ftsSeedArticle(int offset) {
+    return customSelect(
+      'SELECT refid, xml FROM article WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET ?1',
+      variables: [Variable<int>(offset)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => FtsSeedArticleResult(
+        refid: row.readNullable<String>('refid'),
+        xml: row.readNullable<String>('xml'),
+      ),
+    );
+  }
+
+  Selectable<String?> ftsMatchToken(String token) {
+    return customSelect(
+      'SELECT "rowid" FROM article_fts WHERE article_fts MATCH ?1',
+      variables: [Variable<String>(token)],
+      readsFrom: {},
+    ).map((QueryRow row) => row.readNullable<String>('rowid'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3240,4 +3261,10 @@ class $EncartaDatabaseManager {
   $XrefTableManager get xref => $XrefTableManager(_db, _db.xref);
   $ArticleFtsTableManager get articleFts =>
       $ArticleFtsTableManager(_db, _db.articleFts);
+}
+
+class FtsSeedArticleResult {
+  final String? refid;
+  final String? xml;
+  FtsSeedArticleResult({this.refid, this.xml});
 }

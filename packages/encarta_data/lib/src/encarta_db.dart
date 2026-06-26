@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -78,14 +79,70 @@ class EncartaDb {
 
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
-  /// Returns true when no fts rowid is orphaned. If this ever returns false,
-  /// the corpus ETL did not align rowids with refids; the fallback is to stop
-  /// trusting the rowid and instead resolve each hit through a refid-mapping
-  /// table emitted by the ETL (quarry), or to rebuild the FTS index with an
-  /// explicit `INSERT INTO article_fts(rowid, body)` keyed by refid (as the
-  /// fixture builder already does). Until then `search()` must not be trusted.
+  /// Returns true only when BOTH checks pass:
+  ///
+  /// (a) Orphan check — no FTS row has a rowid that is absent from
+  ///     `article.refid`. A non-zero count means the ETL drifted.
+  ///
+  /// (b) Positive round-trip — picks a known article deterministically
+  ///     (first article with `length(xml) > 200`, ordered by refid), extracts
+  ///     a distinctive token from its body text (xml with tags stripped),
+  ///     runs an FTS5 MATCH for that token, and asserts the article's refid
+  ///     appears among the returned rowids. This proves that a real search
+  ///     round-trips to the correct article.
+  ///
+  /// Falls back to the next few articles if the chosen one yields no usable
+  /// token. Deterministic — no randomness.
   Future<bool> verifyFtsRowidMapping() async {
+    // Part (a): orphan check.
     final unmapped = await _db.ftsRowidUnmapped().getSingle();
-    return unmapped == 0;
+    if (unmapped != 0) return false;
+
+    // Part (b): positive round-trip check.
+    const maxTries = 5;
+    for (var offset = 0; offset < maxTries; offset++) {
+      final rows = await _db.customSelect(
+        'SELECT refid, xml FROM article '
+        'WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET ?',
+        variables: [Variable<int>(offset)],
+      ).get();
+      if (rows.isEmpty) break;
+
+      final refid = rows.first.read<int>('refid');
+      // xml is stored as BLOB; handle both Uint8List and String returns.
+      final xmlRaw = rows.first.data['xml'];
+      final xml = xmlRaw is List<int>
+          ? utf8.decode(xmlRaw, allowMalformed: true)
+          : '${xmlRaw ?? ''}';
+
+      final token = _extractFtsToken(xml);
+      if (token == null) continue;
+
+      final ftsRows = await _db.customSelect(
+        'SELECT rowid FROM article_fts WHERE article_fts MATCH ?',
+        variables: [Variable<String>(token)],
+      ).get();
+
+      final rowids = ftsRows.map((r) => r.read<int>('rowid')).toSet();
+      if (rowids.contains(refid)) return true;
+    }
+
+    return false;
   }
+}
+
+/// Strips XML tags from [xml] (mirroring the ETL that built the FTS index)
+/// and returns the first lowercase alphabetic word of length >= 5 from the
+/// sorted word list, or null if no such word exists.
+///
+/// Sorting makes the selection deterministic across platforms and Dart versions.
+String? _extractFtsToken(String xml) {
+  final text = xml.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  final words = RegExp(r'[a-zA-Z]{5,}')
+      .allMatches(text)
+      .map((m) => m.group(0)!.toLowerCase())
+      .toSet()
+      .toList()
+    ..sort();
+  return words.isEmpty ? null : words.first;
 }

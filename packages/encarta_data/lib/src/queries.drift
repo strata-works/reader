@@ -5,3 +5,15 @@
 ftsRowidUnmapped:
 SELECT count(*) AS unmapped FROM article_fts f
 WHERE NOT EXISTS (SELECT 1 FROM article a WHERE a.refid = f.rowid);
+
+-- Picks a seed article for the positive FTS round-trip check (part b of
+-- verifyFtsRowidMapping). Returns refid + raw xml for token extraction.
+-- :offset lets the caller skip articles whose xml yields no usable token.
+ftsSeedArticle:
+SELECT refid, xml FROM article WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET :offset;
+
+-- FTS5 MATCH search used by the positive round-trip check. Returns the rowids
+-- of all fts rows whose indexed body contains :token. Because rowid == refid,
+-- the seed article's refid must appear here when the invariant holds.
+ftsMatchToken:
+SELECT rowid FROM article_fts WHERE article_fts MATCH :token;
