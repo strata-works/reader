@@ -113,6 +113,49 @@ class EncartaDb {
     return row.read<int>('refid');
   }
 
+  /// Full-text search, bm25-ranked (most relevant first), paginated.
+  ///
+  /// Returns a list of [SearchHit]s ordered by ascending bm25 rank (more
+  /// negative = more relevant, so ascending puts the best match first).
+  ///
+  /// Uses [customSelect] directly because drift's static analyser cannot type
+  /// queries against the virtual `article_fts` table — this is the established
+  /// pattern in this package (the `.drift` stub generates wrong types).
+  ///
+  /// Query escaping: the query is passed as a bound parameter so it is safe
+  /// from injection. Empty / whitespace-only queries return `[]` immediately
+  /// without hitting SQLite.
+  Future<List<SearchHit>> search(
+    String query, {
+    int limit = 25,
+    int offset = 0,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+    final rows = await _db.customSelect(
+      'SELECT f.rowid AS refid, a.title AS title, '
+      'CAST(bm25(article_fts) AS REAL) AS rank '
+      'FROM article_fts f '
+      'JOIN article a ON a.refid = f.rowid '
+      'WHERE article_fts MATCH ? '
+      'ORDER BY rank '
+      'LIMIT ? OFFSET ?',
+      variables: [
+        Variable<String>(trimmed),
+        Variable<int>(limit),
+        Variable<int>(offset),
+      ],
+    ).get();
+    return [
+      for (final r in rows)
+        SearchHit(
+          refid: r.read<int>('refid'),
+          title: r.read<String?>('title') ?? '',
+          rank: r.read<double>('rank'),
+        ),
+    ];
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

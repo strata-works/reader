@@ -2101,6 +2101,28 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('refid'));
   }
 
+  Selectable<SearchArticlesResult> searchArticles(
+    String query,
+    int limit,
+    int offset,
+  ) {
+    return customSelect(
+      'SELECT f."rowid" AS refid, a.title AS title, CAST(bm25(article_fts) AS REAL) AS rank FROM article_fts AS f JOIN article AS a ON a.refid = f."rowid" WHERE article_fts MATCH ?1 ORDER BY rank LIMIT ?2 OFFSET ?3',
+      variables: [
+        Variable<String>(query),
+        Variable<int>(limit),
+        Variable<int>(offset),
+      ],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => SearchArticlesResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+        rank: row.read<double>('rank'),
+      ),
+    );
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3298,4 +3320,11 @@ class GetArticleByRefidResult {
   final String? source;
   final String? xml;
   GetArticleByRefidResult({this.refid, this.title, this.source, this.xml});
+}
+
+class SearchArticlesResult {
+  final String? refid;
+  final String? title;
+  final double rank;
+  SearchArticlesResult({this.refid, this.title, required this.rank});
 }
