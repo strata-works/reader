@@ -33,7 +33,7 @@ String encartaSnippet(String xmlText, String query, {int radius = 120}) {
 
   var start = idx - radius;
   var end = idx + term.length + radius;
-  final hasLead = idx > 0;
+  final hasLead = start > 0;
   final hasTrail = end < text.length;
   if (start < 0) start = 0;
   if (end > text.length) end = text.length;
