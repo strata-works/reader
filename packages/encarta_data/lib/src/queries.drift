@@ -17,3 +17,10 @@ SELECT refid, xml FROM article WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OF
 -- the seed article's refid must appear here when the invariant holds.
 ftsMatchToken:
 SELECT rowid FROM article_fts WHERE article_fts MATCH :token;
+
+getArticleByRefid:
+SELECT refid, title, source, xml FROM article WHERE refid = :refid;
+
+-- Test seam: smallest titled refid, used by unit tests to pick a real row.
+firstTitledRefid:
+SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1;

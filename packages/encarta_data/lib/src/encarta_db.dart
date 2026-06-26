@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'database.dart';
+// `hide Article` prevents a name clash with the Article data class below:
+// database.g.dart (part of database.dart) also exports an Article table class.
+import 'database.dart' hide Article;
+import 'models.dart';
 
 bool _fts5LoaderInstalled = false;
 
@@ -75,6 +79,38 @@ class EncartaDb {
   Future<int> debugArticleCount() async {
     final row = await _db.customSelect('SELECT count(*) AS n FROM article').getSingle();
     return row.read<int>('n');
+  }
+
+  /// Loads one article by id, or null if absent. Missing titles map to ''.
+  ///
+  /// Uses customSelect rather than the drift-generated accessor because
+  /// drift's static analyser cannot resolve the corpus table schema and
+  /// generates String? for all columns (see task brief note).
+  Future<Article?> getArticle(int refid) async {
+    final rows = await _db.customSelect(
+      'SELECT refid, title, source, xml FROM article WHERE refid = ?',
+      variables: [Variable<int>(refid)],
+    ).get();
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    final xmlRaw = row.data['xml'];
+    final xml = xmlRaw is Uint8List
+        ? xmlRaw
+        : (xmlRaw is List<int> ? Uint8List.fromList(xmlRaw) : Uint8List(0));
+    return Article(
+      refid: row.read<int>('refid'),
+      title: row.read<String?>('title') ?? '',
+      source: row.read<String?>('source') ?? '',
+      xmlBytes: xml,
+    );
+  }
+
+  /// Test seam: the smallest titled refid in the corpus.
+  Future<int> firstTitledRefid() async {
+    final row = await _db.customSelect(
+      'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
+    ).getSingle();
+    return row.read<int>('refid');
   }
 
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.

@@ -2078,6 +2078,29 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('rowid'));
   }
 
+  Selectable<GetArticleByRefidResult> getArticleByRefid(String refid) {
+    return customSelect(
+      'SELECT refid, title, source, xml FROM article WHERE refid = ?1',
+      variables: [Variable<String>(refid)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => GetArticleByRefidResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+        source: row.readNullable<String>('source'),
+        xml: row.readNullable<String>('xml'),
+      ),
+    );
+  }
+
+  Selectable<String?> firstTitledRefid() {
+    return customSelect(
+      'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map((QueryRow row) => row.readNullable<String>('refid'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3267,4 +3290,12 @@ class FtsSeedArticleResult {
   final String? refid;
   final String? xml;
   FtsSeedArticleResult({this.refid, this.xml});
+}
+
+class GetArticleByRefidResult {
+  final String? refid;
+  final String? title;
+  final String? source;
+  final String? xml;
+  GetArticleByRefidResult({this.refid, this.title, this.source, this.xml});
 }
