@@ -2049,6 +2049,14 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
   late final ArticleMedia articleMedia = ArticleMedia(this);
   late final Xref xref = Xref(this);
   late final ArticleFts articleFts = ArticleFts(this);
+  Selectable<int> ftsRowidUnmapped() {
+    return customSelect(
+      'SELECT count(*) AS unmapped FROM article_fts AS f WHERE NOT EXISTS (SELECT 1 AS _c0 FROM article AS a WHERE a.refid = f."rowid")',
+      variables: [],
+      readsFrom: {},
+    ).map((QueryRow row) => row.read<int>('unmapped'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

@@ -75,4 +75,17 @@ class EncartaDb {
     final row = await _db.customSelect('SELECT count(*) AS n FROM article').getSingle();
     return row.read<int>('n');
   }
+
+  /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
+  ///
+  /// Returns true when no fts rowid is orphaned. If this ever returns false,
+  /// the corpus ETL did not align rowids with refids; the fallback is to stop
+  /// trusting the rowid and instead resolve each hit through a refid-mapping
+  /// table emitted by the ETL (quarry), or to rebuild the FTS index with an
+  /// explicit `INSERT INTO article_fts(rowid, body)` keyed by refid (as the
+  /// fixture builder already does). Until then `search()` must not be trusted.
+  Future<bool> verifyFtsRowidMapping() async {
+    final unmapped = await _db.ftsRowidUnmapped().getSingle();
+    return unmapped == 0;
+  }
 }
