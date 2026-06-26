@@ -1,0 +1,2 @@
+-- Named queries are added by later tasks. Keep this file present so the
+-- `include:` in database.dart resolves.

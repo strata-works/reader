@@ -1,0 +1,51 @@
+CREATE TABLE article (
+  refid  INTEGER NOT NULL PRIMARY KEY,
+  source TEXT,
+  title  TEXT,
+  xml    BLOB
+);
+
+CREATE TABLE asset (
+  baggage_id TEXT NOT NULL PRIMARY KEY,
+  hash       TEXT,
+  kind       TEXT,
+  ext        TEXT,
+  path       TEXT,
+  source     TEXT
+);
+
+CREATE TABLE media (
+  refid   INTEGER NOT NULL PRIMARY KEY,
+  "group" TEXT,
+  title   TEXT,
+  credit  TEXT,
+  caption TEXT,
+  source  TEXT
+);
+
+CREATE TABLE media_file (
+  media_refid INTEGER NOT NULL,
+  role        TEXT NOT NULL,
+  baggage_id  TEXT,
+  ext         TEXT,
+  PRIMARY KEY (media_refid, role)
+);
+
+CREATE TABLE article_media (
+  article_refid INTEGER NOT NULL,
+  media_refid   INTEGER NOT NULL,
+  PRIMARY KEY (article_refid, media_refid)
+);
+
+CREATE TABLE xref (
+  refid        INTEGER NOT NULL,
+  target_refid INTEGER NOT NULL,
+  PRIMARY KEY (refid, target_refid)
+);
+
+CREATE VIRTUAL TABLE article_fts USING fts5(
+  body,
+  content='',
+  contentless_delete=1,
+  tokenize='unicode61'
+);
