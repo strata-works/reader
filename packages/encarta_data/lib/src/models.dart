@@ -96,3 +96,34 @@ class MediaItem {
   int get hashCode => Object.hash(
       mediaRefid, role, group, title, caption, credit, assetPath, ext, kind);
 }
+
+/// One row of the `asset` table: the stored binary's identity and location.
+/// `path` is RELATIVE to `<dataDir>/assets/`. Used by encarta_assets to
+/// resolve `inlinebmp type=27` (whose `id` is an `asset.baggage_id`).
+class AssetRow {
+  const AssetRow({
+    required this.baggageId,
+    required this.hash,
+    required this.kind,
+    required this.ext,
+    required this.path,
+  });
+
+  final String baggageId;
+  final String hash;
+  final String kind;
+  final String ext;
+  final String path;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AssetRow &&
+      other.baggageId == baggageId &&
+      other.hash == hash &&
+      other.kind == kind &&
+      other.ext == ext &&
+      other.path == path;
+
+  @override
+  int get hashCode => Object.hash(baggageId, hash, kind, ext, path);
+}

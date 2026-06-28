@@ -2151,6 +2151,30 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('refid'));
   }
 
+  Selectable<AssetByBaggageIdResult> assetByBaggageId(String id) {
+    return customSelect(
+      'SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = ?1',
+      variables: [Variable<String>(id)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => AssetByBaggageIdResult(
+        baggageId: row.readNullable<String>('baggage_id'),
+        hash: row.readNullable<String>('hash'),
+        kind: row.readNullable<String>('kind'),
+        ext: row.readNullable<String>('ext'),
+        path: row.readNullable<String>('path'),
+      ),
+    );
+  }
+
+  Selectable<String?> anyBaggageId() {
+    return customSelect(
+      'SELECT baggage_id FROM asset LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map((QueryRow row) => row.readNullable<String>('baggage_id'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3377,5 +3401,20 @@ class MediaForArticleResult {
     this.assetPath,
     this.ext,
     this.kind,
+  });
+}
+
+class AssetByBaggageIdResult {
+  final String? baggageId;
+  final String? hash;
+  final String? kind;
+  final String? ext;
+  final String? path;
+  AssetByBaggageIdResult({
+    this.baggageId,
+    this.hash,
+    this.kind,
+    this.ext,
+    this.path,
   });
 }

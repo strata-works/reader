@@ -205,6 +205,33 @@ class EncartaDb {
     return row.read<int>('refid');
   }
 
+  /// Looks up a single asset by its baggage_id (the `inlinebmp type=27` id),
+  /// or null if absent. `path` is relative to `<dataDir>/assets/`.
+  Future<AssetRow?> assetByBaggageId(String baggageId) async {
+    final rows = await _db.customSelect(
+      'SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = ?',
+      variables: [Variable<String>(baggageId)],
+    ).get();
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    return AssetRow(
+      baggageId: row.read<String>('baggage_id'),
+      hash: row.read<String?>('hash') ?? '',
+      kind: row.read<String?>('kind') ?? '',
+      ext: row.read<String?>('ext') ?? '',
+      path: row.read<String?>('path') ?? '',
+    );
+  }
+
+  /// Test seam: any baggage_id present in the asset table, or null.
+  Future<String?> anyBaggageId() async {
+    final rows = await _db.customSelect(
+      'SELECT baggage_id FROM asset LIMIT 1',
+    ).get();
+    if (rows.isEmpty) return null;
+    return rows.first.read<String>('baggage_id');
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

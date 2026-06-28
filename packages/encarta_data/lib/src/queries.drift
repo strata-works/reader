@@ -58,3 +58,10 @@ mostMediaRefid:
 SELECT a.refid AS refid FROM article_media am
 JOIN article a ON a.refid = am.article_refid
 GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1;
+
+assetByBaggageId:
+SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = :id;
+
+-- Test seam: any baggage_id present in the (fixture) asset table.
+anyBaggageId:
+SELECT baggage_id FROM asset LIMIT 1;
