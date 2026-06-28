@@ -97,6 +97,23 @@ class MediaItem {
       mediaRefid, role, group, title, caption, credit, assetPath, ext, kind);
 }
 
+/// An outbound cross-reference target: the linked article id + its title.
+class XrefTarget {
+  const XrefTarget({required this.targetRefid, required this.title});
+
+  final int targetRefid;
+  final String title;
+
+  @override
+  bool operator ==(Object other) =>
+      other is XrefTarget &&
+      other.targetRefid == targetRefid &&
+      other.title == title;
+
+  @override
+  int get hashCode => Object.hash(targetRefid, title);
+}
+
 /// One row of the `asset` table: the stored binary's identity and location.
 /// `path` is RELATIVE to `<dataDir>/assets/`. Used by encarta_assets to
 /// resolve `inlinebmp type=27` (whose `id` is an `asset.baggage_id`).
