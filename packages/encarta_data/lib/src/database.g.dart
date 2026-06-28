@@ -2123,6 +2123,34 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<MediaForArticleResult> mediaForArticle(String refid) {
+    return customSelect(
+      'SELECT m.refid AS mediaRefid, mf.role AS role, m."group" AS mgroup, m.title AS title, m.caption AS caption, m.credit AS credit, a.path AS assetPath, a.ext AS ext, a.kind AS kind FROM article_media AS am JOIN media AS m ON m.refid = am.media_refid JOIN media_file AS mf ON mf.media_refid = am.media_refid JOIN asset AS a ON a.baggage_id = mf.baggage_id WHERE am.article_refid = ?1 ORDER BY mf.role',
+      variables: [Variable<String>(refid)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => MediaForArticleResult(
+        mediaRefid: row.readNullable<String>('mediaRefid'),
+        role: row.readNullable<String>('role'),
+        mgroup: row.readNullable<String>('mgroup'),
+        title: row.readNullable<String>('title'),
+        caption: row.readNullable<String>('caption'),
+        credit: row.readNullable<String>('credit'),
+        assetPath: row.readNullable<String>('assetPath'),
+        ext: row.readNullable<String>('ext'),
+        kind: row.readNullable<String>('kind'),
+      ),
+    );
+  }
+
+  Selectable<String?> mostMediaRefid() {
+    return customSelect(
+      'SELECT a.refid AS refid FROM article_media AS am JOIN article AS a ON a.refid = am.article_refid GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map((QueryRow row) => row.readNullable<String>('refid'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3327,4 +3355,27 @@ class SearchArticlesResult {
   final String? title;
   final double rank;
   SearchArticlesResult({this.refid, this.title, required this.rank});
+}
+
+class MediaForArticleResult {
+  final String? mediaRefid;
+  final String? role;
+  final String? mgroup;
+  final String? title;
+  final String? caption;
+  final String? credit;
+  final String? assetPath;
+  final String? ext;
+  final String? kind;
+  MediaForArticleResult({
+    this.mediaRefid,
+    this.role,
+    this.mgroup,
+    this.title,
+    this.caption,
+    this.credit,
+    this.assetPath,
+    this.ext,
+    this.kind,
+  });
 }

@@ -157,6 +157,54 @@ class EncartaDb {
     ];
   }
 
+  /// All media slots for an article via article_media → media_file → asset.
+  /// `assetPath` is relative to `<dataDir>/assets/`.
+  Future<List<MediaItem>> mediaForArticle(int refid) async {
+    final rows = await _db.customSelect(
+      'SELECT '
+      '  m.refid    AS mediaRefid, '
+      '  mf.role    AS role, '
+      '  m."group"  AS mgroup, '
+      '  m.title    AS title, '
+      '  m.caption  AS caption, '
+      '  m.credit   AS credit, '
+      '  a.path     AS assetPath, '
+      '  a.ext      AS ext, '
+      '  a.kind     AS kind '
+      'FROM article_media am '
+      'JOIN media m       ON m.refid = am.media_refid '
+      'JOIN media_file mf ON mf.media_refid = am.media_refid '
+      'JOIN asset a       ON a.baggage_id = mf.baggage_id '
+      'WHERE am.article_refid = ? '
+      'ORDER BY mf.role',
+      variables: [Variable<int>(refid)],
+    ).get();
+    return [
+      for (final r in rows)
+        MediaItem(
+          mediaRefid: r.read<int>('mediaRefid'),
+          role: r.read<String?>('role') ?? '',
+          group: r.read<String?>('mgroup') ?? '',
+          title: r.read<String?>('title'),
+          caption: r.read<String?>('caption'),
+          credit: r.read<String?>('credit'),
+          assetPath: r.read<String?>('assetPath') ?? '',
+          ext: r.read<String?>('ext') ?? '',
+          kind: r.read<String?>('kind') ?? '',
+        ),
+    ];
+  }
+
+  /// Test seam: the most media-rich article id in the corpus.
+  Future<int> mostMediaRefid() async {
+    final row = await _db.customSelect(
+      'SELECT a.refid AS refid FROM article_media am '
+      'JOIN article a ON a.refid = am.article_refid '
+      'GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1',
+    ).getSingle();
+    return row.read<int>('refid');
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

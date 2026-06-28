@@ -34,3 +34,27 @@ JOIN article a ON a.refid = f.rowid
 WHERE article_fts MATCH :query
 ORDER BY rank
 LIMIT :limit OFFSET :offset;
+
+mediaForArticle:
+SELECT
+  m.refid    AS mediaRefid,
+  mf.role    AS role,
+  m."group"  AS mgroup,
+  m.title    AS title,
+  m.caption  AS caption,
+  m.credit   AS credit,
+  a.path     AS assetPath,
+  a.ext      AS ext,
+  a.kind     AS kind
+FROM article_media am
+JOIN media m       ON m.refid = am.media_refid
+JOIN media_file mf ON mf.media_refid = am.media_refid
+JOIN asset a       ON a.baggage_id = mf.baggage_id
+WHERE am.article_refid = :refid
+ORDER BY mf.role;
+
+-- Test seam: the article carrying the most media in the fixture.
+mostMediaRefid:
+SELECT a.refid AS refid FROM article_media am
+JOIN article a ON a.refid = am.article_refid
+GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1;
