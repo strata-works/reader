@@ -39,4 +39,38 @@ void main() {
       ..retainAll(page2.map((h) => h.refid).toSet());
     expect(overlap, isEmpty);
   });
+
+  // ── FTS5 safe-query tests (Finding 1 & 2) ────────────────────────────────
+
+  test('empty query returns [] without throwing', () async {
+    final results = await db.search('');
+    expect(results, isEmpty);
+  });
+
+  test('whitespace-only query returns [] without throwing', () async {
+    final results = await db.search('   ');
+    expect(results, isEmpty);
+  });
+
+  test('hyphenated token does not throw and returns a List', () async {
+    // A hyphen is an fts5 NOT operator when unquoted; _fts5Query wraps it.
+    final results = await db.search('rock-forming');
+    expect(results, isA<List<SearchHit>>());
+  });
+
+  test('query containing a double-quote does not throw and returns a List',
+      () async {
+    // Unquoted `"` starts an fts5 string literal and crashes the parser.
+    final results = await db.search('say "the"');
+    expect(results, isA<List<SearchHit>>());
+  });
+
+  test('multi-word query returns results (implicit AND)', () async {
+    // 'the' appears in virtually every article in the 43-article fixture.
+    final hits = await db.search('the');
+    expect(hits, isNotEmpty);
+    // Adding a second common token keeps the AND semantic and still matches.
+    final hits2 = await db.search('the a');
+    expect(hits2, isA<List<SearchHit>>());
+  });
 }

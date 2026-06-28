@@ -122,16 +122,17 @@ class EncartaDb {
   /// queries against the virtual `article_fts` table — this is the established
   /// pattern in this package (the `.drift` stub generates wrong types).
   ///
-  /// Query escaping: the query is passed as a bound parameter so it is safe
-  /// from injection. Empty / whitespace-only queries return `[]` immediately
-  /// without hitting SQLite.
+  /// Query escaping: [_fts5Query] converts the raw user string into a safe
+  /// FTS5 MATCH expression (each whitespace token quoted as a string literal).
+  /// Empty / whitespace-only queries return `[]` immediately without hitting
+  /// SQLite.
   Future<List<SearchHit>> search(
     String query, {
     int limit = 25,
     int offset = 0,
   }) async {
-    final trimmed = query.trim();
-    if (trimmed.isEmpty) return [];
+    final ftsQuery = _fts5Query(query);
+    if (ftsQuery == null) return [];
     final rows = await _db.customSelect(
       'SELECT f.rowid AS refid, a.title AS title, '
       'CAST(bm25(article_fts) AS REAL) AS rank '
@@ -141,7 +142,7 @@ class EncartaDb {
       'ORDER BY rank '
       'LIMIT ? OFFSET ?',
       variables: [
-        Variable<String>(trimmed),
+        Variable<String>(ftsQuery),
         Variable<int>(limit),
         Variable<int>(offset),
       ],
@@ -208,6 +209,33 @@ class EncartaDb {
 
     return false;
   }
+}
+
+/// Converts a free-text user query into a safe FTS5 MATCH expression.
+///
+/// Each whitespace-delimited token is wrapped in double quotes (with any
+/// internal `"` doubled to `""`), making it an fts5 string literal. This
+/// prevents fts5 from interpreting operator characters that appear in ordinary
+/// user input (e.g. `-`, `*`, `^`, `:`, `(`, `)`, `"`).
+///
+/// Returns `null` when the query contains no non-empty tokens (empty or
+/// whitespace-only input), in which case the caller should return `[]` without
+/// running a MATCH.
+///
+/// Examples:
+/// - `'rock-forming'` → `'"rock-forming"'`
+/// - `'say "hi"'`     → `'"say" "hi"'`
+/// - `'co2 flux'`     → `'"co2" "flux"'`
+/// - `''`             → `null`
+String? _fts5Query(String query) {
+  final tokens = query
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((t) => t.isNotEmpty)
+      .map((t) => '"${t.replaceAll('"', '""')}"')
+      .toList();
+  if (tokens.isEmpty) return null;
+  return tokens.join(' ');
 }
 
 /// Strips XML tags from [xml] (mirroring the ETL that built the FTS index)
