@@ -53,3 +53,46 @@ class SearchHit {
   @override
   int get hashCode => Object.hash(refid, title, rank);
 }
+
+/// One media slot for an article: its role + group, optional editorial text,
+/// and the resolved asset (`assetPath` is RELATIVE to `<dataDir>/assets/`).
+class MediaItem {
+  const MediaItem({
+    required this.mediaRefid,
+    required this.role,
+    required this.group,
+    required this.title,
+    required this.caption,
+    required this.credit,
+    required this.assetPath,
+    required this.ext,
+    required this.kind,
+  });
+
+  final int mediaRefid;
+  final String role;
+  final String group;
+  final String? title;
+  final String? caption;
+  final String? credit;
+  final String assetPath;
+  final String ext;
+  final String kind;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MediaItem &&
+      other.mediaRefid == mediaRefid &&
+      other.role == role &&
+      other.group == group &&
+      other.title == title &&
+      other.caption == caption &&
+      other.credit == credit &&
+      other.assetPath == assetPath &&
+      other.ext == ext &&
+      other.kind == kind;
+
+  @override
+  int get hashCode => Object.hash(
+      mediaRefid, role, group, title, caption, credit, assetPath, ext, kind);
+}
