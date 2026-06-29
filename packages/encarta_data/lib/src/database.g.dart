@@ -2175,6 +2175,27 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('baggage_id'));
   }
 
+  Selectable<TitlesIndexResult> titlesIndex(
+    String prefix,
+    int limit,
+    int offset,
+  ) {
+    return customSelect(
+      'SELECT refid, title FROM article WHERE title IS NOT NULL AND title LIKE ?1 || \'%\' ORDER BY title LIMIT ?2 OFFSET ?3',
+      variables: [
+        Variable<String>(prefix),
+        Variable<int>(limit),
+        Variable<int>(offset),
+      ],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => TitlesIndexResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+      ),
+    );
+  }
+
   Selectable<OutboundXrefsResult> outboundXrefs(String refid) {
     return customSelect(
       'SELECT x.target_refid AS targetRefid, a.title AS title FROM xref AS x JOIN article AS a ON a.refid = x.target_refid WHERE x.refid = ?1 AND a.title IS NOT NULL ORDER BY a.title',
@@ -3438,6 +3459,12 @@ class AssetByBaggageIdResult {
     this.ext,
     this.path,
   });
+}
+
+class TitlesIndexResult {
+  final String? refid;
+  final String? title;
+  TitlesIndexResult({this.refid, this.title});
 }
 
 class OutboundXrefsResult {

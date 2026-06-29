@@ -262,6 +262,35 @@ class EncartaDb {
     return row?.read<int>('refid');
   }
 
+  /// A–Z browse over article titles. `prefix` is matched case-insensitively;
+  /// null/empty returns the full alphabetical list (paginated).
+  ///
+  /// Uses customSelect rather than the drift-generated accessor because drift
+  /// cannot resolve the corpus schema at build time: it generates `String?` for
+  /// `refid` (an integer column), making `TitlesIndexResult.refid` unusable
+  /// without an unsafe parse — the same limitation documented on [outboundXrefs].
+  Future<List<TitleRef>> titlesIndex({
+    String? prefix,
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    final rows = await _db.customSelect(
+      'SELECT refid, title FROM article '
+      'WHERE title IS NOT NULL AND title LIKE ? || \'%\' '
+      'ORDER BY title '
+      'LIMIT ? OFFSET ?',
+      variables: [
+        Variable<String>(prefix ?? ''),
+        Variable<int>(limit),
+        Variable<int>(offset),
+      ],
+    ).get();
+    return [
+      for (final r in rows)
+        TitleRef(refid: r.read<int>('refid'), title: r.read<String?>('title') ?? ''),
+    ];
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

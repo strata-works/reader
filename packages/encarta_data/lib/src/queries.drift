@@ -66,6 +66,12 @@ SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = :id;
 anyBaggageId:
 SELECT baggage_id FROM asset LIMIT 1;
 
+titlesIndex:
+SELECT refid, title FROM article
+WHERE title IS NOT NULL AND title LIKE :prefix || '%'
+ORDER BY title
+LIMIT :limit OFFSET :offset;
+
 outboundXrefs:
 SELECT x.target_refid AS targetRefid, a.title AS title
 FROM xref x
