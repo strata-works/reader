@@ -114,6 +114,21 @@ class XrefTarget {
   int get hashCode => Object.hash(targetRefid, title);
 }
 
+/// A lightweight title pointer for browse/index lists: article id + title.
+class TitleRef {
+  const TitleRef({required this.refid, required this.title});
+
+  final int refid;
+  final String title;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TitleRef && other.refid == refid && other.title == title;
+
+  @override
+  int get hashCode => Object.hash(refid, title);
+}
+
 /// One row of the `asset` table: the stored binary's identity and location.
 /// `path` is RELATIVE to `<dataDir>/assets/`. Used by encarta_assets to
 /// resolve `inlinebmp type=27` (whose `id` is an `asset.baggage_id`).

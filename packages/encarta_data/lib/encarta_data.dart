@@ -2,5 +2,5 @@
 library;
 
 export 'src/encarta_db.dart' show EncartaDb;
-export 'src/models.dart' show Article, SearchHit, MediaItem, AssetRow, XrefTarget;
+export 'src/models.dart' show Article, SearchHit, MediaItem, AssetRow, XrefTarget, TitleRef;
 export 'src/snippet.dart' show encartaSnippet;
