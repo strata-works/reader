@@ -84,3 +84,18 @@ anyXrefSourceRefid:
 SELECT x.refid AS refid FROM xref x
 JOIN article a ON a.refid = x.target_refid
 LIMIT 1;
+
+-- Random pick: jump to a random point in the refid range, take the next
+-- titled article. Fast (index range scan), uniform enough for "I'm feeling
+-- lucky". Returns nothing only if the random point lands past the last
+-- titled refid; randomArticleFallback covers that.
+randomArticleInRange:
+SELECT refid, title, source, xml FROM article
+WHERE refid >= (
+  SELECT min(refid) + abs(random()) % (max(refid) - min(refid) + 1) FROM article
+) AND title IS NOT NULL
+ORDER BY refid LIMIT 1;
+
+randomArticleFallback:
+SELECT refid, title, source, xml FROM article
+WHERE title IS NOT NULL ORDER BY refid LIMIT 1;

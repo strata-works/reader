@@ -105,6 +105,31 @@ class EncartaDb {
     );
   }
 
+  /// A random titled article, or null if the corpus has none.
+  ///
+  /// Picks a random point in the refid (INTEGER PRIMARY KEY = rowid) range via
+  /// SQLite's `random()`, then takes the next titled article via an index range
+  /// scan — O(log n) instead of a full-table `ORDER BY random()`. Falls back to
+  /// the first titled article when the random point lands past the last titled
+  /// refid. Delegates to [getArticle] so xml BLOB mapping stays in one place.
+  ///
+  /// Uses customSelect (not the drift-generated randomArticleInRange accessor)
+  /// because drift's codegen mis-types the INTEGER refid column as String?.
+  Future<Article?> randomArticle() async {
+    var row = await _db.customSelect(
+      'SELECT refid FROM article'
+      ' WHERE refid >= ('
+      '   SELECT min(refid) + abs(random()) % (max(refid) - min(refid) + 1)'
+      '   FROM article'
+      ' ) AND title IS NOT NULL ORDER BY refid LIMIT 1',
+    ).getSingleOrNull();
+    row ??= await _db.customSelect(
+      'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
+    ).getSingleOrNull();
+    if (row == null) return null;
+    return getArticle(row.read<int>('refid'));
+  }
+
   /// Test seam: the smallest titled refid in the corpus.
   Future<int> firstTitledRefid() async {
     final row = await _db.customSelect(

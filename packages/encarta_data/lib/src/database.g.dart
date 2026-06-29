@@ -2217,6 +2217,36 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('refid'));
   }
 
+  Selectable<RandomArticleInRangeResult> randomArticleInRange() {
+    return customSelect(
+      'SELECT refid, title, source, xml FROM article WHERE refid >= (SELECT min(refid) + abs(random()) %(max(refid) - min(refid) + 1)FROM article) AND title IS NOT NULL ORDER BY refid LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => RandomArticleInRangeResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+        source: row.readNullable<String>('source'),
+        xml: row.readNullable<String>('xml'),
+      ),
+    );
+  }
+
+  Selectable<RandomArticleFallbackResult> randomArticleFallback() {
+    return customSelect(
+      'SELECT refid, title, source, xml FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => RandomArticleFallbackResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+        source: row.readNullable<String>('source'),
+        xml: row.readNullable<String>('xml'),
+      ),
+    );
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3471,4 +3501,20 @@ class OutboundXrefsResult {
   final String? targetRefid;
   final String? title;
   OutboundXrefsResult({this.targetRefid, this.title});
+}
+
+class RandomArticleInRangeResult {
+  final String? refid;
+  final String? title;
+  final String? source;
+  final String? xml;
+  RandomArticleInRangeResult({this.refid, this.title, this.source, this.xml});
+}
+
+class RandomArticleFallbackResult {
+  final String? refid;
+  final String? title;
+  final String? source;
+  final String? xml;
+  RandomArticleFallbackResult({this.refid, this.title, this.source, this.xml});
 }
