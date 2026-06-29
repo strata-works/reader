@@ -65,3 +65,16 @@ SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = :id;
 -- Test seam: any baggage_id present in the (fixture) asset table.
 anyBaggageId:
 SELECT baggage_id FROM asset LIMIT 1;
+
+outboundXrefs:
+SELECT x.target_refid AS targetRefid, a.title AS title
+FROM xref x
+JOIN article a ON a.refid = x.target_refid
+WHERE x.refid = :refid AND a.title IS NOT NULL
+ORDER BY a.title;
+
+-- Test seam: any source refid that has at least one resolvable xref.
+anyXrefSourceRefid:
+SELECT x.refid AS refid FROM xref x
+JOIN article a ON a.refid = x.target_refid
+LIMIT 1;

@@ -224,6 +224,44 @@ class EncartaDb {
     return _db.anyBaggageId().getSingleOrNull();
   }
 
+  /// Outbound cross-references for an article. Targets absent from the corpus
+  /// are dropped by the JOIN, so callers never get dead links.
+  ///
+  /// Uses customSelect rather than the drift-generated accessor because drift
+  /// cannot resolve the corpus schema at build time: it generates `String` for
+  /// both `refid` and `target_refid` (integer columns), making the accessor
+  /// unusable without unsafe casts.
+  Future<List<XrefTarget>> outboundXrefs(int refid) async {
+    final rows = await _db.customSelect(
+      'SELECT x.target_refid AS targetRefid, a.title AS title '
+      'FROM xref x '
+      'JOIN article a ON a.refid = x.target_refid '
+      'WHERE x.refid = ? AND a.title IS NOT NULL '
+      'ORDER BY a.title',
+      variables: [Variable<int>(refid)],
+    ).get();
+    return [
+      for (final r in rows)
+        XrefTarget(
+          targetRefid: r.read<int>('targetRefid'),
+          title: r.read<String?>('title') ?? '',
+        ),
+    ];
+  }
+
+  /// Test seam: any refid with at least one resolvable outbound xref, or null.
+  ///
+  /// Uses customSelect for the same reason as [outboundXrefs]: the generated
+  /// accessor returns String? for an integer column.
+  Future<int?> anyXrefSourceRefid() async {
+    final row = await _db.customSelect(
+      'SELECT x.refid AS refid FROM xref x '
+      'JOIN article a ON a.refid = x.target_refid '
+      'LIMIT 1',
+    ).getSingleOrNull();
+    return row?.read<int>('refid');
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

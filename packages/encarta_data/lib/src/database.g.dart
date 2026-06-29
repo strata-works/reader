@@ -2175,6 +2175,27 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('baggage_id'));
   }
 
+  Selectable<OutboundXrefsResult> outboundXrefs(String refid) {
+    return customSelect(
+      'SELECT x.target_refid AS targetRefid, a.title AS title FROM xref AS x JOIN article AS a ON a.refid = x.target_refid WHERE x.refid = ?1 AND a.title IS NOT NULL ORDER BY a.title',
+      variables: [Variable<String>(refid)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => OutboundXrefsResult(
+        targetRefid: row.readNullable<String>('targetRefid'),
+        title: row.readNullable<String>('title'),
+      ),
+    );
+  }
+
+  Selectable<String?> anyXrefSourceRefid() {
+    return customSelect(
+      'SELECT x.refid AS refid FROM xref AS x JOIN article AS a ON a.refid = x.target_refid LIMIT 1',
+      variables: [],
+      readsFrom: {},
+    ).map((QueryRow row) => row.readNullable<String>('refid'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3417,4 +3438,10 @@ class AssetByBaggageIdResult {
     this.ext,
     this.path,
   });
+}
+
+class OutboundXrefsResult {
+  final String? targetRefid;
+  final String? title;
+  OutboundXrefsResult({this.targetRefid, this.title});
 }
