@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:encarta_data/src/database.dart';
 import 'package:test/test.dart';

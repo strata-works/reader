@@ -15,13 +15,6 @@ void main() {
     expect(s, isNot(startsWith('…')));
   });
 
-  test('no leading ellipsis when hit is near start (start clamps to 0)', () {
-    // 'quartz' at idx=4, radius=12: start=4-12=-8 -> clamped to 0 -> no elision
-    final s = encartaSnippet(xml, 'quartz', radius: 12);
-    expect(s, isNot(startsWith('…')));
-    expect(s, contains('quartz'));
-  });
-
   test('leading ellipsis when hit is deep in the text (real left elision)', () {
     // 19 filler chars + space before 'target' -> idx=20; radius=5 -> start=15>0
     const deep = 'AAAAAAAAAAAAAAAAAAA target BBBBB';

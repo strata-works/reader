@@ -8,11 +8,15 @@ void main() {
   setUp(() async => db = await EncartaDb.open(fixturePath));
   tearDown(() => db.close());
 
-  test('titlesIndex returns titled refs sorted by title', () async {
+  test('titlesIndex returns titled refs sorted by title (case-insensitive)', () async {
     final all = await db.titlesIndex(limit: 100);
     expect(all, isNotEmpty);
+    // ORDER BY title COLLATE NOCASE: compare lowercased pairs
     for (var i = 1; i < all.length; i++) {
-      expect(all[i].title.compareTo(all[i - 1].title), greaterThanOrEqualTo(0));
+      expect(
+        all[i].title.toLowerCase().compareTo(all[i - 1].title.toLowerCase()),
+        greaterThanOrEqualTo(0),
+      );
     }
   });
 

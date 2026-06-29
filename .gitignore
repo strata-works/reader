@@ -4,7 +4,6 @@ build/
 *.iml
 .idea/
 # Dart / pub
-pubspec.lock
 doc/api/
 # drift / build_runner
 *.g.dart.lock

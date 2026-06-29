@@ -1,3 +1,5 @@
+import 'tables.drift';
+
 -- Named queries are added by later tasks. Keep this file present so the
 -- `include:` in database.dart resolves.
 
@@ -68,8 +70,8 @@ SELECT baggage_id FROM asset LIMIT 1;
 
 titlesIndex:
 SELECT refid, title FROM article
-WHERE title IS NOT NULL AND title LIKE :prefix || '%'
-ORDER BY title
+WHERE title IS NOT NULL AND title != '' AND title LIKE :prefix || '%'
+ORDER BY title COLLATE NOCASE
 LIMIT :limit OFFSET :offset;
 
 outboundXrefs:

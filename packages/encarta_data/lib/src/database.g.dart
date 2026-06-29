@@ -3,6 +3,170 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class ArticleFts extends Table
+    with
+        TableInfo<ArticleFts, ArticleFt>,
+        VirtualTableInfo<ArticleFts, ArticleFt> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ArticleFts(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [body];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'article_fts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ArticleFt> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  ArticleFt map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ArticleFt(
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+    );
+  }
+
+  @override
+  ArticleFts createAlias(String alias) {
+    return ArticleFts(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+  @override
+  String get moduleAndArgs =>
+      'fts5(body, content=\'\', contentless_delete=1, tokenize=\'unicode61\')';
+}
+
+class ArticleFt extends DataClass implements Insertable<ArticleFt> {
+  final String body;
+  const ArticleFt({required this.body});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['body'] = Variable<String>(body);
+    return map;
+  }
+
+  ArticleFtsCompanion toCompanion(bool nullToAbsent) {
+    return ArticleFtsCompanion(body: Value(body));
+  }
+
+  factory ArticleFt.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ArticleFt(body: serializer.fromJson<String>(json['body']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'body': serializer.toJson<String>(body)};
+  }
+
+  ArticleFt copyWith({String? body}) => ArticleFt(body: body ?? this.body);
+  ArticleFt copyWithCompanion(ArticleFtsCompanion data) {
+    return ArticleFt(body: data.body.present ? data.body.value : this.body);
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArticleFt(')
+          ..write('body: $body')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => body.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is ArticleFt && other.body == this.body);
+}
+
+class ArticleFtsCompanion extends UpdateCompanion<ArticleFt> {
+  final Value<String> body;
+  final Value<int> rowid;
+  const ArticleFtsCompanion({
+    this.body = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ArticleFtsCompanion.insert({
+    required String body,
+    this.rowid = const Value.absent(),
+  }) : body = Value(body);
+  static Insertable<ArticleFt> custom({
+    Expression<String>? body,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (body != null) 'body': body,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ArticleFtsCompanion copyWith({Value<String>? body, Value<int>? rowid}) {
+    return ArticleFtsCompanion(
+      body: body ?? this.body,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArticleFtsCompanion(')
+          ..write('body: $body, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class Article extends Table with TableInfo<Article, ArticleData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -296,363 +460,212 @@ class ArticleCompanion extends UpdateCompanion<ArticleData> {
   }
 }
 
-class Asset extends Table with TableInfo<Asset, AssetData> {
+class ArticleMedia extends Table
+    with TableInfo<ArticleMedia, ArticleMediaData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  Asset(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _baggageIdMeta = const VerificationMeta(
-    'baggageId',
+  ArticleMedia(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _articleRefidMeta = const VerificationMeta(
+    'articleRefid',
   );
-  late final GeneratedColumn<String> baggageId = GeneratedColumn<String>(
-    'baggage_id',
+  late final GeneratedColumn<int> articleRefid = GeneratedColumn<int>(
+    'article_refid',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.int,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL PRIMARY KEY',
+    $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _hashMeta = const VerificationMeta('hash');
-  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
-    'hash',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+  static const VerificationMeta _mediaRefidMeta = const VerificationMeta(
+    'mediaRefid',
   );
-  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
-  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
-    'kind',
+  late final GeneratedColumn<int> mediaRefid = GeneratedColumn<int>(
+    'media_refid',
     aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _extMeta = const VerificationMeta('ext');
-  late final GeneratedColumn<String> ext = GeneratedColumn<String>(
-    'ext',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _pathMeta = const VerificationMeta('path');
-  late final GeneratedColumn<String> path = GeneratedColumn<String>(
-    'path',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
-  late final GeneratedColumn<String> source = GeneratedColumn<String>(
-    'source',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   @override
-  List<GeneratedColumn> get $columns => [
-    baggageId,
-    hash,
-    kind,
-    ext,
-    path,
-    source,
-  ];
+  List<GeneratedColumn> get $columns => [articleRefid, mediaRefid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'asset';
+  static const String $name = 'article_media';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AssetData> instance, {
+    Insertable<ArticleMediaData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('baggage_id')) {
+    if (data.containsKey('article_refid')) {
       context.handle(
-        _baggageIdMeta,
-        baggageId.isAcceptableOrUnknown(data['baggage_id']!, _baggageIdMeta),
+        _articleRefidMeta,
+        articleRefid.isAcceptableOrUnknown(
+          data['article_refid']!,
+          _articleRefidMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_baggageIdMeta);
+      context.missing(_articleRefidMeta);
     }
-    if (data.containsKey('hash')) {
+    if (data.containsKey('media_refid')) {
       context.handle(
-        _hashMeta,
-        hash.isAcceptableOrUnknown(data['hash']!, _hashMeta),
+        _mediaRefidMeta,
+        mediaRefid.isAcceptableOrUnknown(data['media_refid']!, _mediaRefidMeta),
       );
-    }
-    if (data.containsKey('kind')) {
-      context.handle(
-        _kindMeta,
-        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
-      );
-    }
-    if (data.containsKey('ext')) {
-      context.handle(
-        _extMeta,
-        ext.isAcceptableOrUnknown(data['ext']!, _extMeta),
-      );
-    }
-    if (data.containsKey('path')) {
-      context.handle(
-        _pathMeta,
-        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
-      );
-    }
-    if (data.containsKey('source')) {
-      context.handle(
-        _sourceMeta,
-        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
-      );
+    } else if (isInserting) {
+      context.missing(_mediaRefidMeta);
     }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {baggageId};
+  Set<GeneratedColumn> get $primaryKey => {articleRefid, mediaRefid};
   @override
-  AssetData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ArticleMediaData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AssetData(
-      baggageId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}baggage_id'],
+    return ArticleMediaData(
+      articleRefid: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}article_refid'],
       )!,
-      hash: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hash'],
-      ),
-      kind: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}kind'],
-      ),
-      ext: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}ext'],
-      ),
-      path: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}path'],
-      ),
-      source: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}source'],
-      ),
+      mediaRefid: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}media_refid'],
+      )!,
     );
   }
 
   @override
-  Asset createAlias(String alias) {
-    return Asset(attachedDatabase, alias);
+  ArticleMedia createAlias(String alias) {
+    return ArticleMedia(attachedDatabase, alias);
   }
 
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(article_refid, media_refid)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
 
-class AssetData extends DataClass implements Insertable<AssetData> {
-  final String baggageId;
-  final String? hash;
-  final String? kind;
-  final String? ext;
-  final String? path;
-  final String? source;
-  const AssetData({
-    required this.baggageId,
-    this.hash,
-    this.kind,
-    this.ext,
-    this.path,
-    this.source,
+class ArticleMediaData extends DataClass
+    implements Insertable<ArticleMediaData> {
+  final int articleRefid;
+  final int mediaRefid;
+  const ArticleMediaData({
+    required this.articleRefid,
+    required this.mediaRefid,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['baggage_id'] = Variable<String>(baggageId);
-    if (!nullToAbsent || hash != null) {
-      map['hash'] = Variable<String>(hash);
-    }
-    if (!nullToAbsent || kind != null) {
-      map['kind'] = Variable<String>(kind);
-    }
-    if (!nullToAbsent || ext != null) {
-      map['ext'] = Variable<String>(ext);
-    }
-    if (!nullToAbsent || path != null) {
-      map['path'] = Variable<String>(path);
-    }
-    if (!nullToAbsent || source != null) {
-      map['source'] = Variable<String>(source);
-    }
+    map['article_refid'] = Variable<int>(articleRefid);
+    map['media_refid'] = Variable<int>(mediaRefid);
     return map;
   }
 
-  AssetCompanion toCompanion(bool nullToAbsent) {
-    return AssetCompanion(
-      baggageId: Value(baggageId),
-      hash: hash == null && nullToAbsent ? const Value.absent() : Value(hash),
-      kind: kind == null && nullToAbsent ? const Value.absent() : Value(kind),
-      ext: ext == null && nullToAbsent ? const Value.absent() : Value(ext),
-      path: path == null && nullToAbsent ? const Value.absent() : Value(path),
-      source: source == null && nullToAbsent
-          ? const Value.absent()
-          : Value(source),
+  ArticleMediaCompanion toCompanion(bool nullToAbsent) {
+    return ArticleMediaCompanion(
+      articleRefid: Value(articleRefid),
+      mediaRefid: Value(mediaRefid),
     );
   }
 
-  factory AssetData.fromJson(
+  factory ArticleMediaData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AssetData(
-      baggageId: serializer.fromJson<String>(json['baggage_id']),
-      hash: serializer.fromJson<String?>(json['hash']),
-      kind: serializer.fromJson<String?>(json['kind']),
-      ext: serializer.fromJson<String?>(json['ext']),
-      path: serializer.fromJson<String?>(json['path']),
-      source: serializer.fromJson<String?>(json['source']),
+    return ArticleMediaData(
+      articleRefid: serializer.fromJson<int>(json['article_refid']),
+      mediaRefid: serializer.fromJson<int>(json['media_refid']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'baggage_id': serializer.toJson<String>(baggageId),
-      'hash': serializer.toJson<String?>(hash),
-      'kind': serializer.toJson<String?>(kind),
-      'ext': serializer.toJson<String?>(ext),
-      'path': serializer.toJson<String?>(path),
-      'source': serializer.toJson<String?>(source),
+      'article_refid': serializer.toJson<int>(articleRefid),
+      'media_refid': serializer.toJson<int>(mediaRefid),
     };
   }
 
-  AssetData copyWith({
-    String? baggageId,
-    Value<String?> hash = const Value.absent(),
-    Value<String?> kind = const Value.absent(),
-    Value<String?> ext = const Value.absent(),
-    Value<String?> path = const Value.absent(),
-    Value<String?> source = const Value.absent(),
-  }) => AssetData(
-    baggageId: baggageId ?? this.baggageId,
-    hash: hash.present ? hash.value : this.hash,
-    kind: kind.present ? kind.value : this.kind,
-    ext: ext.present ? ext.value : this.ext,
-    path: path.present ? path.value : this.path,
-    source: source.present ? source.value : this.source,
-  );
-  AssetData copyWithCompanion(AssetCompanion data) {
-    return AssetData(
-      baggageId: data.baggageId.present ? data.baggageId.value : this.baggageId,
-      hash: data.hash.present ? data.hash.value : this.hash,
-      kind: data.kind.present ? data.kind.value : this.kind,
-      ext: data.ext.present ? data.ext.value : this.ext,
-      path: data.path.present ? data.path.value : this.path,
-      source: data.source.present ? data.source.value : this.source,
+  ArticleMediaData copyWith({int? articleRefid, int? mediaRefid}) =>
+      ArticleMediaData(
+        articleRefid: articleRefid ?? this.articleRefid,
+        mediaRefid: mediaRefid ?? this.mediaRefid,
+      );
+  ArticleMediaData copyWithCompanion(ArticleMediaCompanion data) {
+    return ArticleMediaData(
+      articleRefid: data.articleRefid.present
+          ? data.articleRefid.value
+          : this.articleRefid,
+      mediaRefid: data.mediaRefid.present
+          ? data.mediaRefid.value
+          : this.mediaRefid,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('AssetData(')
-          ..write('baggageId: $baggageId, ')
-          ..write('hash: $hash, ')
-          ..write('kind: $kind, ')
-          ..write('ext: $ext, ')
-          ..write('path: $path, ')
-          ..write('source: $source')
+    return (StringBuffer('ArticleMediaData(')
+          ..write('articleRefid: $articleRefid, ')
+          ..write('mediaRefid: $mediaRefid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(baggageId, hash, kind, ext, path, source);
+  int get hashCode => Object.hash(articleRefid, mediaRefid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AssetData &&
-          other.baggageId == this.baggageId &&
-          other.hash == this.hash &&
-          other.kind == this.kind &&
-          other.ext == this.ext &&
-          other.path == this.path &&
-          other.source == this.source);
+      (other is ArticleMediaData &&
+          other.articleRefid == this.articleRefid &&
+          other.mediaRefid == this.mediaRefid);
 }
 
-class AssetCompanion extends UpdateCompanion<AssetData> {
-  final Value<String> baggageId;
-  final Value<String?> hash;
-  final Value<String?> kind;
-  final Value<String?> ext;
-  final Value<String?> path;
-  final Value<String?> source;
+class ArticleMediaCompanion extends UpdateCompanion<ArticleMediaData> {
+  final Value<int> articleRefid;
+  final Value<int> mediaRefid;
   final Value<int> rowid;
-  const AssetCompanion({
-    this.baggageId = const Value.absent(),
-    this.hash = const Value.absent(),
-    this.kind = const Value.absent(),
-    this.ext = const Value.absent(),
-    this.path = const Value.absent(),
-    this.source = const Value.absent(),
+  const ArticleMediaCompanion({
+    this.articleRefid = const Value.absent(),
+    this.mediaRefid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  AssetCompanion.insert({
-    required String baggageId,
-    this.hash = const Value.absent(),
-    this.kind = const Value.absent(),
-    this.ext = const Value.absent(),
-    this.path = const Value.absent(),
-    this.source = const Value.absent(),
+  ArticleMediaCompanion.insert({
+    required int articleRefid,
+    required int mediaRefid,
     this.rowid = const Value.absent(),
-  }) : baggageId = Value(baggageId);
-  static Insertable<AssetData> custom({
-    Expression<String>? baggageId,
-    Expression<String>? hash,
-    Expression<String>? kind,
-    Expression<String>? ext,
-    Expression<String>? path,
-    Expression<String>? source,
+  }) : articleRefid = Value(articleRefid),
+       mediaRefid = Value(mediaRefid);
+  static Insertable<ArticleMediaData> custom({
+    Expression<int>? articleRefid,
+    Expression<int>? mediaRefid,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (baggageId != null) 'baggage_id': baggageId,
-      if (hash != null) 'hash': hash,
-      if (kind != null) 'kind': kind,
-      if (ext != null) 'ext': ext,
-      if (path != null) 'path': path,
-      if (source != null) 'source': source,
+      if (articleRefid != null) 'article_refid': articleRefid,
+      if (mediaRefid != null) 'media_refid': mediaRefid,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  AssetCompanion copyWith({
-    Value<String>? baggageId,
-    Value<String?>? hash,
-    Value<String?>? kind,
-    Value<String?>? ext,
-    Value<String?>? path,
-    Value<String?>? source,
+  ArticleMediaCompanion copyWith({
+    Value<int>? articleRefid,
+    Value<int>? mediaRefid,
     Value<int>? rowid,
   }) {
-    return AssetCompanion(
-      baggageId: baggageId ?? this.baggageId,
-      hash: hash ?? this.hash,
-      kind: kind ?? this.kind,
-      ext: ext ?? this.ext,
-      path: path ?? this.path,
-      source: source ?? this.source,
+    return ArticleMediaCompanion(
+      articleRefid: articleRefid ?? this.articleRefid,
+      mediaRefid: mediaRefid ?? this.mediaRefid,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -660,23 +673,11 @@ class AssetCompanion extends UpdateCompanion<AssetData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (baggageId.present) {
-      map['baggage_id'] = Variable<String>(baggageId.value);
+    if (articleRefid.present) {
+      map['article_refid'] = Variable<int>(articleRefid.value);
     }
-    if (hash.present) {
-      map['hash'] = Variable<String>(hash.value);
-    }
-    if (kind.present) {
-      map['kind'] = Variable<String>(kind.value);
-    }
-    if (ext.present) {
-      map['ext'] = Variable<String>(ext.value);
-    }
-    if (path.present) {
-      map['path'] = Variable<String>(path.value);
-    }
-    if (source.present) {
-      map['source'] = Variable<String>(source.value);
+    if (mediaRefid.present) {
+      map['media_refid'] = Variable<int>(mediaRefid.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -686,13 +687,9 @@ class AssetCompanion extends UpdateCompanion<AssetData> {
 
   @override
   String toString() {
-    return (StringBuffer('AssetCompanion(')
-          ..write('baggageId: $baggageId, ')
-          ..write('hash: $hash, ')
-          ..write('kind: $kind, ')
-          ..write('ext: $ext, ')
-          ..write('path: $path, ')
-          ..write('source: $source, ')
+    return (StringBuffer('ArticleMediaCompanion(')
+          ..write('articleRefid: $articleRefid, ')
+          ..write('mediaRefid: $mediaRefid, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1416,212 +1413,363 @@ class MediaFileCompanion extends UpdateCompanion<MediaFileData> {
   }
 }
 
-class ArticleMedia extends Table
-    with TableInfo<ArticleMedia, ArticleMediaData> {
+class Asset extends Table with TableInfo<Asset, AssetData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  ArticleMedia(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _articleRefidMeta = const VerificationMeta(
-    'articleRefid',
+  Asset(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _baggageIdMeta = const VerificationMeta(
+    'baggageId',
   );
-  late final GeneratedColumn<int> articleRefid = GeneratedColumn<int>(
-    'article_refid',
+  late final GeneratedColumn<String> baggageId = GeneratedColumn<String>(
+    'baggage_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints: 'NOT NULL PRIMARY KEY',
   );
-  static const VerificationMeta _mediaRefidMeta = const VerificationMeta(
-    'mediaRefid',
-  );
-  late final GeneratedColumn<int> mediaRefid = GeneratedColumn<int>(
-    'media_refid',
+  static const VerificationMeta _hashMeta = const VerificationMeta('hash');
+  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
+    'hash',
     aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _extMeta = const VerificationMeta('ext');
+  late final GeneratedColumn<String> ext = GeneratedColumn<String>(
+    'ext',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
   );
   @override
-  List<GeneratedColumn> get $columns => [articleRefid, mediaRefid];
+  List<GeneratedColumn> get $columns => [
+    baggageId,
+    hash,
+    kind,
+    ext,
+    path,
+    source,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'article_media';
+  static const String $name = 'asset';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ArticleMediaData> instance, {
+    Insertable<AssetData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('article_refid')) {
+    if (data.containsKey('baggage_id')) {
       context.handle(
-        _articleRefidMeta,
-        articleRefid.isAcceptableOrUnknown(
-          data['article_refid']!,
-          _articleRefidMeta,
-        ),
+        _baggageIdMeta,
+        baggageId.isAcceptableOrUnknown(data['baggage_id']!, _baggageIdMeta),
       );
     } else if (isInserting) {
-      context.missing(_articleRefidMeta);
+      context.missing(_baggageIdMeta);
     }
-    if (data.containsKey('media_refid')) {
+    if (data.containsKey('hash')) {
       context.handle(
-        _mediaRefidMeta,
-        mediaRefid.isAcceptableOrUnknown(data['media_refid']!, _mediaRefidMeta),
+        _hashMeta,
+        hash.isAcceptableOrUnknown(data['hash']!, _hashMeta),
       );
-    } else if (isInserting) {
-      context.missing(_mediaRefidMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('ext')) {
+      context.handle(
+        _extMeta,
+        ext.isAcceptableOrUnknown(data['ext']!, _extMeta),
+      );
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
     }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {articleRefid, mediaRefid};
+  Set<GeneratedColumn> get $primaryKey => {baggageId};
   @override
-  ArticleMediaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AssetData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ArticleMediaData(
-      articleRefid: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}article_refid'],
+    return AssetData(
+      baggageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}baggage_id'],
       )!,
-      mediaRefid: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}media_refid'],
-      )!,
+      hash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hash'],
+      ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      ),
+      ext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ext'],
+      ),
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      ),
     );
   }
 
   @override
-  ArticleMedia createAlias(String alias) {
-    return ArticleMedia(attachedDatabase, alias);
+  Asset createAlias(String alias) {
+    return Asset(attachedDatabase, alias);
   }
 
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(article_refid, media_refid)',
-  ];
   @override
   bool get dontWriteConstraints => true;
 }
 
-class ArticleMediaData extends DataClass
-    implements Insertable<ArticleMediaData> {
-  final int articleRefid;
-  final int mediaRefid;
-  const ArticleMediaData({
-    required this.articleRefid,
-    required this.mediaRefid,
+class AssetData extends DataClass implements Insertable<AssetData> {
+  final String baggageId;
+  final String? hash;
+  final String? kind;
+  final String? ext;
+  final String? path;
+  final String? source;
+  const AssetData({
+    required this.baggageId,
+    this.hash,
+    this.kind,
+    this.ext,
+    this.path,
+    this.source,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['article_refid'] = Variable<int>(articleRefid);
-    map['media_refid'] = Variable<int>(mediaRefid);
+    map['baggage_id'] = Variable<String>(baggageId);
+    if (!nullToAbsent || hash != null) {
+      map['hash'] = Variable<String>(hash);
+    }
+    if (!nullToAbsent || kind != null) {
+      map['kind'] = Variable<String>(kind);
+    }
+    if (!nullToAbsent || ext != null) {
+      map['ext'] = Variable<String>(ext);
+    }
+    if (!nullToAbsent || path != null) {
+      map['path'] = Variable<String>(path);
+    }
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
     return map;
   }
 
-  ArticleMediaCompanion toCompanion(bool nullToAbsent) {
-    return ArticleMediaCompanion(
-      articleRefid: Value(articleRefid),
-      mediaRefid: Value(mediaRefid),
+  AssetCompanion toCompanion(bool nullToAbsent) {
+    return AssetCompanion(
+      baggageId: Value(baggageId),
+      hash: hash == null && nullToAbsent ? const Value.absent() : Value(hash),
+      kind: kind == null && nullToAbsent ? const Value.absent() : Value(kind),
+      ext: ext == null && nullToAbsent ? const Value.absent() : Value(ext),
+      path: path == null && nullToAbsent ? const Value.absent() : Value(path),
+      source: source == null && nullToAbsent
+          ? const Value.absent()
+          : Value(source),
     );
   }
 
-  factory ArticleMediaData.fromJson(
+  factory AssetData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ArticleMediaData(
-      articleRefid: serializer.fromJson<int>(json['article_refid']),
-      mediaRefid: serializer.fromJson<int>(json['media_refid']),
+    return AssetData(
+      baggageId: serializer.fromJson<String>(json['baggage_id']),
+      hash: serializer.fromJson<String?>(json['hash']),
+      kind: serializer.fromJson<String?>(json['kind']),
+      ext: serializer.fromJson<String?>(json['ext']),
+      path: serializer.fromJson<String?>(json['path']),
+      source: serializer.fromJson<String?>(json['source']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'article_refid': serializer.toJson<int>(articleRefid),
-      'media_refid': serializer.toJson<int>(mediaRefid),
+      'baggage_id': serializer.toJson<String>(baggageId),
+      'hash': serializer.toJson<String?>(hash),
+      'kind': serializer.toJson<String?>(kind),
+      'ext': serializer.toJson<String?>(ext),
+      'path': serializer.toJson<String?>(path),
+      'source': serializer.toJson<String?>(source),
     };
   }
 
-  ArticleMediaData copyWith({int? articleRefid, int? mediaRefid}) =>
-      ArticleMediaData(
-        articleRefid: articleRefid ?? this.articleRefid,
-        mediaRefid: mediaRefid ?? this.mediaRefid,
-      );
-  ArticleMediaData copyWithCompanion(ArticleMediaCompanion data) {
-    return ArticleMediaData(
-      articleRefid: data.articleRefid.present
-          ? data.articleRefid.value
-          : this.articleRefid,
-      mediaRefid: data.mediaRefid.present
-          ? data.mediaRefid.value
-          : this.mediaRefid,
+  AssetData copyWith({
+    String? baggageId,
+    Value<String?> hash = const Value.absent(),
+    Value<String?> kind = const Value.absent(),
+    Value<String?> ext = const Value.absent(),
+    Value<String?> path = const Value.absent(),
+    Value<String?> source = const Value.absent(),
+  }) => AssetData(
+    baggageId: baggageId ?? this.baggageId,
+    hash: hash.present ? hash.value : this.hash,
+    kind: kind.present ? kind.value : this.kind,
+    ext: ext.present ? ext.value : this.ext,
+    path: path.present ? path.value : this.path,
+    source: source.present ? source.value : this.source,
+  );
+  AssetData copyWithCompanion(AssetCompanion data) {
+    return AssetData(
+      baggageId: data.baggageId.present ? data.baggageId.value : this.baggageId,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      ext: data.ext.present ? data.ext.value : this.ext,
+      path: data.path.present ? data.path.value : this.path,
+      source: data.source.present ? data.source.value : this.source,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('ArticleMediaData(')
-          ..write('articleRefid: $articleRefid, ')
-          ..write('mediaRefid: $mediaRefid')
+    return (StringBuffer('AssetData(')
+          ..write('baggageId: $baggageId, ')
+          ..write('hash: $hash, ')
+          ..write('kind: $kind, ')
+          ..write('ext: $ext, ')
+          ..write('path: $path, ')
+          ..write('source: $source')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(articleRefid, mediaRefid);
+  int get hashCode => Object.hash(baggageId, hash, kind, ext, path, source);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ArticleMediaData &&
-          other.articleRefid == this.articleRefid &&
-          other.mediaRefid == this.mediaRefid);
+      (other is AssetData &&
+          other.baggageId == this.baggageId &&
+          other.hash == this.hash &&
+          other.kind == this.kind &&
+          other.ext == this.ext &&
+          other.path == this.path &&
+          other.source == this.source);
 }
 
-class ArticleMediaCompanion extends UpdateCompanion<ArticleMediaData> {
-  final Value<int> articleRefid;
-  final Value<int> mediaRefid;
+class AssetCompanion extends UpdateCompanion<AssetData> {
+  final Value<String> baggageId;
+  final Value<String?> hash;
+  final Value<String?> kind;
+  final Value<String?> ext;
+  final Value<String?> path;
+  final Value<String?> source;
   final Value<int> rowid;
-  const ArticleMediaCompanion({
-    this.articleRefid = const Value.absent(),
-    this.mediaRefid = const Value.absent(),
+  const AssetCompanion({
+    this.baggageId = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.ext = const Value.absent(),
+    this.path = const Value.absent(),
+    this.source = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ArticleMediaCompanion.insert({
-    required int articleRefid,
-    required int mediaRefid,
+  AssetCompanion.insert({
+    required String baggageId,
+    this.hash = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.ext = const Value.absent(),
+    this.path = const Value.absent(),
+    this.source = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : articleRefid = Value(articleRefid),
-       mediaRefid = Value(mediaRefid);
-  static Insertable<ArticleMediaData> custom({
-    Expression<int>? articleRefid,
-    Expression<int>? mediaRefid,
+  }) : baggageId = Value(baggageId);
+  static Insertable<AssetData> custom({
+    Expression<String>? baggageId,
+    Expression<String>? hash,
+    Expression<String>? kind,
+    Expression<String>? ext,
+    Expression<String>? path,
+    Expression<String>? source,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (articleRefid != null) 'article_refid': articleRefid,
-      if (mediaRefid != null) 'media_refid': mediaRefid,
+      if (baggageId != null) 'baggage_id': baggageId,
+      if (hash != null) 'hash': hash,
+      if (kind != null) 'kind': kind,
+      if (ext != null) 'ext': ext,
+      if (path != null) 'path': path,
+      if (source != null) 'source': source,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ArticleMediaCompanion copyWith({
-    Value<int>? articleRefid,
-    Value<int>? mediaRefid,
+  AssetCompanion copyWith({
+    Value<String>? baggageId,
+    Value<String?>? hash,
+    Value<String?>? kind,
+    Value<String?>? ext,
+    Value<String?>? path,
+    Value<String?>? source,
     Value<int>? rowid,
   }) {
-    return ArticleMediaCompanion(
-      articleRefid: articleRefid ?? this.articleRefid,
-      mediaRefid: mediaRefid ?? this.mediaRefid,
+    return AssetCompanion(
+      baggageId: baggageId ?? this.baggageId,
+      hash: hash ?? this.hash,
+      kind: kind ?? this.kind,
+      ext: ext ?? this.ext,
+      path: path ?? this.path,
+      source: source ?? this.source,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1629,11 +1777,23 @@ class ArticleMediaCompanion extends UpdateCompanion<ArticleMediaData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (articleRefid.present) {
-      map['article_refid'] = Variable<int>(articleRefid.value);
+    if (baggageId.present) {
+      map['baggage_id'] = Variable<String>(baggageId.value);
     }
-    if (mediaRefid.present) {
-      map['media_refid'] = Variable<int>(mediaRefid.value);
+    if (hash.present) {
+      map['hash'] = Variable<String>(hash.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (ext.present) {
+      map['ext'] = Variable<String>(ext.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1643,9 +1803,13 @@ class ArticleMediaCompanion extends UpdateCompanion<ArticleMediaData> {
 
   @override
   String toString() {
-    return (StringBuffer('ArticleMediaCompanion(')
-          ..write('articleRefid: $articleRefid, ')
-          ..write('mediaRefid: $mediaRefid, ')
+    return (StringBuffer('AssetCompanion(')
+          ..write('baggageId: $baggageId, ')
+          ..write('hash: $hash, ')
+          ..write('kind: $kind, ')
+          ..write('ext: $ext, ')
+          ..write('path: $path, ')
+          ..write('source: $source, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1875,185 +2039,21 @@ class XrefCompanion extends UpdateCompanion<XrefData> {
   }
 }
 
-class ArticleFts extends Table
-    with
-        TableInfo<ArticleFts, ArticleFt>,
-        VirtualTableInfo<ArticleFts, ArticleFt> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  ArticleFts(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
-  late final GeneratedColumn<String> body = GeneratedColumn<String>(
-    'body',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: '',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [body];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'article_fts';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<ArticleFt> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('body')) {
-      context.handle(
-        _bodyMeta,
-        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_bodyMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => const {};
-  @override
-  ArticleFt map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ArticleFt(
-      body: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}body'],
-      )!,
-    );
-  }
-
-  @override
-  ArticleFts createAlias(String alias) {
-    return ArticleFts(attachedDatabase, alias);
-  }
-
-  @override
-  bool get dontWriteConstraints => true;
-  @override
-  String get moduleAndArgs =>
-      'fts5(body, content=\'\', contentless_delete=1, tokenize=\'unicode61\')';
-}
-
-class ArticleFt extends DataClass implements Insertable<ArticleFt> {
-  final String body;
-  const ArticleFt({required this.body});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['body'] = Variable<String>(body);
-    return map;
-  }
-
-  ArticleFtsCompanion toCompanion(bool nullToAbsent) {
-    return ArticleFtsCompanion(body: Value(body));
-  }
-
-  factory ArticleFt.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ArticleFt(body: serializer.fromJson<String>(json['body']));
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{'body': serializer.toJson<String>(body)};
-  }
-
-  ArticleFt copyWith({String? body}) => ArticleFt(body: body ?? this.body);
-  ArticleFt copyWithCompanion(ArticleFtsCompanion data) {
-    return ArticleFt(body: data.body.present ? data.body.value : this.body);
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArticleFt(')
-          ..write('body: $body')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => body.hashCode;
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || (other is ArticleFt && other.body == this.body);
-}
-
-class ArticleFtsCompanion extends UpdateCompanion<ArticleFt> {
-  final Value<String> body;
-  final Value<int> rowid;
-  const ArticleFtsCompanion({
-    this.body = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ArticleFtsCompanion.insert({
-    required String body,
-    this.rowid = const Value.absent(),
-  }) : body = Value(body);
-  static Insertable<ArticleFt> custom({
-    Expression<String>? body,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (body != null) 'body': body,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ArticleFtsCompanion copyWith({Value<String>? body, Value<int>? rowid}) {
-    return ArticleFtsCompanion(
-      body: body ?? this.body,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (body.present) {
-      map['body'] = Variable<String>(body.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArticleFtsCompanion(')
-          ..write('body: $body, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$EncartaDatabase extends GeneratedDatabase {
   _$EncartaDatabase(QueryExecutor e) : super(e);
   $EncartaDatabaseManager get managers => $EncartaDatabaseManager(this);
+  late final ArticleFts articleFts = ArticleFts(this);
   late final Article article = Article(this);
-  late final Asset asset = Asset(this);
+  late final ArticleMedia articleMedia = ArticleMedia(this);
   late final Media media = Media(this);
   late final MediaFile mediaFile = MediaFile(this);
-  late final ArticleMedia articleMedia = ArticleMedia(this);
+  late final Asset asset = Asset(this);
   late final Xref xref = Xref(this);
-  late final ArticleFts articleFts = ArticleFts(this);
   Selectable<int> ftsRowidUnmapped() {
     return customSelect(
       'SELECT count(*) AS unmapped FROM article_fts AS f WHERE NOT EXISTS (SELECT 1 AS _c0 FROM article AS a WHERE a.refid = f."rowid")',
       variables: [],
-      readsFrom: {},
+      readsFrom: {articleFts, article},
     ).map((QueryRow row) => row.read<int>('unmapped'));
   }
 
@@ -2061,44 +2061,37 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT refid, xml FROM article WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET ?1',
       variables: [Variable<int>(offset)],
-      readsFrom: {},
+      readsFrom: {article},
     ).map(
       (QueryRow row) => FtsSeedArticleResult(
-        refid: row.readNullable<String>('refid'),
-        xml: row.readNullable<String>('xml'),
+        refid: row.read<int>('refid'),
+        xml: row.readNullable<Uint8List>('xml'),
       ),
     );
   }
 
-  Selectable<String?> ftsMatchToken(String token) {
+  Selectable<int> ftsMatchToken(String token) {
     return customSelect(
       'SELECT "rowid" FROM article_fts WHERE article_fts MATCH ?1',
       variables: [Variable<String>(token)],
-      readsFrom: {},
-    ).map((QueryRow row) => row.readNullable<String>('rowid'));
+      readsFrom: {articleFts},
+    ).map((QueryRow row) => row.read<int>('rowid'));
   }
 
-  Selectable<GetArticleByRefidResult> getArticleByRefid(String refid) {
+  Selectable<ArticleData> getArticleByRefid(int refid) {
     return customSelect(
       'SELECT refid, title, source, xml FROM article WHERE refid = ?1',
-      variables: [Variable<String>(refid)],
-      readsFrom: {},
-    ).map(
-      (QueryRow row) => GetArticleByRefidResult(
-        refid: row.readNullable<String>('refid'),
-        title: row.readNullable<String>('title'),
-        source: row.readNullable<String>('source'),
-        xml: row.readNullable<String>('xml'),
-      ),
-    );
+      variables: [Variable<int>(refid)],
+      readsFrom: {article},
+    ).asyncMap(article.mapFromRow);
   }
 
-  Selectable<String?> firstTitledRefid() {
+  Selectable<int> firstTitledRefid() {
     return customSelect(
       'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map((QueryRow row) => row.readNullable<String>('refid'));
+      readsFrom: {article},
+    ).map((QueryRow row) => row.read<int>('refid'));
   }
 
   Selectable<SearchArticlesResult> searchArticles(
@@ -2113,25 +2106,25 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
         Variable<int>(limit),
         Variable<int>(offset),
       ],
-      readsFrom: {},
+      readsFrom: {articleFts, article},
     ).map(
       (QueryRow row) => SearchArticlesResult(
-        refid: row.readNullable<String>('refid'),
+        refid: row.read<int>('refid'),
         title: row.readNullable<String>('title'),
         rank: row.read<double>('rank'),
       ),
     );
   }
 
-  Selectable<MediaForArticleResult> mediaForArticle(String refid) {
+  Selectable<MediaForArticleResult> mediaForArticle(int refid) {
     return customSelect(
       'SELECT m.refid AS mediaRefid, mf.role AS role, m."group" AS mgroup, m.title AS title, m.caption AS caption, m.credit AS credit, a.path AS assetPath, a.ext AS ext, a.kind AS kind FROM article_media AS am JOIN media AS m ON m.refid = am.media_refid JOIN media_file AS mf ON mf.media_refid = am.media_refid JOIN asset AS a ON a.baggage_id = mf.baggage_id WHERE am.article_refid = ?1 ORDER BY mf.role',
-      variables: [Variable<String>(refid)],
-      readsFrom: {},
+      variables: [Variable<int>(refid)],
+      readsFrom: {media, mediaFile, asset, articleMedia},
     ).map(
       (QueryRow row) => MediaForArticleResult(
-        mediaRefid: row.readNullable<String>('mediaRefid'),
-        role: row.readNullable<String>('role'),
+        mediaRefid: row.read<int>('mediaRefid'),
+        role: row.read<String>('role'),
         mgroup: row.readNullable<String>('mgroup'),
         title: row.readNullable<String>('title'),
         caption: row.readNullable<String>('caption'),
@@ -2143,22 +2136,22 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     );
   }
 
-  Selectable<String?> mostMediaRefid() {
+  Selectable<int> mostMediaRefid() {
     return customSelect(
       'SELECT a.refid AS refid FROM article_media AS am JOIN article AS a ON a.refid = am.article_refid GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map((QueryRow row) => row.readNullable<String>('refid'));
+      readsFrom: {article, articleMedia},
+    ).map((QueryRow row) => row.read<int>('refid'));
   }
 
   Selectable<AssetByBaggageIdResult> assetByBaggageId(String id) {
     return customSelect(
       'SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = ?1',
       variables: [Variable<String>(id)],
-      readsFrom: {},
+      readsFrom: {asset},
     ).map(
       (QueryRow row) => AssetByBaggageIdResult(
-        baggageId: row.readNullable<String>('baggage_id'),
+        baggageId: row.read<String>('baggage_id'),
         hash: row.readNullable<String>('hash'),
         kind: row.readNullable<String>('kind'),
         ext: row.readNullable<String>('ext'),
@@ -2167,12 +2160,12 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     );
   }
 
-  Selectable<String?> anyBaggageId() {
+  Selectable<String> anyBaggageId() {
     return customSelect(
       'SELECT baggage_id FROM asset LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map((QueryRow row) => row.readNullable<String>('baggage_id'));
+      readsFrom: {asset},
+    ).map((QueryRow row) => row.read<String>('baggage_id'));
   }
 
   Selectable<TitlesIndexResult> titlesIndex(
@@ -2181,80 +2174,66 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     int offset,
   ) {
     return customSelect(
-      'SELECT refid, title FROM article WHERE title IS NOT NULL AND title LIKE ?1 || \'%\' ORDER BY title LIMIT ?2 OFFSET ?3',
+      'SELECT refid, title FROM article WHERE title IS NOT NULL AND title != \'\' AND title LIKE ?1 || \'%\' ORDER BY title COLLATE NOCASE LIMIT ?2 OFFSET ?3',
       variables: [
         Variable<String>(prefix),
         Variable<int>(limit),
         Variable<int>(offset),
       ],
-      readsFrom: {},
+      readsFrom: {article},
     ).map(
       (QueryRow row) => TitlesIndexResult(
-        refid: row.readNullable<String>('refid'),
+        refid: row.read<int>('refid'),
         title: row.readNullable<String>('title'),
       ),
     );
   }
 
-  Selectable<OutboundXrefsResult> outboundXrefs(String refid) {
+  Selectable<OutboundXrefsResult> outboundXrefs(int refid) {
     return customSelect(
       'SELECT x.target_refid AS targetRefid, a.title AS title FROM xref AS x JOIN article AS a ON a.refid = x.target_refid WHERE x.refid = ?1 AND a.title IS NOT NULL ORDER BY a.title',
-      variables: [Variable<String>(refid)],
-      readsFrom: {},
+      variables: [Variable<int>(refid)],
+      readsFrom: {xref, article},
     ).map(
       (QueryRow row) => OutboundXrefsResult(
-        targetRefid: row.readNullable<String>('targetRefid'),
+        targetRefid: row.read<int>('targetRefid'),
         title: row.readNullable<String>('title'),
       ),
     );
   }
 
-  Selectable<String?> anyXrefSourceRefid() {
+  Selectable<int> anyXrefSourceRefid() {
     return customSelect(
       'SELECT x.refid AS refid FROM xref AS x JOIN article AS a ON a.refid = x.target_refid LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map((QueryRow row) => row.readNullable<String>('refid'));
+      readsFrom: {xref, article},
+    ).map((QueryRow row) => row.read<int>('refid'));
   }
 
-  Selectable<RandomArticleInRangeResult> randomArticleInRange() {
+  Selectable<ArticleData> randomArticleInRange() {
     return customSelect(
       'SELECT refid, title, source, xml FROM article WHERE refid >= (SELECT min(refid) + abs(random()) %(max(refid) - min(refid) + 1)FROM article) AND title IS NOT NULL ORDER BY refid LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map(
-      (QueryRow row) => RandomArticleInRangeResult(
-        refid: row.readNullable<String>('refid'),
-        title: row.readNullable<String>('title'),
-        source: row.readNullable<String>('source'),
-        xml: row.readNullable<String>('xml'),
-      ),
-    );
+      readsFrom: {article},
+    ).asyncMap(article.mapFromRow);
   }
 
-  Selectable<RandomArticleFallbackResult> randomArticleFallback() {
+  Selectable<ArticleData> randomArticleFallback() {
     return customSelect(
       'SELECT refid, title, source, xml FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
       variables: [],
-      readsFrom: {},
-    ).map(
-      (QueryRow row) => RandomArticleFallbackResult(
-        refid: row.readNullable<String>('refid'),
-        title: row.readNullable<String>('title'),
-        source: row.readNullable<String>('source'),
-        xml: row.readNullable<String>('xml'),
-      ),
-    );
+      readsFrom: {article},
+    ).asyncMap(article.mapFromRow);
   }
 
   Selectable<FeaturedHomeArticlesResult> featuredHomeArticles(int limit) {
     return customSelect(
       'SELECT a.refid AS refid, a.title AS title FROM media AS m JOIN article_media AS am ON am.media_refid = m.refid JOIN article AS a ON a.refid = am.article_refid WHERE m."group" = \'home\' AND a.title IS NOT NULL GROUP BY a.refid ORDER BY m.refid LIMIT ?1',
       variables: [Variable<int>(limit)],
-      readsFrom: {},
+      readsFrom: {article, media, articleMedia},
     ).map(
       (QueryRow row) => FeaturedHomeArticlesResult(
-        refid: row.readNullable<String>('refid'),
+        refid: row.read<int>('refid'),
         title: row.readNullable<String>('title'),
       ),
     );
@@ -2264,10 +2243,10 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT a.refid AS refid, a.title AS title FROM article_media AS am JOIN article AS a ON a.refid = am.article_refid WHERE a.title IS NOT NULL GROUP BY a.refid ORDER BY count(*) DESC LIMIT ?1',
       variables: [Variable<int>(limit)],
-      readsFrom: {},
+      readsFrom: {article, articleMedia},
     ).map(
       (QueryRow row) => FeaturedByMediaCountResult(
-        refid: row.readNullable<String>('refid'),
+        refid: row.read<int>('refid'),
         title: row.readNullable<String>('title'),
       ),
     );
@@ -2278,16 +2257,122 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    articleFts,
     article,
-    asset,
+    articleMedia,
     media,
     mediaFile,
-    articleMedia,
+    asset,
     xref,
-    articleFts,
   ];
 }
 
+typedef $ArticleFtsCreateCompanionBuilder =
+    ArticleFtsCompanion Function({required String body, Value<int> rowid});
+typedef $ArticleFtsUpdateCompanionBuilder =
+    ArticleFtsCompanion Function({Value<String> body, Value<int> rowid});
+
+class $ArticleFtsFilterComposer
+    extends Composer<_$EncartaDatabase, ArticleFts> {
+  $ArticleFtsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $ArticleFtsOrderingComposer
+    extends Composer<_$EncartaDatabase, ArticleFts> {
+  $ArticleFtsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $ArticleFtsAnnotationComposer
+    extends Composer<_$EncartaDatabase, ArticleFts> {
+  $ArticleFtsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+}
+
+class $ArticleFtsTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          ArticleFts,
+          ArticleFt,
+          $ArticleFtsFilterComposer,
+          $ArticleFtsOrderingComposer,
+          $ArticleFtsAnnotationComposer,
+          $ArticleFtsCreateCompanionBuilder,
+          $ArticleFtsUpdateCompanionBuilder,
+          (ArticleFt, BaseReferences<_$EncartaDatabase, ArticleFts, ArticleFt>),
+          ArticleFt,
+          PrefetchHooks Function()
+        > {
+  $ArticleFtsTableManager(_$EncartaDatabase db, ArticleFts table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ArticleFtsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ArticleFtsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ArticleFtsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> body = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ArticleFtsCompanion(body: body, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String body,
+                Value<int> rowid = const Value.absent(),
+              }) => ArticleFtsCompanion.insert(body: body, rowid: rowid),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $ArticleFtsProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      ArticleFts,
+      ArticleFt,
+      $ArticleFtsFilterComposer,
+      $ArticleFtsOrderingComposer,
+      $ArticleFtsAnnotationComposer,
+      $ArticleFtsCreateCompanionBuilder,
+      $ArticleFtsUpdateCompanionBuilder,
+      (ArticleFt, BaseReferences<_$EncartaDatabase, ArticleFts, ArticleFt>),
+      ArticleFt,
+      PrefetchHooks Function()
+    >;
 typedef $ArticleCreateCompanionBuilder =
     ArticleCompanion Function({
       Value<int> refid,
@@ -2457,192 +2542,126 @@ typedef $ArticleProcessedTableManager =
       ArticleData,
       PrefetchHooks Function()
     >;
-typedef $AssetCreateCompanionBuilder =
-    AssetCompanion Function({
-      required String baggageId,
-      Value<String?> hash,
-      Value<String?> kind,
-      Value<String?> ext,
-      Value<String?> path,
-      Value<String?> source,
+typedef $ArticleMediaCreateCompanionBuilder =
+    ArticleMediaCompanion Function({
+      required int articleRefid,
+      required int mediaRefid,
       Value<int> rowid,
     });
-typedef $AssetUpdateCompanionBuilder =
-    AssetCompanion Function({
-      Value<String> baggageId,
-      Value<String?> hash,
-      Value<String?> kind,
-      Value<String?> ext,
-      Value<String?> path,
-      Value<String?> source,
+typedef $ArticleMediaUpdateCompanionBuilder =
+    ArticleMediaCompanion Function({
+      Value<int> articleRefid,
+      Value<int> mediaRefid,
       Value<int> rowid,
     });
 
-class $AssetFilterComposer extends Composer<_$EncartaDatabase, Asset> {
-  $AssetFilterComposer({
+class $ArticleMediaFilterComposer
+    extends Composer<_$EncartaDatabase, ArticleMedia> {
+  $ArticleMediaFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get baggageId => $composableBuilder(
-    column: $table.baggageId,
+  ColumnFilters<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get kind => $composableBuilder(
-    column: $table.kind,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get ext => $composableBuilder(
-    column: $table.ext,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get path => $composableBuilder(
-    column: $table.path,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get source => $composableBuilder(
-    column: $table.source,
+  ColumnFilters<int> get mediaRefid => $composableBuilder(
+    column: $table.mediaRefid,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $AssetOrderingComposer extends Composer<_$EncartaDatabase, Asset> {
-  $AssetOrderingComposer({
+class $ArticleMediaOrderingComposer
+    extends Composer<_$EncartaDatabase, ArticleMedia> {
+  $ArticleMediaOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get baggageId => $composableBuilder(
-    column: $table.baggageId,
+  ColumnOrderings<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get kind => $composableBuilder(
-    column: $table.kind,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get ext => $composableBuilder(
-    column: $table.ext,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get path => $composableBuilder(
-    column: $table.path,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get source => $composableBuilder(
-    column: $table.source,
+  ColumnOrderings<int> get mediaRefid => $composableBuilder(
+    column: $table.mediaRefid,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $AssetAnnotationComposer extends Composer<_$EncartaDatabase, Asset> {
-  $AssetAnnotationComposer({
+class $ArticleMediaAnnotationComposer
+    extends Composer<_$EncartaDatabase, ArticleMedia> {
+  $ArticleMediaAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get baggageId =>
-      $composableBuilder(column: $table.baggageId, builder: (column) => column);
+  GeneratedColumn<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get hash =>
-      $composableBuilder(column: $table.hash, builder: (column) => column);
-
-  GeneratedColumn<String> get kind =>
-      $composableBuilder(column: $table.kind, builder: (column) => column);
-
-  GeneratedColumn<String> get ext =>
-      $composableBuilder(column: $table.ext, builder: (column) => column);
-
-  GeneratedColumn<String> get path =>
-      $composableBuilder(column: $table.path, builder: (column) => column);
-
-  GeneratedColumn<String> get source =>
-      $composableBuilder(column: $table.source, builder: (column) => column);
+  GeneratedColumn<int> get mediaRefid => $composableBuilder(
+    column: $table.mediaRefid,
+    builder: (column) => column,
+  );
 }
 
-class $AssetTableManager
+class $ArticleMediaTableManager
     extends
         RootTableManager<
           _$EncartaDatabase,
-          Asset,
-          AssetData,
-          $AssetFilterComposer,
-          $AssetOrderingComposer,
-          $AssetAnnotationComposer,
-          $AssetCreateCompanionBuilder,
-          $AssetUpdateCompanionBuilder,
-          (AssetData, BaseReferences<_$EncartaDatabase, Asset, AssetData>),
-          AssetData,
+          ArticleMedia,
+          ArticleMediaData,
+          $ArticleMediaFilterComposer,
+          $ArticleMediaOrderingComposer,
+          $ArticleMediaAnnotationComposer,
+          $ArticleMediaCreateCompanionBuilder,
+          $ArticleMediaUpdateCompanionBuilder,
+          (
+            ArticleMediaData,
+            BaseReferences<_$EncartaDatabase, ArticleMedia, ArticleMediaData>,
+          ),
+          ArticleMediaData,
           PrefetchHooks Function()
         > {
-  $AssetTableManager(_$EncartaDatabase db, Asset table)
+  $ArticleMediaTableManager(_$EncartaDatabase db, ArticleMedia table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $AssetFilterComposer($db: db, $table: table),
+              $ArticleMediaFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $AssetOrderingComposer($db: db, $table: table),
+              $ArticleMediaOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $AssetAnnotationComposer($db: db, $table: table),
+              $ArticleMediaAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> baggageId = const Value.absent(),
-                Value<String?> hash = const Value.absent(),
-                Value<String?> kind = const Value.absent(),
-                Value<String?> ext = const Value.absent(),
-                Value<String?> path = const Value.absent(),
-                Value<String?> source = const Value.absent(),
+                Value<int> articleRefid = const Value.absent(),
+                Value<int> mediaRefid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => AssetCompanion(
-                baggageId: baggageId,
-                hash: hash,
-                kind: kind,
-                ext: ext,
-                path: path,
-                source: source,
+              }) => ArticleMediaCompanion(
+                articleRefid: articleRefid,
+                mediaRefid: mediaRefid,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required String baggageId,
-                Value<String?> hash = const Value.absent(),
-                Value<String?> kind = const Value.absent(),
-                Value<String?> ext = const Value.absent(),
-                Value<String?> path = const Value.absent(),
-                Value<String?> source = const Value.absent(),
+                required int articleRefid,
+                required int mediaRefid,
                 Value<int> rowid = const Value.absent(),
-              }) => AssetCompanion.insert(
-                baggageId: baggageId,
-                hash: hash,
-                kind: kind,
-                ext: ext,
-                path: path,
-                source: source,
+              }) => ArticleMediaCompanion.insert(
+                articleRefid: articleRefid,
+                mediaRefid: mediaRefid,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2653,18 +2672,21 @@ class $AssetTableManager
       );
 }
 
-typedef $AssetProcessedTableManager =
+typedef $ArticleMediaProcessedTableManager =
     ProcessedTableManager<
       _$EncartaDatabase,
-      Asset,
-      AssetData,
-      $AssetFilterComposer,
-      $AssetOrderingComposer,
-      $AssetAnnotationComposer,
-      $AssetCreateCompanionBuilder,
-      $AssetUpdateCompanionBuilder,
-      (AssetData, BaseReferences<_$EncartaDatabase, Asset, AssetData>),
-      AssetData,
+      ArticleMedia,
+      ArticleMediaData,
+      $ArticleMediaFilterComposer,
+      $ArticleMediaOrderingComposer,
+      $ArticleMediaAnnotationComposer,
+      $ArticleMediaCreateCompanionBuilder,
+      $ArticleMediaUpdateCompanionBuilder,
+      (
+        ArticleMediaData,
+        BaseReferences<_$EncartaDatabase, ArticleMedia, ArticleMediaData>,
+      ),
+      ArticleMediaData,
       PrefetchHooks Function()
     >;
 typedef $MediaCreateCompanionBuilder =
@@ -3053,126 +3075,192 @@ typedef $MediaFileProcessedTableManager =
       MediaFileData,
       PrefetchHooks Function()
     >;
-typedef $ArticleMediaCreateCompanionBuilder =
-    ArticleMediaCompanion Function({
-      required int articleRefid,
-      required int mediaRefid,
+typedef $AssetCreateCompanionBuilder =
+    AssetCompanion Function({
+      required String baggageId,
+      Value<String?> hash,
+      Value<String?> kind,
+      Value<String?> ext,
+      Value<String?> path,
+      Value<String?> source,
       Value<int> rowid,
     });
-typedef $ArticleMediaUpdateCompanionBuilder =
-    ArticleMediaCompanion Function({
-      Value<int> articleRefid,
-      Value<int> mediaRefid,
+typedef $AssetUpdateCompanionBuilder =
+    AssetCompanion Function({
+      Value<String> baggageId,
+      Value<String?> hash,
+      Value<String?> kind,
+      Value<String?> ext,
+      Value<String?> path,
+      Value<String?> source,
       Value<int> rowid,
     });
 
-class $ArticleMediaFilterComposer
-    extends Composer<_$EncartaDatabase, ArticleMedia> {
-  $ArticleMediaFilterComposer({
+class $AssetFilterComposer extends Composer<_$EncartaDatabase, Asset> {
+  $AssetFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get articleRefid => $composableBuilder(
-    column: $table.articleRefid,
+  ColumnFilters<String> get baggageId => $composableBuilder(
+    column: $table.baggageId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get mediaRefid => $composableBuilder(
-    column: $table.mediaRefid,
+  ColumnFilters<String> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ext => $composableBuilder(
+    column: $table.ext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $ArticleMediaOrderingComposer
-    extends Composer<_$EncartaDatabase, ArticleMedia> {
-  $ArticleMediaOrderingComposer({
+class $AssetOrderingComposer extends Composer<_$EncartaDatabase, Asset> {
+  $AssetOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get articleRefid => $composableBuilder(
-    column: $table.articleRefid,
+  ColumnOrderings<String> get baggageId => $composableBuilder(
+    column: $table.baggageId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get mediaRefid => $composableBuilder(
-    column: $table.mediaRefid,
+  ColumnOrderings<String> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ext => $composableBuilder(
+    column: $table.ext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $ArticleMediaAnnotationComposer
-    extends Composer<_$EncartaDatabase, ArticleMedia> {
-  $ArticleMediaAnnotationComposer({
+class $AssetAnnotationComposer extends Composer<_$EncartaDatabase, Asset> {
+  $AssetAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get articleRefid => $composableBuilder(
-    column: $table.articleRefid,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get baggageId =>
+      $composableBuilder(column: $table.baggageId, builder: (column) => column);
 
-  GeneratedColumn<int> get mediaRefid => $composableBuilder(
-    column: $table.mediaRefid,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get ext =>
+      $composableBuilder(column: $table.ext, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
 }
 
-class $ArticleMediaTableManager
+class $AssetTableManager
     extends
         RootTableManager<
           _$EncartaDatabase,
-          ArticleMedia,
-          ArticleMediaData,
-          $ArticleMediaFilterComposer,
-          $ArticleMediaOrderingComposer,
-          $ArticleMediaAnnotationComposer,
-          $ArticleMediaCreateCompanionBuilder,
-          $ArticleMediaUpdateCompanionBuilder,
-          (
-            ArticleMediaData,
-            BaseReferences<_$EncartaDatabase, ArticleMedia, ArticleMediaData>,
-          ),
-          ArticleMediaData,
+          Asset,
+          AssetData,
+          $AssetFilterComposer,
+          $AssetOrderingComposer,
+          $AssetAnnotationComposer,
+          $AssetCreateCompanionBuilder,
+          $AssetUpdateCompanionBuilder,
+          (AssetData, BaseReferences<_$EncartaDatabase, Asset, AssetData>),
+          AssetData,
           PrefetchHooks Function()
         > {
-  $ArticleMediaTableManager(_$EncartaDatabase db, ArticleMedia table)
+  $AssetTableManager(_$EncartaDatabase db, Asset table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $ArticleMediaFilterComposer($db: db, $table: table),
+              $AssetFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $ArticleMediaOrderingComposer($db: db, $table: table),
+              $AssetOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $ArticleMediaAnnotationComposer($db: db, $table: table),
+              $AssetAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> articleRefid = const Value.absent(),
-                Value<int> mediaRefid = const Value.absent(),
+                Value<String> baggageId = const Value.absent(),
+                Value<String?> hash = const Value.absent(),
+                Value<String?> kind = const Value.absent(),
+                Value<String?> ext = const Value.absent(),
+                Value<String?> path = const Value.absent(),
+                Value<String?> source = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ArticleMediaCompanion(
-                articleRefid: articleRefid,
-                mediaRefid: mediaRefid,
+              }) => AssetCompanion(
+                baggageId: baggageId,
+                hash: hash,
+                kind: kind,
+                ext: ext,
+                path: path,
+                source: source,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required int articleRefid,
-                required int mediaRefid,
+                required String baggageId,
+                Value<String?> hash = const Value.absent(),
+                Value<String?> kind = const Value.absent(),
+                Value<String?> ext = const Value.absent(),
+                Value<String?> path = const Value.absent(),
+                Value<String?> source = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ArticleMediaCompanion.insert(
-                articleRefid: articleRefid,
-                mediaRefid: mediaRefid,
+              }) => AssetCompanion.insert(
+                baggageId: baggageId,
+                hash: hash,
+                kind: kind,
+                ext: ext,
+                path: path,
+                source: source,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3183,21 +3271,18 @@ class $ArticleMediaTableManager
       );
 }
 
-typedef $ArticleMediaProcessedTableManager =
+typedef $AssetProcessedTableManager =
     ProcessedTableManager<
       _$EncartaDatabase,
-      ArticleMedia,
-      ArticleMediaData,
-      $ArticleMediaFilterComposer,
-      $ArticleMediaOrderingComposer,
-      $ArticleMediaAnnotationComposer,
-      $ArticleMediaCreateCompanionBuilder,
-      $ArticleMediaUpdateCompanionBuilder,
-      (
-        ArticleMediaData,
-        BaseReferences<_$EncartaDatabase, ArticleMedia, ArticleMediaData>,
-      ),
-      ArticleMediaData,
+      Asset,
+      AssetData,
+      $AssetFilterComposer,
+      $AssetOrderingComposer,
+      $AssetAnnotationComposer,
+      $AssetCreateCompanionBuilder,
+      $AssetUpdateCompanionBuilder,
+      (AssetData, BaseReferences<_$EncartaDatabase, Asset, AssetData>),
+      AssetData,
       PrefetchHooks Function()
     >;
 typedef $XrefCreateCompanionBuilder =
@@ -3336,152 +3421,38 @@ typedef $XrefProcessedTableManager =
       XrefData,
       PrefetchHooks Function()
     >;
-typedef $ArticleFtsCreateCompanionBuilder =
-    ArticleFtsCompanion Function({required String body, Value<int> rowid});
-typedef $ArticleFtsUpdateCompanionBuilder =
-    ArticleFtsCompanion Function({Value<String> body, Value<int> rowid});
-
-class $ArticleFtsFilterComposer
-    extends Composer<_$EncartaDatabase, ArticleFts> {
-  $ArticleFtsFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get body => $composableBuilder(
-    column: $table.body,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $ArticleFtsOrderingComposer
-    extends Composer<_$EncartaDatabase, ArticleFts> {
-  $ArticleFtsOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get body => $composableBuilder(
-    column: $table.body,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $ArticleFtsAnnotationComposer
-    extends Composer<_$EncartaDatabase, ArticleFts> {
-  $ArticleFtsAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get body =>
-      $composableBuilder(column: $table.body, builder: (column) => column);
-}
-
-class $ArticleFtsTableManager
-    extends
-        RootTableManager<
-          _$EncartaDatabase,
-          ArticleFts,
-          ArticleFt,
-          $ArticleFtsFilterComposer,
-          $ArticleFtsOrderingComposer,
-          $ArticleFtsAnnotationComposer,
-          $ArticleFtsCreateCompanionBuilder,
-          $ArticleFtsUpdateCompanionBuilder,
-          (ArticleFt, BaseReferences<_$EncartaDatabase, ArticleFts, ArticleFt>),
-          ArticleFt,
-          PrefetchHooks Function()
-        > {
-  $ArticleFtsTableManager(_$EncartaDatabase db, ArticleFts table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $ArticleFtsFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $ArticleFtsOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $ArticleFtsAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> body = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ArticleFtsCompanion(body: body, rowid: rowid),
-          createCompanionCallback:
-              ({
-                required String body,
-                Value<int> rowid = const Value.absent(),
-              }) => ArticleFtsCompanion.insert(body: body, rowid: rowid),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $ArticleFtsProcessedTableManager =
-    ProcessedTableManager<
-      _$EncartaDatabase,
-      ArticleFts,
-      ArticleFt,
-      $ArticleFtsFilterComposer,
-      $ArticleFtsOrderingComposer,
-      $ArticleFtsAnnotationComposer,
-      $ArticleFtsCreateCompanionBuilder,
-      $ArticleFtsUpdateCompanionBuilder,
-      (ArticleFt, BaseReferences<_$EncartaDatabase, ArticleFts, ArticleFt>),
-      ArticleFt,
-      PrefetchHooks Function()
-    >;
 
 class $EncartaDatabaseManager {
   final _$EncartaDatabase _db;
   $EncartaDatabaseManager(this._db);
+  $ArticleFtsTableManager get articleFts =>
+      $ArticleFtsTableManager(_db, _db.articleFts);
   $ArticleTableManager get article => $ArticleTableManager(_db, _db.article);
-  $AssetTableManager get asset => $AssetTableManager(_db, _db.asset);
+  $ArticleMediaTableManager get articleMedia =>
+      $ArticleMediaTableManager(_db, _db.articleMedia);
   $MediaTableManager get media => $MediaTableManager(_db, _db.media);
   $MediaFileTableManager get mediaFile =>
       $MediaFileTableManager(_db, _db.mediaFile);
-  $ArticleMediaTableManager get articleMedia =>
-      $ArticleMediaTableManager(_db, _db.articleMedia);
+  $AssetTableManager get asset => $AssetTableManager(_db, _db.asset);
   $XrefTableManager get xref => $XrefTableManager(_db, _db.xref);
-  $ArticleFtsTableManager get articleFts =>
-      $ArticleFtsTableManager(_db, _db.articleFts);
 }
 
 class FtsSeedArticleResult {
-  final String? refid;
-  final String? xml;
-  FtsSeedArticleResult({this.refid, this.xml});
-}
-
-class GetArticleByRefidResult {
-  final String? refid;
-  final String? title;
-  final String? source;
-  final String? xml;
-  GetArticleByRefidResult({this.refid, this.title, this.source, this.xml});
+  final int refid;
+  final Uint8List? xml;
+  FtsSeedArticleResult({required this.refid, this.xml});
 }
 
 class SearchArticlesResult {
-  final String? refid;
+  final int refid;
   final String? title;
   final double rank;
-  SearchArticlesResult({this.refid, this.title, required this.rank});
+  SearchArticlesResult({required this.refid, this.title, required this.rank});
 }
 
 class MediaForArticleResult {
-  final String? mediaRefid;
-  final String? role;
+  final int mediaRefid;
+  final String role;
   final String? mgroup;
   final String? title;
   final String? caption;
@@ -3490,8 +3461,8 @@ class MediaForArticleResult {
   final String? ext;
   final String? kind;
   MediaForArticleResult({
-    this.mediaRefid,
-    this.role,
+    required this.mediaRefid,
+    required this.role,
     this.mgroup,
     this.title,
     this.caption,
@@ -3503,13 +3474,13 @@ class MediaForArticleResult {
 }
 
 class AssetByBaggageIdResult {
-  final String? baggageId;
+  final String baggageId;
   final String? hash;
   final String? kind;
   final String? ext;
   final String? path;
   AssetByBaggageIdResult({
-    this.baggageId,
+    required this.baggageId,
     this.hash,
     this.kind,
     this.ext,
@@ -3518,41 +3489,25 @@ class AssetByBaggageIdResult {
 }
 
 class TitlesIndexResult {
-  final String? refid;
+  final int refid;
   final String? title;
-  TitlesIndexResult({this.refid, this.title});
+  TitlesIndexResult({required this.refid, this.title});
 }
 
 class OutboundXrefsResult {
-  final String? targetRefid;
+  final int targetRefid;
   final String? title;
-  OutboundXrefsResult({this.targetRefid, this.title});
-}
-
-class RandomArticleInRangeResult {
-  final String? refid;
-  final String? title;
-  final String? source;
-  final String? xml;
-  RandomArticleInRangeResult({this.refid, this.title, this.source, this.xml});
-}
-
-class RandomArticleFallbackResult {
-  final String? refid;
-  final String? title;
-  final String? source;
-  final String? xml;
-  RandomArticleFallbackResult({this.refid, this.title, this.source, this.xml});
+  OutboundXrefsResult({required this.targetRefid, this.title});
 }
 
 class FeaturedHomeArticlesResult {
-  final String? refid;
+  final int refid;
   final String? title;
-  FeaturedHomeArticlesResult({this.refid, this.title});
+  FeaturedHomeArticlesResult({required this.refid, this.title});
 }
 
 class FeaturedByMediaCountResult {
-  final String? refid;
+  final int refid;
   final String? title;
-  FeaturedByMediaCountResult({this.refid, this.title});
+  FeaturedByMediaCountResult({required this.refid, this.title});
 }

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:meta/meta.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -76,32 +76,21 @@ class EncartaDb {
   Future<void> close() => _db.close();
 
   /// Test-only: row count, used to prove the connection is live.
+  @visibleForTesting
   Future<int> debugArticleCount() async {
     final row = await _db.customSelect('SELECT count(*) AS n FROM article').getSingle();
     return row.read<int>('n');
   }
 
   /// Loads one article by id, or null if absent. Missing titles map to ''.
-  ///
-  /// Uses customSelect rather than the drift-generated accessor because
-  /// drift's static analyser cannot resolve the corpus table schema and
-  /// generates String? for all columns (see task brief note).
   Future<Article?> getArticle(int refid) async {
-    final rows = await _db.customSelect(
-      'SELECT refid, title, source, xml FROM article WHERE refid = ?',
-      variables: [Variable<int>(refid)],
-    ).get();
-    if (rows.isEmpty) return null;
-    final row = rows.first;
-    final xmlRaw = row.data['xml'];
-    final xml = xmlRaw is Uint8List
-        ? xmlRaw
-        : (xmlRaw is List<int> ? Uint8List.fromList(xmlRaw) : Uint8List(0));
+    final row = await _db.getArticleByRefid(refid).getSingleOrNull();
+    if (row == null) return null;
     return Article(
-      refid: row.read<int>('refid'),
-      title: row.read<String?>('title') ?? '',
-      source: row.read<String?>('source') ?? '',
-      xmlBytes: xml,
+      refid: row.refid,
+      title: row.title ?? '',
+      source: row.source ?? '',
+      xmlBytes: row.xml ?? Uint8List(0),
     );
   }
 
@@ -112,40 +101,22 @@ class EncartaDb {
   /// scan — O(log n) instead of a full-table `ORDER BY random()`. Falls back to
   /// the first titled article when the random point lands past the last titled
   /// refid. Delegates to [getArticle] so xml BLOB mapping stays in one place.
-  ///
-  /// Uses customSelect (not the drift-generated randomArticleInRange accessor)
-  /// because drift's codegen mis-types the INTEGER refid column as String?.
   Future<Article?> randomArticle() async {
-    var row = await _db.customSelect(
-      'SELECT refid FROM article'
-      ' WHERE refid >= ('
-      '   SELECT min(refid) + abs(random()) % (max(refid) - min(refid) + 1)'
-      '   FROM article'
-      ' ) AND title IS NOT NULL ORDER BY refid LIMIT 1',
-    ).getSingleOrNull();
-    row ??= await _db.customSelect(
-      'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
-    ).getSingleOrNull();
-    if (row == null) return null;
-    return getArticle(row.read<int>('refid'));
+    final data = (await _db.randomArticleInRange().getSingleOrNull()) ??
+        (await _db.randomArticleFallback().getSingleOrNull());
+    if (data == null) return null;
+    return getArticle(data.refid);
   }
 
   /// Test seam: the smallest titled refid in the corpus.
   Future<int> firstTitledRefid() async {
-    final row = await _db.customSelect(
-      'SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1',
-    ).getSingle();
-    return row.read<int>('refid');
+    return _db.firstTitledRefid().getSingle();
   }
 
   /// Full-text search, bm25-ranked (most relevant first), paginated.
   ///
   /// Returns a list of [SearchHit]s ordered by ascending bm25 rank (more
   /// negative = more relevant, so ascending puts the best match first).
-  ///
-  /// Uses [customSelect] directly because drift's static analyser cannot type
-  /// queries against the virtual `article_fts` table — this is the established
-  /// pattern in this package (the `.drift` stub generates wrong types).
   ///
   /// Query escaping: [_fts5Query] converts the raw user string into a safe
   /// FTS5 MATCH expression (each whitespace token quoted as a string literal).
@@ -158,6 +129,8 @@ class EncartaDb {
   }) async {
     final ftsQuery = _fts5Query(query);
     if (ftsQuery == null) return [];
+    // customSelect: FTS5 MATCH + bm25 on the virtual article_fts table; keeping
+    // the SQL here makes the _fts5Query() escaping contract explicit at the call site.
     final rows = await _db.customSelect(
       'SELECT f.rowid AS refid, a.title AS title, '
       'CAST(bm25(article_fts) AS REAL) AS rank '
@@ -185,49 +158,26 @@ class EncartaDb {
   /// All media slots for an article via article_media → media_file → asset.
   /// `assetPath` is relative to `<dataDir>/assets/`.
   Future<List<MediaItem>> mediaForArticle(int refid) async {
-    final rows = await _db.customSelect(
-      'SELECT '
-      '  m.refid    AS mediaRefid, '
-      '  mf.role    AS role, '
-      '  m."group"  AS mgroup, '
-      '  m.title    AS title, '
-      '  m.caption  AS caption, '
-      '  m.credit   AS credit, '
-      '  a.path     AS assetPath, '
-      '  a.ext      AS ext, '
-      '  a.kind     AS kind '
-      'FROM article_media am '
-      'JOIN media m       ON m.refid = am.media_refid '
-      'JOIN media_file mf ON mf.media_refid = am.media_refid '
-      'JOIN asset a       ON a.baggage_id = mf.baggage_id '
-      'WHERE am.article_refid = ? '
-      'ORDER BY mf.role',
-      variables: [Variable<int>(refid)],
-    ).get();
+    final rows = await _db.mediaForArticle(refid).get();
     return [
       for (final r in rows)
         MediaItem(
-          mediaRefid: r.read<int>('mediaRefid'),
-          role: r.read<String?>('role') ?? '',
-          group: r.read<String?>('mgroup') ?? '',
-          title: r.read<String?>('title'),
-          caption: r.read<String?>('caption'),
-          credit: r.read<String?>('credit'),
-          assetPath: r.read<String?>('assetPath') ?? '',
-          ext: r.read<String?>('ext') ?? '',
-          kind: r.read<String?>('kind') ?? '',
+          mediaRefid: r.mediaRefid,
+          role: r.role,
+          group: r.mgroup ?? '',
+          title: r.title,
+          caption: r.caption,
+          credit: r.credit,
+          assetPath: r.assetPath ?? '',
+          ext: r.ext ?? '',
+          kind: r.kind ?? '',
         ),
     ];
   }
 
   /// Test seam: the most media-rich article id in the corpus.
   Future<int> mostMediaRefid() async {
-    final row = await _db.customSelect(
-      'SELECT a.refid AS refid FROM article_media am '
-      'JOIN article a ON a.refid = am.article_refid '
-      'GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1',
-    ).getSingle();
-    return row.read<int>('refid');
+    return _db.mostMediaRefid().getSingle();
   }
 
   /// Looks up a single asset by its baggage_id (the `inlinebmp type=27` id),
@@ -236,7 +186,7 @@ class EncartaDb {
     final row = await _db.assetByBaggageId(baggageId).getSingleOrNull();
     if (row == null) return null;
     return AssetRow(
-      baggageId: row.baggageId ?? '',
+      baggageId: row.baggageId,
       hash: row.hash ?? '',
       kind: row.kind ?? '',
       ext: row.ext ?? '',
@@ -251,68 +201,34 @@ class EncartaDb {
 
   /// Outbound cross-references for an article. Targets absent from the corpus
   /// are dropped by the JOIN, so callers never get dead links.
-  ///
-  /// Uses customSelect rather than the drift-generated accessor because drift
-  /// cannot resolve the corpus schema at build time: it generates `String` for
-  /// both `refid` and `target_refid` (integer columns), making the accessor
-  /// unusable without unsafe casts.
   Future<List<XrefTarget>> outboundXrefs(int refid) async {
-    final rows = await _db.customSelect(
-      'SELECT x.target_refid AS targetRefid, a.title AS title '
-      'FROM xref x '
-      'JOIN article a ON a.refid = x.target_refid '
-      'WHERE x.refid = ? AND a.title IS NOT NULL '
-      'ORDER BY a.title',
-      variables: [Variable<int>(refid)],
-    ).get();
+    final rows = await _db.outboundXrefs(refid).get();
     return [
       for (final r in rows)
         XrefTarget(
-          targetRefid: r.read<int>('targetRefid'),
-          title: r.read<String?>('title') ?? '',
+          targetRefid: r.targetRefid,
+          title: r.title ?? '',
         ),
     ];
   }
 
   /// Test seam: any refid with at least one resolvable outbound xref, or null.
-  ///
-  /// Uses customSelect for the same reason as [outboundXrefs]: the generated
-  /// accessor returns String? for an integer column.
   Future<int?> anyXrefSourceRefid() async {
-    final row = await _db.customSelect(
-      'SELECT x.refid AS refid FROM xref x '
-      'JOIN article a ON a.refid = x.target_refid '
-      'LIMIT 1',
-    ).getSingleOrNull();
-    return row?.read<int>('refid');
+    return _db.anyXrefSourceRefid().getSingleOrNull();
   }
 
   /// A–Z browse over article titles. `prefix` is matched case-insensitively;
   /// null/empty returns the full alphabetical list (paginated).
-  ///
-  /// Uses customSelect rather than the drift-generated accessor because drift
-  /// cannot resolve the corpus schema at build time: it generates `String?` for
-  /// `refid` (an integer column), making `TitlesIndexResult.refid` unusable
-  /// without an unsafe parse — the same limitation documented on [outboundXrefs].
+  /// Excludes empty-string titles and sorts case-insensitively (COLLATE NOCASE).
   Future<List<TitleRef>> titlesIndex({
     String? prefix,
     int limit = 100,
     int offset = 0,
   }) async {
-    final rows = await _db.customSelect(
-      'SELECT refid, title FROM article '
-      'WHERE title IS NOT NULL AND title LIKE ? || \'%\' '
-      'ORDER BY title '
-      'LIMIT ? OFFSET ?',
-      variables: [
-        Variable<String>(prefix ?? ''),
-        Variable<int>(limit),
-        Variable<int>(offset),
-      ],
-    ).get();
+    final rows = await _db.titlesIndex(prefix ?? '', limit, offset).get();
     return [
       for (final r in rows)
-        TitleRef(refid: r.read<int>('refid'), title: r.read<String?>('title') ?? ''),
+        TitleRef(refid: r.refid, title: r.title ?? ''),
     ];
   }
 
@@ -320,32 +236,12 @@ class EncartaDb {
   /// that yields no navigable articles (the verified current state), falls
   /// back to the most media-rich articles. Every result is a real article.
   Future<List<TitleRef>> featured({int limit = 12}) async {
-    final home = await _db.customSelect(
-      'SELECT a.refid AS refid, a.title AS title '
-      'FROM media m '
-      'JOIN article_media am ON am.media_refid = m.refid '
-      'JOIN article a ON a.refid = am.article_refid '
-      'WHERE m."group" = \'home\' AND a.title IS NOT NULL '
-      'GROUP BY a.refid '
-      'ORDER BY m.refid '
-      'LIMIT ?',
-      variables: [Variable<int>(limit)],
-    ).get();
-    final rows = home.isNotEmpty
-        ? home
-        : await _db.customSelect(
-            'SELECT a.refid AS refid, a.title AS title '
-            'FROM article_media am '
-            'JOIN article a ON a.refid = am.article_refid '
-            'WHERE a.title IS NOT NULL '
-            'GROUP BY a.refid '
-            'ORDER BY count(*) DESC '
-            'LIMIT ?',
-            variables: [Variable<int>(limit)],
-          ).get();
-    return [
-      for (final r in rows) TitleRef(refid: r.read<int>('refid'), title: r.read<String?>('title') ?? ''),
-    ];
+    final home = await _db.featuredHomeArticles(limit).get();
+    if (home.isNotEmpty) {
+      return [for (final r in home) TitleRef(refid: r.refid, title: r.title ?? '')];
+    }
+    final fallback = await _db.featuredByMediaCount(limit).get();
+    return [for (final r in fallback) TitleRef(refid: r.refid, title: r.title ?? '')];
   }
 
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
@@ -372,29 +268,16 @@ class EncartaDb {
     // Part (b): positive round-trip check.
     const maxTries = 5;
     for (var offset = 0; offset < maxTries; offset++) {
-      final rows = await _db.customSelect(
-        'SELECT refid, xml FROM article '
-        'WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET ?',
-        variables: [Variable<int>(offset)],
-      ).get();
-      if (rows.isEmpty) break;
+      final seed = await _db.ftsSeedArticle(offset).getSingleOrNull();
+      if (seed == null) break;
 
-      final refid = rows.first.read<int>('refid');
-      // xml is stored as BLOB; handle both Uint8List and String returns.
-      final xmlRaw = rows.first.data['xml'];
-      final xml = xmlRaw is List<int>
-          ? utf8.decode(xmlRaw, allowMalformed: true)
-          : '${xmlRaw ?? ''}';
+      final refid = seed.refid;
+      final xml = utf8.decode(seed.xml ?? Uint8List(0), allowMalformed: true);
 
       final token = _extractFtsToken(xml);
       if (token == null) continue;
 
-      final ftsRows = await _db.customSelect(
-        'SELECT rowid FROM article_fts WHERE article_fts MATCH ?',
-        variables: [Variable<String>(token)],
-      ).get();
-
-      final rowids = ftsRows.map((r) => r.read<int>('rowid')).toSet();
+      final rowids = (await _db.ftsMatchToken(token).get()).toSet();
       if (rowids.contains(refid)) return true;
     }
 
