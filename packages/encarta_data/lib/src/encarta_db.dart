@@ -316,6 +316,38 @@ class EncartaDb {
     ];
   }
 
+  /// Home-portal featured articles. Probes `media."group"='home'` first; if
+  /// that yields no navigable articles (the verified current state), falls
+  /// back to the most media-rich articles. Every result is a real article.
+  Future<List<TitleRef>> featured({int limit = 12}) async {
+    final home = await _db.customSelect(
+      'SELECT a.refid AS refid, a.title AS title '
+      'FROM media m '
+      'JOIN article_media am ON am.media_refid = m.refid '
+      'JOIN article a ON a.refid = am.article_refid '
+      'WHERE m."group" = \'home\' AND a.title IS NOT NULL '
+      'GROUP BY a.refid '
+      'ORDER BY m.refid '
+      'LIMIT ?',
+      variables: [Variable<int>(limit)],
+    ).get();
+    final rows = home.isNotEmpty
+        ? home
+        : await _db.customSelect(
+            'SELECT a.refid AS refid, a.title AS title '
+            'FROM article_media am '
+            'JOIN article a ON a.refid = am.article_refid '
+            'WHERE a.title IS NOT NULL '
+            'GROUP BY a.refid '
+            'ORDER BY count(*) DESC '
+            'LIMIT ?',
+            variables: [Variable<int>(limit)],
+          ).get();
+    return [
+      for (final r in rows) TitleRef(refid: r.read<int>('refid'), title: r.read<String?>('title') ?? ''),
+    ];
+  }
+
   /// Verifies the contentless-FTS invariant: `article_fts.rowid == article.refid`.
   ///
   /// Returns true only when BOTH checks pass:

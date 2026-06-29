@@ -99,3 +99,26 @@ ORDER BY refid LIMIT 1;
 randomArticleFallback:
 SELECT refid, title, source, xml FROM article
 WHERE title IS NOT NULL ORDER BY refid LIMIT 1;
+
+-- Primary probe: articles reachable from home-group media. (Verified empty in
+-- the current corpus — home media have no article_media links — but kept so
+-- the behavior auto-upgrades if the ETL ever wires home content to articles.)
+featuredHomeArticles:
+SELECT a.refid AS refid, a.title AS title
+FROM media m
+JOIN article_media am ON am.media_refid = m.refid
+JOIN article a ON a.refid = am.article_refid
+WHERE m."group" = 'home' AND a.title IS NOT NULL
+GROUP BY a.refid
+ORDER BY m.refid
+LIMIT :limit;
+
+-- Fallback: most media-rich articles (recognizable, image-heavy entries).
+featuredByMediaCount:
+SELECT a.refid AS refid, a.title AS title
+FROM article_media am
+JOIN article a ON a.refid = am.article_refid
+WHERE a.title IS NOT NULL
+GROUP BY a.refid
+ORDER BY count(*) DESC
+LIMIT :limit;

@@ -2247,6 +2247,32 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<FeaturedHomeArticlesResult> featuredHomeArticles(int limit) {
+    return customSelect(
+      'SELECT a.refid AS refid, a.title AS title FROM media AS m JOIN article_media AS am ON am.media_refid = m.refid JOIN article AS a ON a.refid = am.article_refid WHERE m."group" = \'home\' AND a.title IS NOT NULL GROUP BY a.refid ORDER BY m.refid LIMIT ?1',
+      variables: [Variable<int>(limit)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => FeaturedHomeArticlesResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+      ),
+    );
+  }
+
+  Selectable<FeaturedByMediaCountResult> featuredByMediaCount(int limit) {
+    return customSelect(
+      'SELECT a.refid AS refid, a.title AS title FROM article_media AS am JOIN article AS a ON a.refid = am.article_refid WHERE a.title IS NOT NULL GROUP BY a.refid ORDER BY count(*) DESC LIMIT ?1',
+      variables: [Variable<int>(limit)],
+      readsFrom: {},
+    ).map(
+      (QueryRow row) => FeaturedByMediaCountResult(
+        refid: row.readNullable<String>('refid'),
+        title: row.readNullable<String>('title'),
+      ),
+    );
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3517,4 +3543,16 @@ class RandomArticleFallbackResult {
   final String? source;
   final String? xml;
   RandomArticleFallbackResult({this.refid, this.title, this.source, this.xml});
+}
+
+class FeaturedHomeArticlesResult {
+  final String? refid;
+  final String? title;
+  FeaturedHomeArticlesResult({this.refid, this.title});
+}
+
+class FeaturedByMediaCountResult {
+  final String? refid;
+  final String? title;
+  FeaturedByMediaCountResult({this.refid, this.title});
 }
