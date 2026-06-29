@@ -46,10 +46,28 @@ class EncartaDoc {
       final texts = content.findElements('text').toList();
       final XmlElement body = texts.isNotEmpty ? texts.first : content;
       final blocks = body.childElements.toList();
-      return EncartaDoc._(title: title, blocks: blocks, outline: const EncartaOutline([]));
+      return EncartaDoc._(title: title, blocks: blocks, outline: _buildOutline(blocks));
     } catch (_) {
       return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline([]));
     }
+  }
+
+  static EncartaOutline _buildOutline(List<XmlElement> blocks) {
+    final entries = <OutlineEntry>[];
+    void walk(Iterable<XmlElement> els, int depth) {
+      for (final el in els) {
+        if (el.name.local != 'section') continue;
+        final titleEls = el.findElements('sectiontitle').toList();
+        final title = titleEls.isNotEmpty ? titleEls.first.innerText.trim() : '';
+        if (title.isNotEmpty) {
+          final anchorId = el.getAttribute('id') ?? 'sec-${entries.length}';
+          entries.add(OutlineEntry(title: title, anchorId: anchorId, depth: depth));
+        }
+        walk(el.childElements, depth + 1);
+      }
+    }
+    walk(blocks, 1);
+    return EncartaOutline(entries);
   }
 
   /// Every element `id` attribute in the body, in document order.

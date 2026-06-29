@@ -35,4 +35,26 @@ void main() {
     final doc = EncartaDoc.parse(_b(''), title: 'Bad');
     expect(doc.blocks, isEmpty);
   });
+
+  test('outline captures nested sectiontitles with 1-based depth and anchors', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4" id="s1"><sectiontitle>Top</sectiontitle>'
+         '<pkey id="p1">body</pkey>'
+         '<section type="5" id="s2"><sectiontitle>Sub</sectiontitle></section>'
+         '</section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.map((e) => e.title).toList(), <String>['Top', 'Sub']);
+    expect(doc.outline.entries.map((e) => e.depth).toList(), <int>[1, 2]);
+    expect(doc.outline.entries.first.anchorId, 's1');
+  });
+
+  test('outline skips sections without a sectiontitle', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text><section type="4" id="s1"></section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries, isEmpty);
+  });
 }
