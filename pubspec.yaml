@@ -18,6 +18,7 @@ environment:
 #   - app/encarta_reader
 workspace:
   - packages/encarta_data
+  - packages/encarta_render
 
 dev_dependencies:
   lints: ^5.0.0
