@@ -36,6 +36,14 @@ class BlockRenderer {
         return _prose(el, theme.sectionTitleStyle(depth == 0 ? 1 : depth));
       case 'list':
         return _list(el);
+      case 'sec':
+        return _enumerator(el, 0);
+      case 'seca':
+        return _enumerator(el, 1);
+      case 'secb':
+        return _enumerator(el, 2);
+      case 'secc':
+        return _enumerator(el, 3);
       default:
         // Never drop text: render the unknown block as default-styled prose.
         // Later tasks add section/list/etc. branches here.
@@ -103,6 +111,17 @@ class BlockRenderer {
       ));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
+  }
+
+  Widget _enumerator(XmlElement el, int level) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: level * theme.sectionIndentPerDepth,
+        top: 4,
+        bottom: 2,
+      ),
+      child: Text.rich(TextSpan(style: theme.enumerator, children: inline.build(el, theme.enumerator))),
+    );
   }
 
   Widget _prose(XmlElement el, TextStyle style, {bool debug = false}) {
