@@ -34,6 +34,8 @@ class BlockRenderer {
         return _section(el, depth);
       case 'sectiontitle':
         return _prose(el, theme.sectionTitleStyle(depth == 0 ? 1 : depth));
+      case 'list':
+        return _list(el);
       default:
         // Never drop text: render the unknown block as default-styled prose.
         // Later tasks add section/list/etc. branches here.
@@ -78,6 +80,29 @@ class BlockRenderer {
       padding: EdgeInsets.only(left: depth == 0 ? 0 : theme.sectionIndentPerDepth),
       child: column,
     );
+  }
+
+  Widget _list(XmlElement el) {
+    final type = int.tryParse(el.getAttribute('type') ?? '') ?? 1;
+    final ordered = type != 1; // type 1 = bulleted; 19/20 = ordered
+    final items = el.findElements('listitem').toList();
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i++) {
+      final marker = ordered ? '${i + 1}.' : '•';
+      rows.add(Padding(
+        padding: EdgeInsets.only(bottom: theme.blockSpacing / 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 24, child: Text(marker, style: theme.listItem)),
+            Expanded(
+              child: Text.rich(TextSpan(style: theme.listItem, children: inline.build(items[i], theme.listItem))),
+            ),
+          ],
+        ),
+      ));
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 
   Widget _prose(XmlElement el, TextStyle style, {bool debug = false}) {

@@ -149,6 +149,79 @@ void main() {
         reason: 'Inner indent ($innerLeft) must be strictly greater than outer ($outerLeft)');
   });
 
+  // (a) type=1 → each item gets a '•' marker (count == item count); not text-presence only.
+  // (b) non-1 type → ordered markers '1.', '2.' in document order; sequence asserted.
+  testWidgets('list type=1 is bulleted; other list types are numbered', (tester) async {
+    final r = blocks();
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: r.build(el('<list type="1"><listitem>one</listitem><listitem>two</listitem></list>')))));
+    // (a) bullet marker appears once per item
+    expect(find.text('•'), findsNWidgets(2));
+    expect(find.textContaining('one', findRichText: true), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: r.build(el('<list type="19"><listitem>a</listitem><listitem>b</listitem></list>')))));
+    // (b) ordered markers exist
+    expect(find.text('1.'), findsOneWidget);
+    expect(find.text('2.'), findsOneWidget);
+    // (b) sequence: '1.' must precede '2.' in the widget tree
+    final orderedMarkers = tester
+        .widgetList<Text>(find.byWidgetPredicate((w) => w is Text && (w.data == '1.' || w.data == '2.')))
+        .toList();
+    expect(orderedMarkers.length, equals(2));
+    expect(orderedMarkers[0].data, equals('1.'), reason: 'first marker must be 1.');
+    expect(orderedMarkers[1].data, equals('2.'), reason: 'second marker must be 2.');
+  });
+
+  // (c) inline markup inside a listitem goes through InlineBuilder — <i> → italic TextSpan.
+  // (d) item content spans use theme.listItem; marker Text widget uses theme.listItem.
+  //
+  // NOTE on tree traversal: Flutter's Text.rich may add a DefaultTextStyle wrapper around
+  // the TextSpan we pass, so we use a recursive allTextSpans() helper rather than relying
+  // on a fixed children depth. The prose-block test uses children[0] which works because
+  // the prose style and the inline-child style are identical; for italic that trick fails.
+  testWidgets('list: inline markup renders via InlineBuilder; item text styled with theme.listItem', (tester) async {
+    final theme = EncartaTheme.faithfulInSpirit();
+    final r = blocks();
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: r.build(el('<list type="1"><listitem><i>italic text</i></listitem></list>')))));
+
+    // Recursive span collector — handles any nesting depth.
+    List<TextSpan> allTextSpans(InlineSpan root) {
+      final result = <TextSpan>[];
+      if (root is TextSpan) {
+        result.add(root);
+        root.children?.forEach((c) => result.addAll(allTextSpans(c)));
+      }
+      return result;
+    }
+
+    final contentRichText = tester.widget<RichText>(
+      find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('italic text')),
+    );
+    final spans = allTextSpans(contentRichText.text);
+
+    // (c) <i> inside listitem must produce a TextSpan with fontStyle.italic
+    expect(
+      spans.any((s) => s.style?.fontStyle == FontStyle.italic),
+      isTrue,
+      reason: '<i> inside listitem must yield an italic TextSpan via InlineBuilder',
+    );
+
+    // (d) the content span tree must include at least one span carrying theme.listItem fontSize
+    expect(
+      spans.any((s) => s.style?.fontSize == theme.listItem.fontSize),
+      isTrue,
+      reason: 'list item content must have a span with theme.listItem fontSize',
+    );
+
+    // (d) the bullet marker Text widget must also carry theme.listItem
+    final markerText = tester.widget<Text>(find.text('•'));
+    expect(markerText.style?.fontSize, equals(theme.listItem.fontSize),
+        reason: 'bullet marker must use theme.listItem fontSize');
+  });
+
   testWidgets('prose block TextStyle matches expected theme style per tag', (tester) async {
     final theme = EncartaTheme.faithfulInSpirit();
 
