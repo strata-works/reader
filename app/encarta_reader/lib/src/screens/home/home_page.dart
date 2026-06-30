@@ -33,7 +33,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final db = AppScope.of(context).db!;
+    final db = AppScope.of(context).db;
+    if (db == null) return; // guard: shell-only mode (no DB)
     _future = buildHomeViewData(featured: db.featured);
   }
 
