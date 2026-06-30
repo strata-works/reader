@@ -11,7 +11,11 @@ import 'encarta_image.dart';
 /// `db.assetByBaggageId` and render an [EncartaImage] (which applies the `.dib`
 /// shim if needed). type!=27: original NAME.DIB form, unresolvable today → small
 /// placeholder. Never throws.
-class InlineBmpView extends StatelessWidget {
+///
+/// The DB lookup is performed exactly once per widget instance (in State
+/// initialisation) so that parent rebuilds, theme changes, and scroll events
+/// do not trigger redundant `assetByBaggageId` queries.
+class InlineBmpView extends StatefulWidget {
   const InlineBmpView({
     super.key,
     required this.assets,
@@ -23,11 +27,25 @@ class InlineBmpView extends StatelessWidget {
   final String inlineId;
   final int inlineType;
 
+  @override
+  State<InlineBmpView> createState() => _InlineBmpViewState();
+}
+
+class _InlineBmpViewState extends State<InlineBmpView> {
   static const _placeholderKey = ValueKey('inlinebmp-placeholder');
+
+  // Resolved once at State creation; never re-queried on rebuild.
+  late final Future<AssetRow?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _lookup();
+  }
 
   Future<AssetRow?> _lookup() async {
     try {
-      return await assets.db.assetByBaggageId(inlineId);
+      return await widget.assets.db.assetByBaggageId(widget.inlineId);
     } catch (_) {
       return null; // never throw out of an inline glyph
     }
@@ -36,9 +54,9 @@ class InlineBmpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Only type-27 inlinebmp ids are asset.baggage_id values (verified).
-    if (inlineType != 27) return _placeholder();
+    if (widget.inlineType != 27) return _placeholder();
     return FutureBuilder<AssetRow?>(
-      future: _lookup(),
+      future: _future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const SizedBox(width: 16, height: 16);
@@ -59,7 +77,7 @@ class InlineBmpView extends StatelessWidget {
               ext: row.ext,
               kind: row.kind,
             ),
-            assets: assets,
+            assets: widget.assets,
             maxWidth: 240,
           ),
         );
