@@ -161,4 +161,30 @@ void main() {
     expect(spans.whereType<WidgetSpan>(), isEmpty);
     expect(spans.whereType<TextSpan>().any((s) => s.text == '1/2'), isTrue);
   });
+
+  test('rare inline tags render their text with default styling (never dropped)', () {
+    final spans = builder().build(
+      el('<pkey><fl>fl</fl><cq para="1">cq</cq><item pos="1">it</item><notation type="1">n</notation></pkey>'),
+      const TextStyle(),
+    );
+    final joined = spans.whereType<TextSpan>().map((s) => s.text).join();
+    expect(joined, allOf(contains('fl'), contains('cq'), contains('it'), contains('n')));
+  });
+
+  test('unknown tag children are rendered; debug mode highlights them', () {
+    final plain = builder().build(el('<pkey><wibble>kept</wibble></pkey>'), const TextStyle());
+    expect(plain.whereType<TextSpan>().any((s) => s.text == 'kept'), isTrue);
+
+    final debugTheme = EncartaTheme.faithfulInSpirit().copyWith(debugUnstyledTags: true);
+    final dbg = InlineBuilder(
+      theme: debugTheme,
+      assetResolver: (inlineId, inlineType) => const SizedBox.shrink(),
+      onXrefTap: (r, {paraId}) {},
+      titleForRefid: (r) => null,
+      articleTitle: 'T',
+      recognizers: <GestureRecognizer>[],
+    ).build(el('<pkey><wibble>kept</wibble></pkey>'), const TextStyle());
+    final s = dbg.whereType<TextSpan>().firstWhere((x) => x.text == 'kept');
+    expect(s.style!.backgroundColor, debugTheme.debugUnstyledColor);
+  });
 }

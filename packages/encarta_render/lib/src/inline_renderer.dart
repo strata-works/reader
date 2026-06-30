@@ -104,9 +104,18 @@ class InlineBuilder {
       case 'fs':
         return [_fraction(el, base)];
 
+      case 'fl':
+      case 'cq':
+      case 'item':
+      case 'notation':
+        // Known-rare, no special styling: render children with the inherited style.
+        return build(el, base);
+
       default:
-        // "Never drop text" stance: render children with the inherited style.
-        // Specific tags (xref, inlinebmp, …) are added in later tasks.
+        // Unknown tag: never drop its text; optionally flag it in debug mode.
+        if (theme.debugUnstyledTags) {
+          return build(el, base.copyWith(backgroundColor: theme.debugUnstyledColor));
+        }
         return build(el, base);
     }
   }
