@@ -19,6 +19,7 @@ environment:
 workspace:
   - packages/encarta_data
   - packages/encarta_render
+  - packages/encarta_assets
 
 dev_dependencies:
   lints: ^5.0.0
