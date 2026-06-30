@@ -5,11 +5,11 @@
 /// It depends on `encarta_data` but never on `encarta_render`.
 library encarta_assets;
 
+// Public API is exported as each piece lands:
+export 'src/asset_config.dart';
+
 /// Sentinel proving the barrel compiles and is wired into the workspace.
 const String kEncartaAssetsLibraryName = 'encarta_assets';
-
-// Public API is exported as each piece lands:
-// export 'src/asset_config.dart';
 // export 'src/encarta_assets_base.dart';
 // export 'src/dib_shim.dart';
 // export 'src/encarta_image.dart';
