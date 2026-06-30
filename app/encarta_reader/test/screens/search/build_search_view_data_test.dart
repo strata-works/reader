@@ -58,7 +58,9 @@ void main() {
     expect(data.hasMore, isTrue);
   });
 
-  test('ticon is chosen over picon when both present', () async {
+  // Task 22: probe (449 articles) showed ticon avg 247 B tiny .gif placeholders
+  // vs picon avg 1981 B real .jtn images → picon is preferred over ticon.
+  test('picon is chosen over ticon when both present (confirmed Task 22)', () async {
     final data = await buildSearchViewData(
       query: 'mars',
       offset: 0,
@@ -97,7 +99,7 @@ void main() {
       ],
     );
 
-    expect(data.results.single.thumb!.role, 'ticon',
-        reason: 'ticon should be preferred over picon');
+    expect(data.results.single.thumb!.role, 'picon',
+        reason: 'picon (real ~1981 B images) beats ticon (tiny ~247 B placeholder gifs)');
   });
 }

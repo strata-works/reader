@@ -10,7 +10,13 @@ import '../article/article_view.dart';
 import 'search_view.dart';
 
 /// Roles tried, in order, for a result thumbnail (§11.3).
-const _thumbRoles = ['thumb', 'ticon', 'picon', 'image'];
+///
+/// Precedence confirmed by Task 22 probe (449 articles sampled):
+///   thumb  avg 1976 B real .jtn images  → best choice
+///   picon  avg 1981 B real .jtn images  → per-article fallback
+///   image  avg 1900 B real inline image → secondary fallback
+///   ticon  avg  247 B tiny .gif icons   → last resort (placeholder-sized)
+const _thumbRoles = ['thumb', 'picon', 'image', 'ticon'];
 
 MediaItem? _pickThumb(List<MediaItem> media) {
   for (final role in _thumbRoles) {
@@ -20,6 +26,9 @@ MediaItem? _pickThumb(List<MediaItem> media) {
   }
   return null;
 }
+
+/// Exposed for tests / probes; precedence confirmed in Task 22.
+MediaItem? pickThumbForTest(List<MediaItem> media) => _pickThumb(media);
 
 /// Pure assembly of the search screen's left column (ranked + paginated + snippet).
 ///
