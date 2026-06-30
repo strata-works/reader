@@ -13,7 +13,7 @@ class OutlineEntry {
 /// The section/sectiontitle tree, flattened in document order for the outline pane.
 /// Task 5 fills this in; this is the minimal placeholder.
 class EncartaOutline {
-  const EncartaOutline(this.entries);
+  const EncartaOutline({required this.entries});
   final List<OutlineEntry> entries;
 }
 
@@ -39,7 +39,7 @@ class EncartaDoc {
     try {
       final source = utf8.decode(xml);
       if (source.trim().isEmpty) {
-        return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline([]));
+        return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline(entries: []));
       }
       final document = XmlDocument.parse(source);
       final content = document.rootElement; // <content>
@@ -48,7 +48,7 @@ class EncartaDoc {
       final blocks = body.childElements.toList();
       return EncartaDoc._(title: title, blocks: blocks, outline: _buildOutline(blocks));
     } catch (_) {
-      return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline([]));
+      return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline(entries: []));
     }
   }
 
@@ -99,7 +99,7 @@ class EncartaDoc {
       }
     }
     walk(blocks, 1);
-    return EncartaOutline(entries);
+    return EncartaOutline(entries: entries);
   }
 
   /// Every element `id` attribute in the body, in document order.

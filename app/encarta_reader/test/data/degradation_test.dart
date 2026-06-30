@@ -7,7 +7,7 @@ void main() {
     final t = resolveDisplayTitle(
       refid: 5,
       dbTitle: 'Photosynthesis',
-      outline: const EncartaOutline([]),
+      outline: const EncartaOutline(entries: []),
     );
     expect(t, 'Photosynthesis');
   });
@@ -17,7 +17,7 @@ void main() {
       refid: 5,
       dbTitle: '',
       outline: const EncartaOutline(
-        [OutlineEntry(title: 'Overview', anchorId: 'a1', depth: 0)],
+        entries: [OutlineEntry(title: 'Overview', anchorId: 'a1', depth: 0)],
       ),
     );
     expect(t, 'Overview');
@@ -27,7 +27,7 @@ void main() {
     final t = resolveDisplayTitle(
       refid: 99,
       dbTitle: '',
-      outline: const EncartaOutline([]),
+      outline: const EncartaOutline(entries: []),
     );
     expect(t, 'Article 99');
   });
