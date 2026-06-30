@@ -44,6 +44,13 @@ class BlockRenderer {
         return _enumerator(el, 2);
       case 'secc':
         return _enumerator(el, 3);
+      case 'rule':
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: theme.blockSpacing / 2),
+          child: Divider(color: theme.ruleColor, height: 1, thickness: 1),
+        );
+      case 'br':
+        return SizedBox(height: theme.blockSpacing);
       default:
         // Never drop text: render the unknown block as default-styled prose.
         // Later tasks add section/list/etc. branches here.

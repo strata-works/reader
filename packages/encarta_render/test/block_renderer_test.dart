@@ -293,6 +293,15 @@ void main() {
     }
   });
 
+  testWidgets('rule renders a Divider; block-level br renders spacing', (tester) async {
+    final r = blocks();
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: r.build(el('<rule></rule>')))));
+    expect(find.byType(Divider), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: r.build(el('<br></br>')))));
+    expect(find.byType(SizedBox), findsWidgets);
+  });
+
   testWidgets('prose block TextStyle matches expected theme style per tag', (tester) async {
     final theme = EncartaTheme.faithfulInSpirit();
 
