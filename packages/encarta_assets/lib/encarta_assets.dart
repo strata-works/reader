@@ -7,11 +7,11 @@ library encarta_assets;
 
 // Public API is exported as each piece lands:
 export 'src/asset_config.dart';
+export 'src/dib_shim.dart';
 export 'src/encarta_assets_base.dart';
-
-/// Sentinel proving the barrel compiles and is wired into the workspace.
-const String kEncartaAssetsLibraryName = 'encarta_assets';
-// export 'src/dib_shim.dart';
 // export 'src/encarta_image.dart';
 // export 'src/encarta_audio.dart';
 // export 'src/encarta_video.dart';
+
+/// Sentinel proving the barrel compiles and is wired into the workspace.
+const String kEncartaAssetsLibraryName = 'encarta_assets';
