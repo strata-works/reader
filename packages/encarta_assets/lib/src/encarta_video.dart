@@ -38,14 +38,34 @@ class _EncartaVideoState extends State<EncartaVideo> {
       final player = Player();
       _player = player;
       _controller = VideoController(player);
-      player.open(Media(file.path), play: false);
+      // Fire the async open; errors are caught in _openMedia so they degrade
+      // to the "media unavailable" poster (spec §10) instead of escaping.
+      _openMedia(player, file.path);
     } catch (_) {
       _unavailable = true;
     }
   }
 
+  /// Opens [path] on [player] and catches any async errors, degrading to the
+  /// "media unavailable" poster by setting [_unavailable] via [setState].
+  Future<void> _openMedia(Player player, String path) async {
+    try {
+      await player.open(Media(path), play: false);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _unavailable = true);
+      }
+    }
+  }
+
   @override
   void dispose() {
+    // VideoController (media_kit_video ≥1.2) has no public dispose(); it
+    // registers its own release callbacks on Player.platform and cleans up
+    // automatically when _player.dispose() is called below.  No explicit
+    // VideoController teardown is required or available — calling
+    // _player?.dispose() is sufficient and null-safe on the miss path where
+    // neither object was created.
     _player?.dispose();
     super.dispose();
   }

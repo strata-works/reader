@@ -30,6 +30,15 @@ MediaItem _video() => MediaItem(
       kind: 'other',
     );
 
+// NOTE — async-error → poster path (spec §10, Finding 2):
+// A lightweight unit test for the _openMedia() error branch would require
+// either a real libmpv dylib (to create a Player that can then reject an open
+// call) or a mockable Player seam that is not present in the current widget
+// design.  Both approaches pull in libmpv, which is unavailable in the
+// headless CI environment.  The async-error→poster path is therefore covered
+// by the integration smoke test only.  If a Player factory / stub is
+// introduced in future, add a test here using mediaKitInitOverride to prevent
+// actual libmpv initialisation.
 void main() {
   late Directory root;
   setUp(() =>
