@@ -64,6 +64,46 @@ void main() {
     expect(bd.getUint32(10, Endian.little), 1078);
   });
 
+  test(
+    'V4 header (biSize=108) with compression=3 (BITFIELDS): '
+    'no extra mask bytes added (masks already inside biSize)',
+    () {
+      // BITMAPV4HEADER is 108 bytes; the RGB masks live inside those 108 bytes,
+      // so bfOffBits must be 14 + 108 + 0 palette + 0 extra = 122.
+      final info = ByteData(108);
+      info.setUint32(0, 108, Endian.little); // biSize = 108 (V4)
+      info.setInt32(4, 2, Endian.little); // biWidth
+      info.setInt32(8, 2, Endian.little); // biHeight
+      info.setUint16(12, 1, Endian.little); // biPlanes
+      info.setUint16(14, 32, Endian.little); // biBitCount = 32 (no palette)
+      info.setUint32(16, 3, Endian.little); // biCompression = BI_BITFIELDS
+      info.setUint32(20, 16, Endian.little); // biSizeImage
+      info.setUint32(32, 0, Endian.little); // biClrUsed = 0
+      final pixels = Uint8List(16); // 2×2 32-bit pixel data
+      final dib =
+          Uint8List.fromList(<int>[...info.buffer.asUint8List(), ...pixels]);
+
+      final bmp = DibShim.toBmp(dib);
+      final bd = ByteData.sublistView(bmp);
+      // paletteBytes == 0 (32-bit, clrUsed=0), extraMaskBytes == 0 (V4).
+      expect(bd.getUint32(10, Endian.little), 14 + 108);
+    },
+  );
+
+  test('throws ArgumentError for a too-short DIB (< 16 bytes)', () {
+    final tooShort = Uint8List(8); // not enough to even read header fields
+    expect(
+      () => DibShim.toBmp(tooShort),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.message,
+          'message',
+          contains('DIB too short'),
+        ),
+      ),
+    );
+  });
+
   test('cache returns identical instance for the same key', () {
     final dib = buildSyntheticDib();
     final shim = DibShim();

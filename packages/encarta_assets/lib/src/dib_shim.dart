@@ -17,8 +17,16 @@ class DibShim {
 
   /// Pure transform: prepend a valid 14-byte BMP file header.
   static Uint8List toBmp(Uint8List dib) {
+    // Guard: need at minimum enough bytes to read the biSize field and the
+    // core header fields (bitCount at 14, compression at 16, clrUsed at 32).
+    if (dib.length < 16) {
+      throw ArgumentError('DIB too short: ${dib.length} bytes');
+    }
     final info = ByteData.sublistView(dib);
     final biSize = info.getUint32(0, Endian.little);
+    if (dib.length < biSize) {
+      throw ArgumentError('DIB too short: ${dib.length} bytes');
+    }
 
     // BITMAPCOREHEADER (12) packs fields differently; everything Encarta ships
     // is BITMAPINFOHEADER (>=40), but handle the core case defensively.
@@ -42,10 +50,12 @@ class DibShim {
     }
     final paletteBytes = numColors * paletteEntryBytes;
 
-    // BI_BITFIELDS (compression==3) with a >=40 header stores 3 (or 4 for
-    // alpha-aware) 32-bit color masks before the pixel data.
+    // BI_BITFIELDS (compression==3) with a 40-byte BITMAPINFOHEADER stores 3
+    // (or 4 for alpha-aware) 32-bit color masks AFTER the header. For
+    // BITMAPV4HEADER (biSize=108) and BITMAPV5HEADER (biSize=124) those masks
+    // are already embedded inside biSize, so no extra bytes are needed.
     var extraMaskBytes = 0;
-    if (biSize >= 40) {
+    if (biSize == 40) {
       final compression = info.getUint32(16, Endian.little);
       if (compression == 3) extraMaskBytes = 12; // 3 DWORD masks
       if (compression == 6) extraMaskBytes = 16; // BI_ALPHABITFIELDS
