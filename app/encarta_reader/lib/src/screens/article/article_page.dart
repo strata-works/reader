@@ -63,12 +63,24 @@ class ArticlePage extends StatefulWidget {
 }
 
 class _ArticlePageState extends State<ArticlePage> {
-  late Future<ArticleViewData?> _future;
+  // Guarded so that inherited-widget changes (theme, AppScope rebuild, etc.)
+  // do not re-fire the full load pipeline unless the refid actually changes.
+  int? _loadedRefid;
+  Future<ArticleViewData?>? _future;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final scope = AppScope.of(context);
+    // Contract: AppScope.db and AppScope.assets must be non-null while
+    // ArticlePage is active. Both are set before navigation and cleared only
+    // after this page is popped.
+    assert(
+      scope.db != null && scope.assets != null,
+      'ArticlePage requires AppScope.db and AppScope.assets to be non-null',
+    );
+    if (_loadedRefid == widget.refid && _future != null) return;
+    _loadedRefid = widget.refid;
     final db = scope.db!;
     _future = buildArticleViewData(
       refid: widget.refid,
