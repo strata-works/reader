@@ -10,6 +10,7 @@ export 'src/asset_config.dart';
 export 'src/dib_shim.dart';
 export 'src/encarta_assets_base.dart';
 export 'src/encarta_image.dart';
+export 'src/inline_bmp_view.dart';
 // export 'src/encarta_audio.dart';
 // export 'src/encarta_video.dart';
 

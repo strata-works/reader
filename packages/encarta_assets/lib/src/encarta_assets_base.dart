@@ -2,9 +2,11 @@
 import 'dart:io';
 
 import 'package:encarta_data/encarta_data.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 
 import 'asset_config.dart';
+import 'inline_bmp_view.dart';
 
 /// Asset resolution + the entry point for media widgets.
 ///
@@ -23,6 +25,13 @@ class EncartaAssets {
   /// it for pure file-resolution tests (a throwing stand-in is used).
   EncartaAssets.forTesting(this.config, {EncartaDb? db})
       : db = db ?? _UnusedDb();
+
+  /// Builds an inline-bitmap widget for an `inlinebmp` reference. Matches the
+  /// renderer's `AssetResolver = Widget Function(String inlineId, int inlineType)`.
+  /// type==27: [inlineId] is an asset.baggage_id → resolve + render EncartaImage.
+  /// type!=27: original-name form (unresolvable today) → placeholder. Never throws.
+  Widget inlineBmp(String inlineId, int inlineType) =>
+      InlineBmpView(assets: this, inlineId: inlineId, inlineType: inlineType);
 
   /// Resolve a storage-relative asset path (e.g. `image/abc.jpg`,
   /// `other/xx.dib`) to a concrete [File].
