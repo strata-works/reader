@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'callbacks.dart';
@@ -105,23 +107,32 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
         .clamp(0.0, pos.maxScrollExtent);
     controller.jumpTo(target);
 
-    // Register a post-frame callback to ensureVisible after the list rebuilds.
-    // We do NOT await the frame here — that would deadlock in testWidgets when
-    // the test `await`s this function before calling `pumpAndSettle()`.
-    // The callback fires during the next pump, and pumpAndSettle() then drives
-    // the ensureVisible animation to completion.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final newCtx = key.currentContext;
-      if (newCtx != null) {
-        await Scrollable.ensureVisible(
-          newCtx,
-          duration: const Duration(milliseconds: 250),
-          alignment: 0.05,
-        );
+    // Use a Completer so the caller's `await scrollToAnchor(id)` resumes only
+    // after the post-frame ensureVisible animation actually completes.
+    // The test must NOT await the future before pumping a frame — it should
+    // capture the future, call pumpAndSettle() to drive the callback and
+    // animation, then await the (already-complete) future.
+    final completer = Completer<void>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        completer.complete();
+        return;
       }
+      final newCtx = key.currentContext;
+      if (newCtx == null) {
+        // Anchor truly absent after the frame — complete normally, never hang.
+        completer.complete();
+        return;
+      }
+      Scrollable.ensureVisible(
+        newCtx,
+        duration: const Duration(milliseconds: 250),
+        alignment: 0.05,
+      ).then((_) => completer.complete()).catchError(completer.completeError);
     });
 
-    return Future<void>.value();
+    return completer.future;
   }
 
   void _disposeRecognizers() {

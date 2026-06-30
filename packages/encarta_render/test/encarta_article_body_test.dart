@@ -34,8 +34,14 @@ void main() {
     expect(find.textContaining('First', findRichText: true), findsOneWidget);
     expect(find.textContaining('LastPara', findRichText: true), findsNothing); // off-screen, lazy
 
-    await key.currentState!.scrollToAnchor('last');
+    // Capture the future WITHOUT awaiting it first — awaiting before pumping
+    // would deadlock because the post-frame callback never fires until a frame
+    // is pumped.
+    final scrollFuture = key.currentState!.scrollToAnchor('last');
+    // Drive the post-frame callback and any scroll animation to completion.
     await tester.pumpAndSettle();
+    // The future is already complete at this point; await it to surface errors.
+    await scrollFuture;
     expect(controller.offset, greaterThan(0));
   });
 }
