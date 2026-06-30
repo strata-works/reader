@@ -110,6 +110,43 @@ void main() {
     // Reaching here without exception means the GlobalKey wiring is correct.
   });
 
+  testWidgets(
+      'body content is width-capped at theme.measure in a wide viewport',
+      (tester) async {
+    final theme = EncartaTheme.faithfulInSpirit();
+
+    // Use a wide surface so the center column would stretch without the cap.
+    tester.view.physicalSize = const Size(2000, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ArticleView(
+          data: _data(),
+          theme: theme,
+          assetResolver: (id, type) => const Icon(Icons.image),
+          onXrefTap: (refid, {paraId}) {},
+          titleForRefid: (_) => null,
+          onRelatedTap: (_) {},
+        ),
+      ),
+    ));
+
+    // There must be a ConstrainedBox whose maxWidth is exactly theme.measure.
+    final measureBox = tester
+        .widgetList<ConstrainedBox>(find.byType(ConstrainedBox))
+        .firstWhere((b) => b.constraints.maxWidth == theme.measure);
+    expect(measureBox.constraints.maxWidth, theme.measure);
+
+    // The rendered EncartaArticleBody must not exceed the measure.
+    final bodySize = tester.getSize(find.byType(EncartaArticleBody));
+    expect(bodySize.width, lessThanOrEqualTo(theme.measure));
+  });
+
   group('media rail', () {
     late Directory root;
     late EncartaAssets assets;

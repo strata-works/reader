@@ -64,6 +64,10 @@ class _ArticleViewState extends State<ArticleView> {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      widget.data.media.isEmpty || widget.assets != null,
+      'ArticleView: media provided but assets is null — rail cannot resolve files',
+    );
     final showRail = widget.data.media.isNotEmpty && widget.assets != null;
 
     return Row(
@@ -82,29 +86,34 @@ class _ArticleViewState extends State<ArticleView> {
         ),
         const VerticalDivider(width: 1),
 
-        // CENTER: title + article body constrained to theme.measure internally.
+        // CENTER: title + article body capped at theme.measure, centered.
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Text(
-                  widget.data.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: widget.theme.measure),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    child: Text(
+                      widget.data.title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  Expanded(
+                    child: EncartaArticleBody(
+                      key: _bodyKey,
+                      doc: widget.data.doc,
+                      theme: widget.theme,
+                      assetResolver: widget.assetResolver,
+                      onXrefTap: widget.onXrefTap,
+                      titleForRefid: widget.titleForRefid,
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: EncartaArticleBody(
-                  key: _bodyKey,
-                  doc: widget.data.doc,
-                  theme: widget.theme,
-                  assetResolver: widget.assetResolver,
-                  onXrefTap: widget.onXrefTap,
-                  titleForRefid: widget.titleForRefid,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
 
