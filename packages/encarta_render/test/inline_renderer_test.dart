@@ -141,4 +141,24 @@ void main() {
     expect(gotId, 'GLYPH.DIB'); // verbatim id, not a stem
     expect(gotType, 28);
   });
+
+  test('fs type=2 builds a stacked numerator/denominator fraction', () {
+    final spans = builder().build(el('<pkey><fs type="2">1/2</fs></pkey>'), const TextStyle(fontSize: 16));
+    final ws = spans.whereType<WidgetSpan>().single;
+    expect(ws.child, isA<Column>());
+    final texts = (ws.child as Column).children.whereType<Text>().map((t) => t.data).toList();
+    expect(texts, <String>['1', '2']);
+  });
+
+  test('fs without a slash falls back to plain text (never dropped)', () {
+    final spans = builder().build(el('<pkey><fs type="2">whole</fs></pkey>'), const TextStyle(fontSize: 16));
+    expect(spans.whereType<TextSpan>().any((s) => s.text == 'whole'), isTrue);
+  });
+
+  test('fs with non-2 type falls back to plain text (never dropped)', () {
+    final spans = builder().build(el('<pkey><fs type="5">1/2</fs></pkey>'), const TextStyle(fontSize: 16));
+    // Should not produce a WidgetSpan; content must appear as text
+    expect(spans.whereType<WidgetSpan>(), isEmpty);
+    expect(spans.whereType<TextSpan>().any((s) => s.text == '1/2'), isTrue);
+  });
 }

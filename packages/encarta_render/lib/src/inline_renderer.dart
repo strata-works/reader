@@ -101,6 +101,9 @@ class InlineBuilder {
       case 'inlinebmp':
         return [_inlineBmp(el)];
 
+      case 'fs':
+        return [_fraction(el, base)];
+
       default:
         // "Never drop text" stance: render children with the inherited style.
         // Specific tags (xref, inlinebmp, …) are added in later tasks.
@@ -168,6 +171,40 @@ class InlineBuilder {
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: assetResolver(id, type),
+    );
+  }
+
+  /// Handles `<fs type="2">` fraction elements.
+  ///
+  /// Splits the trimmed inner text on the FIRST `/`. If found and `type == 2`,
+  /// renders a stacked Column (numerator / hairline rule / denominator) inside
+  /// a [WidgetSpan], scaling the font by [EncartaTheme.fractionFontScale].
+  ///
+  /// FALLBACK (never drop content): if there is no `/` in the text OR the
+  /// `type` attribute is anything other than `2`, returns a plain [TextSpan]
+  /// with the raw inner text and the inherited style.
+  InlineSpan _fraction(XmlElement el, TextStyle base) {
+    final typeAttr = int.tryParse(el.getAttribute('type') ?? '');
+    final text = el.innerText.trim();
+    final slash = text.indexOf('/');
+    if (typeAttr != 2 || slash < 0) return TextSpan(text: text, style: base);
+    final numerator = text.substring(0, slash).trim();
+    final denominator = text.substring(slash + 1).trim();
+    final fr = base.copyWith(fontSize: (base.fontSize ?? 16) * theme.fractionFontScale);
+    final ruleWidth =
+        (numerator.length > denominator.length ? numerator.length : denominator.length) *
+            (fr.fontSize ?? 12) *
+            0.62;
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(numerator, style: fr),
+          Container(height: 1, width: ruleWidth, color: base.color ?? theme.foreground),
+          Text(denominator, style: fr),
+        ],
+      ),
     );
   }
 
