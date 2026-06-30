@@ -12,8 +12,8 @@ export 'src/encarta_assets_base.dart';
 export 'src/encarta_image.dart';
 export 'src/inline_bmp_view.dart';
 export 'src/media_kit_init.dart';
-// export 'src/encarta_audio.dart';
-// export 'src/encarta_video.dart';
+export 'src/encarta_audio.dart';
+export 'src/encarta_video.dart';
 
 /// Sentinel proving the barrel compiles and is wired into the workspace.
 const String kEncartaAssetsLibraryName = 'encarta_assets';
