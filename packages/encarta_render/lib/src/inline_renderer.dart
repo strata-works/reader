@@ -91,6 +91,9 @@ class InlineBuilder {
         // `<br></br>` is a hard line break; emit a bare newline TextSpan.
         return const [TextSpan(text: '\n')];
 
+      case 'inlinetitle':
+        return [TextSpan(text: articleTitle, style: base)];
+
       default:
         // "Never drop text" stance: render children with the inherited style.
         // Specific tags (xref, inlinebmp, …) are added in later tasks.

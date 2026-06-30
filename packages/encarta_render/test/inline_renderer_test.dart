@@ -78,4 +78,10 @@ void main() {
     expect(texts.any((s) => s.text == 'visible'), isTrue);
     expect(texts.firstWhere((s) => s.text == 'visible').style!.fontSize, 12);
   });
+
+  test('inlinetitle substitutes the injected article title', () {
+    final spans = builder(title: 'Mercury (planet)')
+        .build(el('<pkey>See <inlinetitle></inlinetitle> now</pkey>'), const TextStyle());
+    expect(spans.whereType<TextSpan>().any((s) => s.text == 'Mercury (planet)'), isTrue);
+  });
 }
