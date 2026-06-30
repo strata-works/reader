@@ -53,14 +53,46 @@ class EncartaDoc {
   }
 
   static EncartaOutline _buildOutline(List<XmlElement> blocks) {
+    // Collect every id already present in the document to avoid collisions.
+    final existingIds = <String>{};
+    for (final b in blocks) {
+      final bid = b.getAttribute('id');
+      if (bid != null && bid.isNotEmpty) existingIds.add(bid);
+      for (final d in b.descendantElements) {
+        final id = d.getAttribute('id');
+        if (id != null && id.isNotEmpty) existingIds.add(id);
+      }
+    }
+
     final entries = <OutlineEntry>[];
+    // Dedicated counter — independent of how many outline entries have been
+    // added, so ids are stable even when parent sections are titleless.
+    var syntheticCounter = 0;
+
     void walk(Iterable<XmlElement> els, int depth) {
       for (final el in els) {
         if (el.name.local != 'section') continue;
+
+        // Establish the anchor id. When no real id exists, stamp a synthetic
+        // one directly onto the element so that allAnchorIds() and the future
+        // section renderer both see the same value (single source of truth).
+        final anchorId = () {
+          final real = el.getAttribute('id');
+          if (real != null && real.isNotEmpty) return real;
+          // Find next free synthetic id.
+          String candidate;
+          do {
+            candidate = 'sec-$syntheticCounter';
+            syntheticCounter++;
+          } while (existingIds.contains(candidate));
+          existingIds.add(candidate); // reserve so later sections don't reuse it
+          el.setAttribute('id', candidate);
+          return candidate;
+        }();
+
         final titleEls = el.findElements('sectiontitle').toList();
         final title = titleEls.isNotEmpty ? titleEls.first.innerText.trim() : '';
         if (title.isNotEmpty) {
-          final anchorId = el.getAttribute('id') ?? 'sec-${entries.length}';
           entries.add(OutlineEntry(title: title, anchorId: anchorId, depth: depth));
         }
         walk(el.childElements, depth + 1);

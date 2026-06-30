@@ -57,4 +57,36 @@ void main() {
     );
     expect(doc.outline.entries, isEmpty);
   });
+
+  // Finding 1: every anchorId in the outline must be resolvable via allAnchorIds().
+  test('every outline anchorId is present in allAnchorIds (mixed real/synthetic)', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4" id="s1"><sectiontitle>Real ID</sectiontitle></section>'
+         '<section type="5"><sectiontitle>Synthetic ID</sectiontitle></section>'
+         '</text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.length, 2);
+    final anchors = doc.allAnchorIds().toSet();
+    for (final entry in doc.outline.entries) {
+      expect(anchors, contains(entry.anchorId),
+          reason: 'anchorId "${entry.anchorId}" not found in allAnchorIds()');
+    }
+  });
+
+  // Finding 3: a titleless parent section must still count as a nesting level.
+  test('titleless parent section depth still counts for titled child', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4">'
+         '  <section type="5" id="c1"><sectiontitle>Child</sectiontitle></section>'
+         '</section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.length, 1);
+    expect(doc.outline.entries.first.title, 'Child');
+    expect(doc.outline.entries.first.anchorId, 'c1');
+    expect(doc.outline.entries.first.depth, 2);
+  });
 }
