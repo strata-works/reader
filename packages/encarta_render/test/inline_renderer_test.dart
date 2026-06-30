@@ -128,4 +128,17 @@ void main() {
     expect(s.recognizer, isNull);
     expect(recs, isEmpty);
   });
+
+  test('inlinebmp produces a WidgetSpan, passing id and type through verbatim', () {
+    String? gotId;
+    int? gotType;
+    final spans = builder(assetResolver: (inlineId, inlineType) {
+      gotId = inlineId;
+      gotType = inlineType;
+      return const Icon(Icons.image);
+    }).build(el('<pkey><inlinebmp id="GLYPH.DIB" type="28"></inlinebmp></pkey>'), const TextStyle());
+    expect(spans.whereType<WidgetSpan>(), hasLength(1));
+    expect(gotId, 'GLYPH.DIB'); // verbatim id, not a stem
+    expect(gotType, 28);
+  });
 }

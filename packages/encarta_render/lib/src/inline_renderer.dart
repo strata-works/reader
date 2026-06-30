@@ -98,6 +98,9 @@ class InlineBuilder {
       case 'xref':
         return [_xref(el, base)];
 
+      case 'inlinebmp':
+        return [_inlineBmp(el)];
+
       default:
         // "Never drop text" stance: render children with the inherited style.
         // Specific tags (xref, inlinebmp, …) are added in later tasks.
@@ -150,6 +153,22 @@ class InlineBuilder {
     if (uri != null) {
       launchUrl(uri).catchError((_) => false);
     }
+  }
+
+  /// Handles `<inlinebmp>` inline image elements.
+  ///
+  /// Passes the `id` attribute (verbatim string) and `type` attribute (as int)
+  /// to the injected [assetResolver] WITHOUT interpreting them. Resolution
+  /// logic (type=27 → baggage_id, type=28 → original NAME.DIB filename, etc.)
+  /// is entirely the host resolver's responsibility. If `type` is missing or
+  /// non-numeric, defaults to 0 so the resolver can decide how to handle it.
+  InlineSpan _inlineBmp(XmlElement el) {
+    final id = el.getAttribute('id') ?? '';
+    final type = int.tryParse(el.getAttribute('type') ?? '') ?? 0;
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: assetResolver(id, type),
+    );
   }
 
   /// Wraps [el]'s content in a [WidgetSpan] with a vertical [Transform.translate]
