@@ -84,4 +84,48 @@ void main() {
         .build(el('<pkey>See <inlinetitle></inlinetitle> now</pkey>'), const TextStyle());
     expect(spans.whereType<TextSpan>().any((s) => s.text == 'Mercury (planet)'), isTrue);
   });
+
+  test('xref type=9 external becomes a tappable link span and is recorded', () {
+    final recs = <GestureRecognizer>[];
+    final spans = builder(recognizers: recs)
+        .build(el('<pkey><xref type="9" URL="https://x.org">site</xref></pkey>'), const TextStyle());
+    final link = spans.whereType<TextSpan>().firstWhere((s) => s.text == 'site');
+    expect(link.recognizer, isA<TapGestureRecognizer>());
+    expect(link.style!.decoration, TextDecoration.underline);
+    expect(recs, isNotEmpty);
+  });
+
+  test('xref internal known refid calls onXrefTap with paraId', () {
+    int? tapped;
+    String? gotPara;
+    final spans = builder(
+      titleForRefid: (r) => r == 99 ? 'Target' : null,
+      onXrefTap: (r, {paraId}) {
+        tapped = r;
+        gotPara = paraId;
+      },
+    ).build(el('<pkey><xref type="17" RefID="99" paraID="p3">go</xref></pkey>'), const TextStyle());
+    final link = spans.whereType<TextSpan>().firstWhere((s) => s.text == 'go');
+    (link.recognizer! as TapGestureRecognizer).onTap!();
+    expect(tapped, 99);
+    expect(gotPara, 'p3');
+  });
+
+  test('xref with refid absent from corpus renders plain text (no recognizer)', () {
+    final recs = <GestureRecognizer>[];
+    final spans = builder(recognizers: recs, titleForRefid: (r) => null)
+        .build(el('<pkey><xref type="8" RefID="55555">missing</xref></pkey>'), const TextStyle());
+    final s = spans.whereType<TextSpan>().firstWhere((x) => x.text == 'missing');
+    expect(s.recognizer, isNull);
+    expect(recs, isEmpty);
+  });
+
+  test('xref type=9 without URL renders plain text (no recognizer)', () {
+    final recs = <GestureRecognizer>[];
+    final spans = builder(recognizers: recs)
+        .build(el('<pkey><xref type="9">nolink</xref></pkey>'), const TextStyle());
+    final s = spans.whereType<TextSpan>().firstWhere((x) => x.text == 'nolink');
+    expect(s.recognizer, isNull);
+    expect(recs, isEmpty);
+  });
 }

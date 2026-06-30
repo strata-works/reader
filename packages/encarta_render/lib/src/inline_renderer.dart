@@ -2,6 +2,7 @@
 import 'dart:ui' show FontFeature;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:xml/xml.dart';
 import 'callbacks.dart';
 import 'encarta_theme.dart';
@@ -94,10 +95,60 @@ class InlineBuilder {
       case 'inlinetitle':
         return [TextSpan(text: articleTitle, style: base)];
 
+      case 'xref':
+        return [_xref(el, base)];
+
       default:
         // "Never drop text" stance: render children with the inherited style.
         // Specific tags (xref, inlinebmp, …) are added in later tasks.
         return build(el, base);
+    }
+  }
+
+  /// Handles `<xref>` inline elements.
+  ///
+  /// `type=9` (external): if a `URL` attribute is present, opens it via
+  /// [url_launcher] and returns a link span recorded in [recognizers].
+  /// Without a `URL`, returns plain text.
+  ///
+  /// All other types are internal: a `RefID` is looked up via [titleForRefid].
+  /// If absent from the corpus (returns null), renders plain text (dead-link
+  /// suppression). If present, attaches a [TapGestureRecognizer] that calls
+  /// [onXrefTap] with the refid and optional `paraID` deep-link anchor.
+  InlineSpan _xref(XmlElement el, TextStyle base) {
+    final label = el.innerText;
+    final type = int.tryParse(el.getAttribute('type') ?? '');
+    final linkStyle = base.merge(theme.xrefStyle);
+
+    // External link (type 9).
+    if (type == 9) {
+      final url = el.getAttribute('URL');
+      if (url == null || url.isEmpty) return TextSpan(text: label, style: base);
+      final r = TapGestureRecognizer()..onTap = () => _unawaitedLaunch(url);
+      recognizers.add(r);
+      return TextSpan(text: label, style: linkStyle, recognizer: r);
+    }
+
+    // Internal link (all other types carry a RefID).
+    final refid = int.tryParse(el.getAttribute('RefID') ?? '');
+    if (refid == null) return TextSpan(text: label, style: base);
+    if (titleForRefid(refid) == null) {
+      // Dead link: refid absent from corpus → plain text, no tap.
+      return TextSpan(text: label, style: base);
+    }
+    final paraId = el.getAttribute('paraID');
+    final r = TapGestureRecognizer()
+      ..onTap = () => onXrefTap(refid, paraId: paraId);
+    recognizers.add(r);
+    return TextSpan(text: label, style: linkStyle, recognizer: r);
+  }
+
+  /// Fire-and-forget URL launch; swallows failures so a bad URL never crashes
+  /// the reader.
+  void _unawaitedLaunch(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      launchUrl(uri).catchError((_) => false);
     }
   }
 
