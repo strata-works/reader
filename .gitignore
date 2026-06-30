@@ -12,3 +12,5 @@ doc/api/
 coverage/
 # macOS
 .DS_Store
+.flutter-plugins-dependencies
+.flutter-plugins
