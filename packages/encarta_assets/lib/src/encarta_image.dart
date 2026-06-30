@@ -1,6 +1,4 @@
 // packages/encarta_assets/lib/src/encarta_image.dart
-import 'dart:io';
-
 import 'package:encarta_data/encarta_data.dart';
 import 'package:flutter/material.dart';
 

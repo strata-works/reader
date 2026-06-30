@@ -3,7 +3,7 @@
 ///
 /// This is the ONLY package allowed to import `dart:io` and `media_kit`.
 /// It depends on `encarta_data` but never on `encarta_render`.
-library encarta_assets;
+library;
 
 // Public API is exported as each piece lands:
 export 'src/asset_config.dart';
