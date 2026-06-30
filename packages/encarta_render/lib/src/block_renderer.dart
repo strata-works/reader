@@ -30,11 +30,54 @@ class BlockRenderer {
         return _prose(el, theme.quote);
       case 'example':
         return _prose(el, theme.example);
+      case 'section':
+        return _section(el, depth);
+      case 'sectiontitle':
+        return _prose(el, theme.sectionTitleStyle(depth == 0 ? 1 : depth));
       default:
         // Never drop text: render the unknown block as default-styled prose.
         // Later tasks add section/list/etc. branches here.
         return _prose(el, theme.body, debug: true);
     }
+  }
+
+  /// Maps section [type] attribute to a heading level (1-based).
+  /// type 4→1, 5→2, 6→3, 7→4; unknown/missing → 1.
+  int _depthForType(XmlElement section) {
+    switch (int.tryParse(section.getAttribute('type') ?? '')) {
+      case 4:
+        return 1;
+      case 5:
+        return 2;
+      case 6:
+        return 3;
+      case 7:
+        return 4;
+      default:
+        return 1;
+    }
+  }
+
+  Widget _section(XmlElement el, int depth) {
+    final level = _depthForType(el);
+    final children = <Widget>[];
+    for (final child in el.childElements) {
+      if (child.name.local == 'sectiontitle') {
+        children.add(_prose(child, theme.sectionTitleStyle(level)));
+      } else {
+        children.add(build(child, depth: depth + 1));
+      }
+    }
+    final spaced = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      spaced.add(children[i]);
+      if (i != children.length - 1) spaced.add(SizedBox(height: theme.blockSpacing));
+    }
+    final column = Column(crossAxisAlignment: CrossAxisAlignment.start, children: spaced);
+    return Padding(
+      padding: EdgeInsets.only(left: depth == 0 ? 0 : theme.sectionIndentPerDepth),
+      child: column,
+    );
   }
 
   Widget _prose(XmlElement el, TextStyle style, {bool debug = false}) {

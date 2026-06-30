@@ -41,6 +41,27 @@ void main() {
   //   author → author:         fontSize=14, fontStyle=italic, color=0xFF555555
   //   quote  → quote:          fontSize=16, fontStyle=italic, color=0xFF333333
   //   example→ example:        fontSize=15
+  testWidgets('section renders its title, nests children, and indents by depth', (tester) async {
+    final r = blocks();
+    final w = r.build(el(
+      '<section type="4" id="s1"><sectiontitle>Title</sectiontitle><pkey>inside</pkey>'
+      '<section type="5" id="s2"><sectiontitle>Deeper</sectiontitle><pkey>nested</pkey></section>'
+      '</section>'));
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: w))));
+    expect(find.textContaining('Title', findRichText: true), findsOneWidget);
+    expect(find.textContaining('inside', findRichText: true), findsOneWidget);
+    expect(find.textContaining('Deeper', findRichText: true), findsOneWidget);
+    expect(find.textContaining('nested', findRichText: true), findsOneWidget);
+    // nested section is wrapped in extra Padding (indent)
+    expect(find.byType(Padding), findsWidgets);
+  });
+
+  testWidgets('standalone sectiontitle renders as a heading', (tester) async {
+    final r = blocks();
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: r.build(el('<sectiontitle>Lonely</sectiontitle>')))));
+    expect(find.textContaining('Lonely', findRichText: true), findsOneWidget);
+  });
+
   testWidgets('prose block TextStyle matches expected theme style per tag', (tester) async {
     final theme = EncartaTheme.faithfulInSpirit();
 
