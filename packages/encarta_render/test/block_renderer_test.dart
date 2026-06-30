@@ -57,9 +57,96 @@ void main() {
   });
 
   testWidgets('standalone sectiontitle renders as a heading', (tester) async {
+    final theme = EncartaTheme.faithfulInSpirit();
     final r = blocks();
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: r.build(el('<sectiontitle>Lonely</sectiontitle>')))));
     expect(find.textContaining('Lonely', findRichText: true), findsOneWidget);
+    // Standalone sectiontitle: depth=0 → sectionTitleStyle(1): fontSize=24, fontWeight=w700.
+    final expected = theme.sectionTitleStyle(1);
+    final richText = tester.widget<RichText>(
+      find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('Lonely')),
+    );
+    final ourSpan = (richText.text as TextSpan).children!.first as TextSpan;
+    expect(ourSpan.style!.fontSize, equals(expected.fontSize),
+        reason: 'Standalone sectiontitle should use sectionTitleStyle(1) fontSize=${expected.fontSize}');
+    expect(ourSpan.style!.fontWeight, equals(expected.fontWeight),
+        reason: 'Standalone sectiontitle should use sectionTitleStyle(1) fontWeight=${expected.fontWeight}');
+  });
+
+  // Heading-level style mapping: section type attribute → _depthForType level → sectionTitleStyle.
+  // sectionTitleStyle levels (faithfulInSpirit):
+  //   1 → fontSize=24, fontWeight=w700, color=teal (0xFF0B7285)
+  //   2 → fontSize=20, fontWeight=w700, color=teal (0xFF0B7285)
+  //   3 → fontSize=18, fontWeight=w600, color=ink  (0xFF1A1A1A)
+  //   4 → fontSize=16, fontWeight=w600, color=ink  (0xFF1A1A1A)
+  // fontSize differs across ALL levels → any wrong _depthForType mapping fails.
+  // Levels 1-2 share fontWeight (w700) and color (teal); only fontSize distinguishes them.
+  // Levels 3-4 share fontWeight (w600) and color (ink); only fontSize distinguishes them.
+  // The 2→3 boundary also flips fontWeight (w700→w600) and color (teal→ink).
+  // We cover type=4 (level 1), type=5 (level 2), type=6 (level 3) for ≥2 distinct assertions.
+  testWidgets('section type attribute maps to correct sectionTitleStyle level', (tester) async {
+    final theme = EncartaTheme.faithfulInSpirit();
+    final cases = <(String, int)>[
+      ('4', 1), // type=4 → _depthForType=1 → sectionTitleStyle(1): fontSize=24, w700, teal
+      ('5', 2), // type=5 → _depthForType=2 → sectionTitleStyle(2): fontSize=20, w700, teal
+      ('6', 3), // type=6 → _depthForType=3 → sectionTitleStyle(3): fontSize=18, w600, ink
+    ];
+    for (final (typeAttr, level) in cases) {
+      final titleText = 'HeadType$typeAttr';
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: blocks().build(
+            el('<section type="$typeAttr" id="s"><sectiontitle>$titleText</sectiontitle></section>'),
+          ),
+        ),
+      ));
+      final expected = theme.sectionTitleStyle(level);
+      final richText = tester.widget<RichText>(
+        find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains(titleText)),
+      );
+      final ourSpan = (richText.text as TextSpan).children!.first as TextSpan;
+      expect(ourSpan.style!.fontSize, equals(expected.fontSize),
+          reason: 'type=$typeAttr should use sectionTitleStyle($level) fontSize=${expected.fontSize}');
+      expect(ourSpan.style!.fontWeight, equals(expected.fontWeight),
+          reason: 'type=$typeAttr should use sectionTitleStyle($level) fontWeight=${expected.fontWeight}');
+      expect(ourSpan.style!.color, equals(expected.color),
+          reason: 'type=$typeAttr should use sectionTitleStyle($level) color=${expected.color}');
+    }
+  });
+
+  // Differential indent: nested section must produce a strictly greater left padding than its
+  // parent. Implementation: outer depth=0 → Padding(left=0); inner depth=1 → Padding(left=16).
+  // We collect ALL Padding.left values in the widget tree and assert:
+  //   - at least one Padding has left == 0   (outer section, depth=0)
+  //   - at least one Padding has left == sectionIndentPerDepth (inner section, depth=1)
+  //   - sectionIndentPerDepth > 0            (so inner strictly exceeds outer)
+  testWidgets('nested section inner indent is strictly greater than outer indent', (tester) async {
+    final theme = EncartaTheme.faithfulInSpirit();
+    final r = blocks();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: r.build(el(
+          '<section type="4" id="s1"><sectiontitle>OuterTitle</sectiontitle>'
+          '<section type="5" id="s2"><sectiontitle>InnerTitle</sectiontitle></section>'
+          '</section>',
+        )),
+      ),
+    ));
+
+    final leftValues = tester
+        .widgetList<Padding>(find.byType(Padding))
+        .map((p) => (p.padding as EdgeInsets).left)
+        .toSet();
+
+    const outerLeft = 0.0;
+    final innerLeft = theme.sectionIndentPerDepth; // 16.0
+
+    expect(leftValues, contains(outerLeft),
+        reason: 'Outer section (depth=0) must produce Padding(left=$outerLeft)');
+    expect(leftValues, contains(innerLeft),
+        reason: 'Inner section (depth=1) must produce Padding(left=$innerLeft)');
+    expect(innerLeft, greaterThan(outerLeft),
+        reason: 'Inner indent ($innerLeft) must be strictly greater than outer ($outerLeft)');
   });
 
   testWidgets('prose block TextStyle matches expected theme style per tag', (tester) async {
