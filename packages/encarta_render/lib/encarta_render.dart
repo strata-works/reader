@@ -1,5 +1,5 @@
 /// Public API for the Encarta XML renderer.
-library encarta_render;
+library;
 
 export 'src/block_renderer.dart';
 export 'src/callbacks.dart';

@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xml/xml.dart';
 import 'package:encarta_render/encarta_render.dart';
 import 'package:encarta_render/src/inline_renderer.dart';
-import 'package:encarta_render/src/block_renderer.dart';
 
 XmlElement el(String xml) => XmlDocument.parse(xml).rootElement;
 

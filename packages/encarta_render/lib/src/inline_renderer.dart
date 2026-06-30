@@ -1,5 +1,4 @@
 // packages/encarta_render/lib/src/inline_renderer.dart
-import 'dart:ui' show FontFeature;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';

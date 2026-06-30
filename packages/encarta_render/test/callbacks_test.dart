@@ -5,13 +5,16 @@ import 'package:encarta_render/encarta_render.dart';
 
 void main() {
   test('callback typedefs have the locked shapes', () {
+    // ignore: prefer_function_declarations_over_variables — typed variable is the typedef shape assertion
     final AssetResolver ar = (inlineId, inlineType) => const SizedBox.shrink();
     int? tappedRefid;
     String? tappedPara;
+    // ignore: prefer_function_declarations_over_variables — typed variable is the typedef shape assertion
     final XrefTap tap = (refid, {paraId}) {
       tappedRefid = refid;
       tappedPara = paraId;
     };
+    // ignore: prefer_function_declarations_over_variables — typed variable is the typedef shape assertion
     final TitleForRefid t = (refid) => refid == 1 ? 'One' : null;
 
     expect(ar('GLYPH.DIB', 28), isA<Widget>());
