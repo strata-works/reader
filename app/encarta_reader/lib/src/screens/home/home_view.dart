@@ -8,9 +8,11 @@ const _kContentBg = Color(0xFFFCFDFE);
 const _kCardBg = Color(0xFFFFFFFF);
 const _kHairline = Color(0xFFD6E0E7);
 const _kAccent = Color(0xFF159AC0);
+const _kSectionTeal = Color(0xFF0C6E93);
 const _kInk = Color(0xFF1B2831);
 const _kInkSoft = Color(0xFF51636D);
-const _kMaxWidth = 980.0;
+const _kPaleTeal = Color(0xFFEAF4F8);
+const _kMaxWidth = 1040.0;
 
 /// Data bag for the Home portal view.
 class HomeViewData {
@@ -72,52 +74,55 @@ class _HomeViewState extends State<HomeView> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _kMaxWidth),
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            children: [
-              // Masthead: wordmark + search + Surprise me button.
-              _Masthead(
-                controller: _controller,
-                accent: accent,
-                onSearch: widget.onSearch,
-                onRandom: widget.onRandom,
-              ),
-              // Hero: featured article card.
-              if (widget.data.hero != null) ...[
-                const SizedBox(height: 32),
-                _HeroCard(
-                  hero: widget.data.hero!,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Masthead: wordmark + tagline + search row.
+                _Masthead(
+                  controller: _controller,
                   accent: accent,
-                  hairline: hairline,
-                  onTap: () => widget.onOpenArticle(widget.data.hero!.refid),
+                  onSearch: widget.onSearch,
+                  onRandom: widget.onRandom,
                 ),
-              ],
-              // Featured tile grid.
-              if (widget.data.tiles.isNotEmpty) ...[
+                const SizedBox(height: 28),
+                // Hero: featured article card.
+                if (widget.data.hero != null) ...[
+                  _HeroCard(
+                    hero: widget.data.hero!,
+                    accent: accent,
+                    onTap: () =>
+                        widget.onOpenArticle(widget.data.hero!.refid),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+                // Featured tile grid.
+                if (widget.data.tiles.isNotEmpty) ...[
+                  _PaneLabel('FEATURED', accent: accent),
+                  const SizedBox(height: 12),
+                  _TileGrid(
+                    tiles: widget.data.tiles,
+                    accent: accent,
+                    hairline: hairline,
+                    onTap: widget.onOpenArticle,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+                // A-Z browse strip.
+                if (widget.data.azLetters.isNotEmpty) ...[
+                  _PaneLabel('BROWSE A–Z', accent: accent),
+                  const SizedBox(height: 12),
+                  _AzStrip(
+                    letters: widget.data.azLetters,
+                    accent: accent,
+                    hairline: hairline,
+                    onTap: widget.onBrowseLetter,
+                  ),
+                ],
                 const SizedBox(height: 32),
-                const _PaneLabel('FEATURED'),
-                const SizedBox(height: 12),
-                _TileGrid(
-                  tiles: widget.data.tiles,
-                  accent: accent,
-                  hairline: hairline,
-                  onTap: widget.onOpenArticle,
-                ),
               ],
-              // A-Z browse strip.
-              if (widget.data.azLetters.isNotEmpty) ...[
-                const SizedBox(height: 32),
-                const _PaneLabel('BROWSE A–Z'),
-                const SizedBox(height: 12),
-                _AzStrip(
-                  letters: widget.data.azLetters,
-                  accent: accent,
-                  hairline: hairline,
-                  onTap: widget.onBrowseLetter,
-                ),
-              ],
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),
@@ -127,19 +132,27 @@ class _HomeViewState extends State<HomeView> {
 
 // ── Pane label ("FEATURED", "BROWSE A-Z") ────────────────────────────────────
 class _PaneLabel extends StatelessWidget {
-  const _PaneLabel(this.text);
+  const _PaneLabel(this.text, {required this.accent});
   final String text;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.1,
-        color: _kInkSoft,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+            color: _kInkSoft,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(height: 2, width: 22, color: accent),
+      ],
     );
   }
 }
@@ -166,45 +179,60 @@ class _Masthead extends StatelessWidget {
         const Text(
           'Encarta',
           style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+            color: _kSectionTeal,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'The recovered 2009 encyclopedia',
+          style: TextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
             color: _kInkSoft,
           ),
         ),
-        const SizedBox(height: 14),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: _SearchField(
-                controller: controller,
-                accent: accent,
-                onSearch: onSearch,
-              ),
-            ),
-            const SizedBox(width: 10),
-            SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                key: const Key('home.random'),
-                onPressed: onRandom,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: accent,
-                  side: BorderSide(color: accent),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+        const SizedBox(height: 20),
+        // Centered search row: search field (max 620) + Surprise me button.
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _SearchField(
+                    controller: controller,
+                    accent: accent,
+                    onSearch: onSearch,
                   ),
                 ),
-                child: const Text('Surprise me'),
-              ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 40,
+                  child: FilledButton(
+                    key: const Key('home.random'),
+                    onPressed: onRandom,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 18),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Surprise me'),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -239,8 +267,9 @@ class _SearchField extends StatelessWidget {
         ),
         filled: true,
         fillColor: _kCardBg,
+        isDense: true,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: _kHairline),
@@ -255,50 +284,95 @@ class _SearchField extends StatelessWidget {
 }
 
 // ── Hero card ─────────────────────────────────────────────────────────────────
-class _HeroCard extends StatelessWidget {
+class _HeroCard extends StatefulWidget {
   const _HeroCard({
     required this.hero,
     required this.accent,
-    required this.hairline,
     required this.onTap,
   });
 
   final TitleRef hero;
   final Color accent;
-  final Color hairline;
   final VoidCallback onTap;
 
   @override
+  State<_HeroCard> createState() => _HeroCardState();
+}
+
+class _HeroCardState extends State<_HeroCard> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: _kCardBg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: hairline),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 3 px accent-teal top border.
-            Container(height: 3, color: accent),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: CaptionText(
-                hero.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: _kInk,
-                  height: 1.3,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+    final disableAnim = MediaQuery.of(context).disableAnimations;
+    final duration =
+        disableAnim ? Duration.zero : const Duration(milliseconds: 150);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: duration,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: _kCardBg,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black
+                    .withValues(alpha: _hovered ? 0.12 : 0.06),
+                blurRadius: _hovered ? 18 : 10,
+                offset: const Offset(0, 3),
               ),
+            ],
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 4 px accent-teal left border.
+                Container(width: 4, color: widget.accent),
+                // Content area.
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(24, 22, 28, 22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Eyebrow label.
+                        Text(
+                          'FEATURED ARTICLE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                            color: widget.accent,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Hero title via CaptionText (handles <it> etc.).
+                        CaptionText(
+                          widget.hero.title,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: _kInk,
+                            height: 1.25,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -327,7 +401,7 @@ class _TileGrid extends StatelessWidget {
       children: [
         for (final t in tiles)
           SizedBox(
-            width: 220,
+            width: 232,
             child: _TileCard(
               tile: t,
               accent: accent,
@@ -369,37 +443,56 @@ class _TileCardState extends State<_TileCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => widget.onTap(widget.tile.refid),
         child: AnimatedContainer(
           duration: duration,
-          padding: const EdgeInsets.all(14),
+          clipBehavior: Clip.antiAlias,
+          constraints: const BoxConstraints(minHeight: 72),
           decoration: BoxDecoration(
-            color: _kCardBg,
-            borderRadius: BorderRadius.circular(8),
+            color: _hovered ? _kPaleTeal : _kCardBg,
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _hovered ? widget.accent : widget.hairline,
+              width: _hovered ? 1.5 : 1.0,
             ),
             boxShadow: _hovered
                 ? [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ]
                 : const [],
           ),
-          child: CaptionText(
-            widget.tile.title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: _kInk,
-              height: 1.3,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 3 px teal left accent bar.
+                Container(width: 3, color: widget.accent),
+                // Tile text content.
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(13, 16, 16, 16),
+                    child: CaptionText(
+                      widget.tile.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _kInk,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -424,8 +517,8 @@ class _AzStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 8,
+      runSpacing: 8,
       children: [
         for (final l in letters)
           _AzChip(
@@ -468,15 +561,16 @@ class _AzChipState extends State<_AzChip> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => widget.onTap(widget.letter),
         child: AnimatedContainer(
           duration: duration,
-          width: 32,
-          height: 32,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: _hovered ? widget.accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _hovered ? widget.accent : widget.hairline,
             ),
@@ -485,7 +579,7 @@ class _AzChipState extends State<_AzChip> {
             child: Text(
               widget.letter,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: _hovered ? Colors.white : _kInk,
               ),
