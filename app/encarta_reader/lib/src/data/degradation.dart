@@ -1,6 +1,6 @@
 import 'package:encarta_render/encarta_render.dart';
 
-/// §10 title degradation: DB title → first outline entry title → "Article <refid>".
+/// §10 title degradation: DB title → first outline entry title → "Article `<refid>`".
 String resolveDisplayTitle({
   required int refid,
   required String dbTitle,

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:encarta_data/encarta_data.dart';
 import 'package:encarta_reader/src/screens/article/article_view.dart';
 import 'package:encarta_reader/src/screens/search/search_result_tile.dart';
 import 'package:encarta_reader/src/screens/search/search_view.dart';

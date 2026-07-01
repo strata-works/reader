@@ -91,7 +91,7 @@ Future<void> main(List<String> args) async {
         : sizeList.reduce((a, b) => a + b) ~/ sizeList.length;
     final extMap = exts[role] ?? {};
     // ignore: avoid_print
-    print('$role: seen=$seen resolved=$res (${rate}%) transparent_gifs=$transparent avg_size=${avgSize}B exts=$extMap');
+    print('$role: seen=$seen resolved=$res ($rate%) transparent_gifs=$transparent avg_size=${avgSize}B exts=$extMap');
   }
 
   await db.close();
