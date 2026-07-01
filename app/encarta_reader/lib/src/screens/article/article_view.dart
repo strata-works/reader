@@ -103,12 +103,24 @@ class _ArticleViewState extends State<ArticleView> {
     );
     final showRail = widget.data.media.isNotEmpty && widget.assets != null;
 
+    // Design-system constants.
+    const sideRailBg = Color(0xFFEEF3F6);
+    const contentBg = Color(0xFFFCFDFE);
+    const hairline = Color(0xFFD6E0E7);
+    const ink = Color(0xFF1B2831);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // LEFT: outline + related links.
-        SizedBox(
-          width: 260,
+        // LEFT: 244px outline+related pane — side-rail bg + 1px right hairline.
+        Container(
+          width: 244,
+          decoration: const BoxDecoration(
+            color: sideRailBg,
+            border: Border(
+              right: BorderSide(color: hairline, width: 1),
+            ),
+          ),
           child: ArticleOutlinePane(
             outline: widget.data.outline,
             related: widget.data.related,
@@ -117,50 +129,75 @@ class _ArticleViewState extends State<ArticleView> {
             onRelatedTap: widget.onRelatedTap,
           ),
         ),
-        const VerticalDivider(width: 1),
 
-        // CENTER: title + article body capped at theme.measure, centered.
+        // CENTER: content bg; article capped at theme.measure and centered;
+        // padding 28h / 20t; title header with 1px hairline rule beneath.
         Expanded(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: widget.theme.measure),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                    child: CaptionText(
-                      widget.data.title,
-                      style: Theme.of(context).textTheme.headlineSmall,
+          child: ColoredBox(
+            color: contentBg,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: widget.theme.measure),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CaptionText(
+                            widget.data.title,
+                            style: const TextStyle(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w600,
+                              color: ink,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: widget.theme.ruleColor,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: EncartaArticleBody(
-                      key: _bodyKey,
-                      doc: widget.data.doc,
-                      theme: widget.theme,
-                      assetResolver: widget.assetResolver,
-                      onXrefTap: widget.onXrefTap,
-                      titleForRefid: widget.titleForRefid,
+                    Expanded(
+                      child: EncartaArticleBody(
+                        key: _bodyKey,
+                        doc: widget.data.doc,
+                        theme: widget.theme,
+                        assetResolver: widget.assetResolver,
+                        onXrefTap: widget.onXrefTap,
+                        titleForRefid: widget.titleForRefid,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
 
-        // RIGHT: block media rail — only shown when media is present + assets provided.
-        if (showRail) ...[
-          const VerticalDivider(width: 1),
-          SizedBox(
+        // RIGHT: 300px block media rail — side-rail bg + 1px left hairline.
+        // Only shown when media is present + assets provided.
+        if (showRail)
+          Container(
             width: 300,
+            decoration: const BoxDecoration(
+              color: sideRailBg,
+              border: Border(
+                left: BorderSide(color: hairline, width: 1),
+              ),
+            ),
             child: MediaRail(
               media: widget.data.media,
               assets: widget.assets!,
             ),
           ),
-        ],
       ],
     );
   }

@@ -3,11 +3,27 @@ import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_data/encarta_data.dart';
 import 'package:flutter/material.dart';
 
+// Design-system palette.
+const _ink = Color(0xFF1B2831);
+const _inkSoft = Color(0xFF51636D);
+const _hairline = Color(0xFFD6E0E7);
+
+/// Pane-label style: 11px w700 letterSpacing 1.1 UPPERCASE ink-soft.
+const _paneLabelStyle = TextStyle(
+  fontSize: 11,
+  fontWeight: FontWeight.w700,
+  letterSpacing: 1.1,
+  color: _inkSoft,
+);
+
 /// Right pane: vertical list of block-level media figures.
 ///
 /// Chooses the rendering widget by [MediaItem.kind], falling back to file
 /// extension for corpus items misclassified as `kind == 'other'` (e.g. `.wmv`
 /// videos and `.wma` audio stored under kind='other' in the ETL output).
+///
+/// Each figure is wrapped in a card (white bg, hairline border, radius 8,
+/// padding 12, 12px vertical gap between cards).
 ///
 /// DEVIATION FROM BRIEF: adds `assets` parameter (required) because
 /// [EncartaImage], [EncartaAudio], and [EncartaVideo] all require
@@ -89,32 +105,54 @@ class MediaRail extends StatelessWidget {
   // Build
   // ---------------------------------------------------------------------------
 
-  @override
-  Widget build(BuildContext context) {
-    if (media.isEmpty) return const SizedBox.shrink();
+  /// Builds a single media CARD: white bg, 1px hairline border, radius 8,
+  /// 12px internal padding.  Layout: optional title → figure → optional
+  /// caption + credit (only when [_figureHasCaptionCredit] is false).
+  Widget _buildCard(BuildContext context, MediaItem item) {
+    final figure = _figure(item);
+    final hasCaptionCredit = _figureHasCaptionCredit(item);
 
-    return ListView.separated(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: _hairline, width: 1),
+        borderRadius: BorderRadius.circular(8),
+      ),
       padding: const EdgeInsets.all(12),
-      itemCount: media.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (context, i) {
-        final item = media[i];
-        final figure = _figure(item);
-        // EncartaImage already renders caption + credit; only append them
-        // for audio/video figures to avoid duplication.
-        if (_figureHasCaptionCredit(item)) return figure;
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Card title row — always rendered when the item has a non-empty title.
+          if (item.title != null && item.title!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: CaptionText(
+                item.title!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _ink,
+                ),
+              ),
+            ),
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            figure,
+          // Figure: EncartaImage / EncartaAudio / EncartaVideo.
+          figure,
+
+          // Caption + credit only for audio/video (EncartaImage renders them
+          // internally; forwarding them here would duplicate the text).
+          if (!hasCaptionCredit) ...[
             if (item.caption != null && item.caption!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: CaptionText(
                   item.caption!,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    color: _ink,
+                  ),
                 ),
               ),
             if (item.credit != null && item.credit!.isNotEmpty)
@@ -122,15 +160,33 @@ class MediaRail extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2),
                 child: CaptionText(
                   'Credit: ${item.credit!}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(fontStyle: FontStyle.italic),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontStyle: FontStyle.italic,
+                    color: _inkSoft,
+                  ),
                 ),
               ),
           ],
-        );
-      },
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (media.isEmpty) return const SizedBox.shrink();
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+      children: [
+        const Text('MEDIA', style: _paneLabelStyle),
+        const SizedBox(height: 12),
+        for (int i = 0; i < media.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
+          _buildCard(context, media[i]),
+        ],
+      ],
     );
   }
 }

@@ -157,10 +157,12 @@ void main() {
     expect(find.textContaining('</it>'), findsNothing,
         reason: 'closing </it> tag must be stripped from title');
 
-    // The visible text "Henry V" (inside <it>) must be present.
+    // The visible text "Henry V" (inside <it>) must be present at least once.
+    // The card title row AND the figure's own unavailable-media text both render
+    // the title, so two RichText widgets containing "Henry V" are expected.
     expect(
       find.textContaining('Henry V', findRichText: true),
-      findsOneWidget,
+      findsWidgets,
       reason: 'italic inner text must be visible',
     );
 

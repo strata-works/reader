@@ -88,4 +88,55 @@ void main() {
     checkSpan(richText.text);
     expect(hasItalicSpan, isTrue, reason: '<it>-wrapped text must be italic');
   });
+
+  testWidgets('active entry shows teal active-indicator styling', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ArticleOutlinePane(
+          outline: const EncartaOutline(entries: [
+            OutlineEntry(title: 'History', anchorId: 'a1', depth: 0),
+            OutlineEntry(title: 'Theory', anchorId: 'a2', depth: 1),
+          ]),
+          related: const [],
+          onOutlineTap: (_) {},
+          onRelatedTap: (_) {},
+          activeAnchorId: 'a2',
+        ),
+      ),
+    ));
+
+    // The active entry ('Theory') must be present.
+    expect(find.text('Theory'), findsOneWidget);
+
+    // Find the active entry's Container and verify the active-indicator bg colour.
+    final containers = tester.widgetList<Container>(find.byType(Container));
+    final activeContainers = containers.where((c) {
+      final decoration = c.decoration;
+      if (decoration is BoxDecoration) {
+        return decoration.color == const Color(0xFFE1F0F6);
+      }
+      return false;
+    }).toList();
+    expect(activeContainers, isNotEmpty,
+        reason: 'Active entry must have bg Color(0xFFE1F0F6)');
+
+    // The 3px left accent-teal border must be present on the active tile.
+    final borderedContainers = containers.where((c) {
+      final decoration = c.decoration;
+      if (decoration is BoxDecoration) {
+        final leftBorder = decoration.border;
+        if (leftBorder is Border) {
+          return leftBorder.left.color == const Color(0xFF159AC0) &&
+              leftBorder.left.width == 3;
+        }
+      }
+      return false;
+    }).toList();
+    expect(borderedContainers, isNotEmpty,
+        reason: 'Active entry must have 3px left border in accent-teal');
+
+    // Non-active entry ('History') must NOT carry the active-indicator bg.
+    final historyFinder = find.text('History');
+    expect(historyFinder, findsOneWidget);
+  });
 }
