@@ -9,6 +9,17 @@ part 'app_router.gr.dart';
 
 @AutoRouterConfig(replaceInRouteName: 'Page,Route')
 class AppRouter extends RootStackRouter {
+  // Back/Forward are driven by our HistoryController via pushPath, so a
+  // DIRECTIONAL slide (auto_route's default) animates Back like a forward push,
+  // which looks wrong. A short, non-directional fade reads as a clean content
+  // swap — closer to how Encarta itself changed pages.
+  @override
+  RouteType get defaultRouteType => RouteType.custom(
+        transitionsBuilder: TransitionsBuilders.fadeIn,
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+      );
+
   @override
   List<AutoRoute> get routes => [
         AutoRoute(page: HomeRoute.page, path: '/', initial: true),
