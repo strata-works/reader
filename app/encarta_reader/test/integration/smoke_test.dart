@@ -78,7 +78,24 @@ void main() {
           reason: 'No exception loading article $refid2');
       expect(find.byType(ErrorWidget), findsNothing);
 
-      // ── Step 4: press Back → returns to Article 1 ─────────────────────────
+      // ── Step 3b: a KNOWN duplicate-id article (regression guard) ──────────
+      // The "William Shakespeare" article (refid 761562101) reuses element ids
+      // across nested elements. Anchor keying once gave them the same GlobalKey
+      // → a framework 'child == _child' crash. Opening it must not error.
+      final shakespeare = await env.db.getArticle(761562101);
+      if (shakespeare != null) {
+        AppScope.of(tester.element(find.byType(EncartaToolbar)))
+            .navigator
+            .openArticle(761562101);
+        await tester.pumpAndSettle();
+        expect(find.byType(EncartaArticleBody), findsOneWidget,
+            reason: 'duplicate-id article must render its body, not an error');
+        expect(tester.takeException(), isNull,
+            reason: 'No GlobalKey collision on the duplicate-id article');
+        expect(find.byType(ErrorWidget), findsNothing);
+      }
+
+      // ── Step 4: press Back → returns to a prior article ───────────────────
       final back = find.byKey(const Key('toolbar.back'));
       expect(
         tester.widget<IconButton>(back).onPressed,
