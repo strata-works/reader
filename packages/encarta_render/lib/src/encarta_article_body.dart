@@ -171,7 +171,12 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
 
   @override
   Widget build(BuildContext context) {
-    _disposeRecognizers(); // drop last frame's recognizers before re-creating spans
+    // NOTE: do NOT dispose recognizers here. The ListView builds items lazily
+    // and may keep a cached item across a parent rebuild; disposing the whole
+    // recognizer set on every build() would kill the TapGestureRecognizer that
+    // a still-displayed link span references, making in-article links dead.
+    // Recognizers accumulate for this body's lifetime and are disposed in
+    // dispose() (bounded per-article; the view is recreated on navigation).
     final inline = InlineBuilder(
       theme: widget.theme,
       assetResolver: widget.assetResolver,
