@@ -2,6 +2,7 @@
 import 'package:encarta_data/encarta_data.dart';
 import 'package:flutter/material.dart';
 
+import 'caption_text.dart';
 import 'dib_shim.dart';
 import 'encarta_assets_base.dart';
 
@@ -38,7 +39,7 @@ class EncartaImage extends StatelessWidget {
           if (item.caption != null && item.caption!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(
+              child: CaptionText(
                 item.caption!,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -46,8 +47,8 @@ class EncartaImage extends StatelessWidget {
           if (item.credit != null && item.credit!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                'Credit: ${item.credit}',
+              child: CaptionText(
+                'Credit: ${item.credit!}',
                 style: Theme.of(context)
                     .textTheme
                     .labelSmall

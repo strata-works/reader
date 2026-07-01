@@ -112,7 +112,7 @@ class MediaRail extends StatelessWidget {
             if (item.caption != null && item.caption!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text(
+                child: CaptionText(
                   item.caption!,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -120,8 +120,8 @@ class MediaRail extends StatelessWidget {
             if (item.credit != null && item.credit!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  'Credit: ${item.credit}',
+                child: CaptionText(
+                  'Credit: ${item.credit!}',
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall

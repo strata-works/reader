@@ -7,6 +7,7 @@ library;
 
 // Public API is exported as each piece lands:
 export 'src/asset_config.dart';
+export 'src/caption_text.dart';
 export 'src/dib_shim.dart';
 export 'src/encarta_assets_base.dart';
 export 'src/encarta_image.dart';
