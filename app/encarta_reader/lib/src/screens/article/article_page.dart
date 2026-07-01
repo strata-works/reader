@@ -100,6 +100,10 @@ class _ArticlePageState extends State<ArticlePage> {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (snap.hasError) {
+          return const Center(
+              child: Text('Something went wrong loading this article.'));
+        }
         final data = snap.data;
         if (data == null) {
           return Center(child: Text('Article ${widget.refid} not found.'));

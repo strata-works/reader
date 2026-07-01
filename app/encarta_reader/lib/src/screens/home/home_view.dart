@@ -13,7 +13,7 @@ class HomeViewData {
 }
 
 /// Encarta portal: hero featured article + featured tile grid + A–Z + search + random.
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   final HomeViewData data;
   final void Function(int refid) onOpenArticle;
   final void Function(String letter) onBrowseLetter;
@@ -30,16 +30,34 @@ class HomeView extends StatelessWidget {
   });
 
   @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController();
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
         // Prominent search.
         TextField(
-          controller: controller,
+          controller: _controller,
           textInputAction: TextInputAction.search,
-          onSubmitted: onSearch,
+          onSubmitted: widget.onSearch,
           decoration: const InputDecoration(
             prefixIcon: Icon(Icons.search),
             hintText: 'Search the Encarta encyclopedia…',
@@ -48,9 +66,9 @@ class HomeView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         // Hero featured article.
-        if (data.hero != null)
+        if (widget.data.hero != null)
           InkWell(
-            onTap: () => onOpenArticle(data.hero!.refid),
+            onTap: () => widget.onOpenArticle(widget.data.hero!.refid),
             child: Container(
               height: 160,
               alignment: Alignment.bottomLeft,
@@ -59,26 +77,26 @@ class HomeView extends StatelessWidget {
                 color: Colors.blueGrey.shade50,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(data.hero!.title,
+              child: Text(widget.data.hero!.title,
                   style: Theme.of(context).textTheme.headlineMedium),
             ),
           ),
         const SizedBox(height: 24),
         // Featured tile grid.
-        if (data.tiles.isNotEmpty) ...[
+        if (widget.data.tiles.isNotEmpty) ...[
           const Text('Featured', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              for (final t in data.tiles)
+              for (final t in widget.data.tiles)
                 SizedBox(
                   width: 200,
                   height: 90,
                   child: Card(
                     child: InkWell(
-                      onTap: () => onOpenArticle(t.refid),
+                      onTap: () => widget.onOpenArticle(t.refid),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Text(t.title),
@@ -91,16 +109,16 @@ class HomeView extends StatelessWidget {
           const SizedBox(height: 24),
         ],
         // A–Z browse strip.
-        if (data.azLetters.isNotEmpty) ...[
+        if (widget.data.azLetters.isNotEmpty) ...[
           const Text('Browse A–Z',
               style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
             children: [
-              for (final letter in data.azLetters)
+              for (final letter in widget.data.azLetters)
                 OutlinedButton(
-                  onPressed: () => onBrowseLetter(letter),
+                  onPressed: () => widget.onBrowseLetter(letter),
                   child: Text(letter),
                 ),
             ],
@@ -112,7 +130,7 @@ class HomeView extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: FilledButton.icon(
             key: const Key('home.random'),
-            onPressed: onRandom,
+            onPressed: widget.onRandom,
             icon: const Icon(Icons.casino),
             label: const Text('Random article'),
           ),

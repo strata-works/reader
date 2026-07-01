@@ -122,6 +122,10 @@ class _SearchPageState extends State<SearchPage> {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (snap.hasError) {
+          return const Center(
+              child: Text('Something went wrong loading this search.'));
+        }
         final base = snap.data!;
         final marked = SearchViewData(
           query: base.query,

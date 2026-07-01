@@ -47,7 +47,7 @@ class EncartaDoc {
       final XmlElement body = texts.isNotEmpty ? texts.first : content;
       final blocks = body.childElements.toList();
       return EncartaDoc._(title: title, blocks: blocks, outline: _buildOutline(blocks));
-    } catch (_) {
+    } on Exception catch (_) {
       return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline(entries: []));
     }
   }

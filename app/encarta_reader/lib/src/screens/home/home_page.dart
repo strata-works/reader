@@ -70,6 +70,10 @@ class _HomePageState extends State<HomePage> {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (snap.hasError) {
+          return const Center(
+              child: Text('Something went wrong loading this home.'));
+        }
         return HomeView(
           data: snap.data!,
           onOpenArticle: scope.navigator.openArticle,
