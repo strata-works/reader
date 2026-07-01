@@ -20,6 +20,10 @@ dependencies:
     path: ../../packages/encarta_assets
   auto_route: ^11.1.0
   media_kit: ^1.1.11
+  # Bundles an FTS5-enabled libsqlite3 inside the packaged app so search works
+  # under the macOS App Sandbox (which blocks the Homebrew dylib path that
+  # encarta_data probes for, and only reaches, on a dev host during `dart test`).
+  sqlite3_flutter_libs: ^0.5.24
 
 dev_dependencies:
   flutter_test:

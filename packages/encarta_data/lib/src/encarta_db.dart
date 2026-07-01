@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -15,24 +14,36 @@ import 'models.dart';
 
 bool _fts5LoaderInstalled = false;
 
-/// Point the `sqlite3` package at an fts5-capable libsqlite3.
+/// Ensure the `sqlite3` package uses an fts5-capable libsqlite3.
 ///
-/// macOS system sqlite3 ships WITHOUT fts5 (`no such module: fts5`); the
-/// Homebrew build does. We override the global open hook once. If no such
-/// library is found we leave the default in place — non-fts queries still
-/// work, and [EncartaDb.search] will surface a clear "no such module" error.
+/// Two environments to satisfy:
+///  * **Packaged Flutter app** — `sqlite3_flutter_libs` bundles an FTS5-enabled
+///    libsqlite3 inside the `.app`; the DEFAULT loader finds it. The macOS App
+///    Sandbox forbids reading `/opt/homebrew`, so we must NOT force that path.
+///  * **`dart test` / dev host** — the macOS system sqlite3 ships WITHOUT fts5
+///    (`no such module: fts5`); a Homebrew/usr-local build does. There is no
+///    bundled lib, so we override the global open hook to the Homebrew build.
+///
+/// We PROBE each candidate with an eager `DynamicLibrary.open` wrapped in a
+/// try/catch: if it opens (dev host) we install it as the override; if it is
+/// absent OR sandbox-blocked (packaged app) we fall through to the default
+/// bundled lib instead of crashing at first sqlite access.
 void _loadFts5Sqlite() {
   if (_fts5LoaderInstalled) return;
+  _fts5LoaderInstalled = true;
   for (final p in const [
     '/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib',
     '/usr/local/opt/sqlite/lib/libsqlite3.dylib',
   ]) {
-    if (File(p).existsSync()) {
+    try {
+      DynamicLibrary.open(p); // probe: throws if missing or sandbox-blocked
       open.overrideForAll(() => DynamicLibrary.open(p));
-      break;
+      return;
+    } catch (_) {
+      // Not usable here — try the next candidate, else keep the default
+      // (the app's bundled FTS5 libsqlite3 from sqlite3_flutter_libs).
     }
   }
-  _fts5LoaderInstalled = true;
 }
 
 /// Swallows the `PRAGMA user_version = N` write drift would otherwise issue
