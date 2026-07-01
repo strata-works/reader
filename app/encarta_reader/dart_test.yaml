@@ -1,0 +1,7 @@
+# Integration tests require the real ~685 MB Encarta corpus DB + FTS5 sqlite.
+# They are SKIPPED by default so `flutter test` stays hermetic (unit tests only).
+# Run them explicitly with:
+#   flutter test --run-skipped --tags integration test/integration/smoke_test.dart
+tags:
+  integration:
+    skip: "Requires the real corpus DB; run with --run-skipped --tags integration"
