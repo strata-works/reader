@@ -34,3 +34,17 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
+  # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
+  # is the period-accurate reading face for the reader.
+  fonts:
+    - family: Selawik
+      fonts:
+        - asset: assets/fonts/Selawik-Semilight.ttf
+          weight: 300
+        - asset: assets/fonts/Selawik-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Selawik-Semibold.ttf
+          weight: 600
+        - asset: assets/fonts/Selawik-Bold.ttf
+          weight: 700

@@ -17,3 +17,6 @@ coverage/
 
 # Xcode SwiftPM IDE metadata
 **/xcshareddata/swiftpm/
+
+# Flutter golden-test failure artifacts
+**/test/failures/

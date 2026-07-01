@@ -65,50 +65,56 @@ class EncartaTheme extends ThemeExtension<EncartaTheme> {
 
   /// The default theme — Encarta-era blue/teal chrome over a light content
   /// area with crisp, readable typography. "Faithful in spirit" per spec §8.
+  // ── Encarta-2009 revival palette (cool teal/blue software chrome, cleaned up).
+  // Text styles leave fontFamily null on purpose: the app installs Selawik
+  // (the open Segoe UI substitute) globally, so every role inherits it while
+  // this package stays font-agnostic.
+  static const Color _ink = Color(0xFF1B2831); // cool near-black body text
+  static const Color _inkSoft = Color(0xFF51636D); // captions, byline, meta
+  static const Color _teal = Color(0xFF0C6E93); // Encarta section-heading blue-teal
+  static const Color _accent = Color(0xFF159AC0); // bright teal — active states
+  static const Color _link = Color(0xFF1466B8); // classic hyperlink blue
+  static const Color _surface = Color(0xFFFCFDFE); // cool near-white content bg
+  static const Color _hairline = Color(0xFFD6E0E7); // cool rules/borders
+
+  /// The default theme — a faithful-in-spirit Encarta 2009 revival: cool
+  /// teal/blue chrome, Selawik (Segoe-substitute) type, crisp reading measure.
   factory EncartaTheme.faithfulInSpirit() {
-    const ink = Color(0xFF1A1A1A);
-    const teal = Color(0xFF0B7285);
-    const linkBlue = Color(0xFF1B5E9B);
     return const EncartaTheme(
-      background: Color(0xFFFBFBF7),
-      foreground: ink,
-      chromeColor: Color(0xFF1B5E8C), // Encarta-era blue/teal toolbar
+      background: _surface,
+      foreground: _ink,
+      chromeColor: Color(0xFF14648B), // mid teal-blue; the toolbar builds a gradient from it
       onChromeColor: Color(0xFFFFFFFF),
-      accentColor: teal,
-      surfaceColor: Color(0xFFFFFFFF), // light content/portal-tile surface
-      measure: 680,
-      blockSpacing: 14,
-      sectionIndentPerDepth: 16,
-      body: TextStyle(fontSize: 16, height: 1.5, color: ink),
-      intro: TextStyle(
-          fontSize: 18,
-          height: 1.5,
-          color: ink,
-          fontWeight: FontWeight.w500),
+      accentColor: _accent,
+      surfaceColor: Color(0xFFFFFFFF),
+      measure: 700,
+      blockSpacing: 15,
+      sectionIndentPerDepth: 18,
+      body: TextStyle(fontSize: 15.5, height: 1.62, color: _ink),
+      intro: TextStyle(fontSize: 17, height: 1.58, color: _ink),
       author: TextStyle(
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-          color: Color(0xFF555555)),
+          fontSize: 13.5, fontStyle: FontStyle.italic, color: _inkSoft),
       quote: TextStyle(
-          fontSize: 16,
-          height: 1.5,
+          fontSize: 15.5,
+          height: 1.6,
           fontStyle: FontStyle.italic,
-          color: Color(0xFF333333)),
-      example: TextStyle(fontSize: 15, height: 1.45, color: ink),
-      listItem: TextStyle(fontSize: 16, height: 1.45, color: ink),
+          color: Color(0xFF34505C)),
+      example: TextStyle(fontSize: 14.5, height: 1.55, color: _ink),
+      listItem: TextStyle(fontSize: 15.5, height: 1.55, color: _ink),
       enumerator:
-          TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: teal),
-      xrefStyle: TextStyle(
-          color: linkBlue, decoration: TextDecoration.underline),
+          TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _accent),
+      xrefStyle:
+          TextStyle(color: _link, decoration: TextDecoration.underline),
       headlineDefault:
-          TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: ink),
+          TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _ink),
       sectionTitles: [
-        TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: teal),
-        TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: teal),
-        TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: ink),
-        TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ink),
+        TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: _teal),
+        TextStyle(fontSize: 17.5, fontWeight: FontWeight.w600, color: _teal),
+        TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: _ink),
+        TextStyle(
+            fontSize: 14.5, fontWeight: FontWeight.w600, color: Color(0xFF34505C)),
       ],
-      ruleColor: Color(0xFFCCCCCC),
+      ruleColor: _hairline,
       fractionFontScale: 0.72,
       debugUnstyledTags: false,
       debugUnstyledColor: Color(0x33FF0000),
