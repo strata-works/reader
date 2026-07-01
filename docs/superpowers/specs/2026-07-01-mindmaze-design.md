@@ -86,9 +86,17 @@ No new stack, no new data store, no duplication of asset or DB logic.
 
 ### 4.2 Rendering & audio (app layer)
 
-- **Room view** — layered `.dib` composition (ceiling/floor/walls, decor, character sprite), `dialog.dib` panel with clue + answer buttons, door affordances. Uses the reader's DIB shim.
+- **Room view** — layered `.dib` composition (ceiling/floor/walls, decor, character sprite), `dialog.dib` panel with clue + answer buttons, door affordances.
 - **Audio** — MediaKit: per-area ambient `.wav` loop + `.mid` bed; SFX on correct/wrong.
 - **Transitions** — door-open animation between rooms; end-screen sequence (`end1-6.dib`) on win; trophy/medal/ribbon display.
+
+#### Image format (verified against the real files)
+
+The MindMaze `.dib` assets are **already complete 8-bit paletted BMPs** on disk — they begin with a valid `"BM"` `BITMAPFILEHEADER` (`bfOffBits` = 1078 = 14 + 40 header + 1024-byte 256-color palette; `bfSize` matches file size). Verified: PIL opens them directly as `BMP` (mode `P`). Consequences:
+
+- **Decode directly** via `Image.memory(bytes)`. Do **NOT** run them through the reader's `DibShim.toBmp` — that shim *prepends* a 14-byte header for raw headerless DIBs, so applying it here would double-header and corrupt the image. (This differs from the shim's original use case; MindMaze art needs its own resolve path or a shim guard that skips files already starting with `"BM"`.)
+- **Backdrops / decor** (e.g. `atrium`, `dialog`, doors) are full-frame, opaque → decode and render as-is. No transparency needed.
+- **Character sprites** (e.g. `jester*`, `king1`, `duke*`, `lady1`, `sorceres`, `alchem`, `parrot`, `servant*`) use a **cyan color-key**: **palette index 254 = RGB (0, 255, 255)**, occupying 55–71% of each sprite (all four corners + border). 8-bit BMP has no alpha, so to composite a character over a room backdrop we must convert the keyed color to transparency. Approach: transcode sprites to PNG-with-alpha in the derived-assets pipeline (preferred — keeps runtime simple and matches the existing `assets_derived` convention), or key the color at load time. Whether other palette indices ever collide with true cyan in sprite content must be spot-checked during implementation.
 
 ---
 
@@ -116,6 +124,8 @@ All reconstructed content is flagged in-repo as reconstructed (not original) so 
 
 ## 7. Risks
 
+- **Sprite transparency** — character sprites are opaque 8-bit BMPs with a cyan (index 254 / RGB 0,255,255) color-key; they need cyan→alpha conversion (build-time PNG transcode, preferred) before they composite over backdrops. Confirmed against `jester*`, `king1`, `parrot`, `sorceres`. Verify no sprite legitimately uses that exact cyan in its artwork.
+- **DIB shim mismatch** — MindMaze `.dib` are already complete BMPs; the reader's `DibShim.toBmp` (built for raw headerless DIBs) would double-header them. MindMaze must decode directly / guard the shim on a leading `"BM"`. Also worth confirming the reader's existing article-`.dib` path isn't relying on the shim for files that already carry a `"BM"` header.
 - **MIDI playback** in MediaKit may be unreliable cross-platform → fallback: transcode the 5 `.mid` at build time, or ship ambient-only.
 - **`.DB` framing edge cases** — correct-answer vs decoy prefix bytes and decoy count must be pinned under parser TDD (the ~2,083 count is approximate).
 - **`.IDX` semantics** — used as validation/optimization only, not a hard dependency.
@@ -128,7 +138,7 @@ All reconstructed content is flagged in-repo as reconstructed (not original) so 
 1. **Decode** — quarry parser → `mm_question`/`mm_answer` in `encarta.sqlite` (+ tests). Unblocks everything; verifiable in isolation.
 2. **Data API** — `encarta_data` query methods (+ tests).
 3. **Game core** — `encarta_mindmaze` model/state machine, headless (+ tests).
-4. **Playable room** — single-room app screen: art + character + question + answer, "read more" hop.
+4. **Playable room** — single-room app screen: backdrop + character sprite (with cyan→alpha keying) + question + answer, "read more" hop. Includes the sprite-transparency transcode (or load-time keying) since the first character appears here.
 5. **Maze & progression** — full graph, doors, scoring, win/lose, end screens.
 6. **Polish** — audio, animations, banter, trophies.
 
