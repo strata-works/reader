@@ -34,12 +34,12 @@ void main() {
 
   // Verifies that each prose block tag is wired to its expected theme style, not just
   // that text appears. Distinguishing properties chosen so any wrong mapping fails:
-  //   pkey   → body:           fontSize=16, fontStyle=null, fontWeight=null, color=0xFF1A1A1A
-  //   intro  → intro:          fontSize=18, fontWeight=w500
-  //   headline→headlineDefault: fontSize=22, fontWeight=w700
-  //   author → author:         fontSize=14, fontStyle=italic, color=0xFF555555
-  //   quote  → quote:          fontSize=16, fontStyle=italic, color=0xFF333333
-  //   example→ example:        fontSize=15
+  //   pkey   → body:           fontSize=15.5, fontStyle=null, fontWeight=null, color=0xFF1B2831
+  //   intro  → intro:          fontSize=17, fontWeight=null
+  //   headline→headlineDefault: fontSize=18, fontWeight=w700
+  //   author → author:         fontSize=13.5, fontStyle=italic, color=0xFF51636D
+  //   quote  → quote:          fontSize=15.5, fontStyle=italic, color=0xFF34505C
+  //   example→ example:        fontSize=14.5
   testWidgets('section renders its title, nests children, and indents by depth', (tester) async {
     final r = blocks();
     final w = r.build(el(
@@ -60,7 +60,7 @@ void main() {
     final r = blocks();
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: r.build(el('<sectiontitle>Lonely</sectiontitle>')))));
     expect(find.textContaining('Lonely', findRichText: true), findsOneWidget);
-    // Standalone sectiontitle: depth=0 → sectionTitleStyle(1): fontSize=24, fontWeight=w700.
+    // Standalone sectiontitle: depth=0 → sectionTitleStyle(1): fontSize=21, fontWeight=w700.
     final expected = theme.sectionTitleStyle(1);
     final richText = tester.widget<RichText>(
       find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('Lonely')),
@@ -74,21 +74,21 @@ void main() {
 
   // Heading-level style mapping: section type attribute → _depthForType level → sectionTitleStyle.
   // sectionTitleStyle levels (faithfulInSpirit):
-  //   1 → fontSize=24, fontWeight=w700, color=teal (0xFF0B7285)
-  //   2 → fontSize=20, fontWeight=w700, color=teal (0xFF0B7285)
-  //   3 → fontSize=18, fontWeight=w600, color=ink  (0xFF1A1A1A)
-  //   4 → fontSize=16, fontWeight=w600, color=ink  (0xFF1A1A1A)
+  //   1 → fontSize=21,   fontWeight=w700, color=teal (0xFF0C6E93)
+  //   2 → fontSize=17.5, fontWeight=w600, color=teal (0xFF0C6E93)
+  //   3 → fontSize=15.5, fontWeight=w600, color=ink  (0xFF1B2831)
+  //   4 → fontSize=14.5, fontWeight=w600, color=     (0xFF34505C)
   // fontSize differs across ALL levels → any wrong _depthForType mapping fails.
-  // Levels 1-2 share fontWeight (w700) and color (teal); only fontSize distinguishes them.
-  // Levels 3-4 share fontWeight (w600) and color (ink); only fontSize distinguishes them.
+  // Levels 1-2 share color (teal) but differ in fontSize and fontWeight.
+  // Levels 3-4 share fontWeight (w600) and color (ink family); only fontSize distinguishes them.
   // The 2→3 boundary also flips fontWeight (w700→w600) and color (teal→ink).
   // We cover type=4 (level 1), type=5 (level 2), type=6 (level 3) for ≥2 distinct assertions.
   testWidgets('section type attribute maps to correct sectionTitleStyle level', (tester) async {
     final theme = EncartaTheme.faithfulInSpirit();
     final cases = <(String, int)>[
-      ('4', 1), // type=4 → _depthForType=1 → sectionTitleStyle(1): fontSize=24, w700, teal
-      ('5', 2), // type=5 → _depthForType=2 → sectionTitleStyle(2): fontSize=20, w700, teal
-      ('6', 3), // type=6 → _depthForType=3 → sectionTitleStyle(3): fontSize=18, w600, ink
+      ('4', 1), // type=4 → _depthForType=1 → sectionTitleStyle(1): fontSize=21,   w700, teal 0xFF0C6E93
+      ('5', 2), // type=5 → _depthForType=2 → sectionTitleStyle(2): fontSize=17.5, w600, teal 0xFF0C6E93
+      ('6', 3), // type=6 → _depthForType=3 → sectionTitleStyle(3): fontSize=15.5, w600, ink  0xFF1B2831
     ];
     for (final (typeAttr, level) in cases) {
       final titleText = 'HeadType$typeAttr';
@@ -138,7 +138,7 @@ void main() {
         .toSet();
 
     const outerLeft = 0.0;
-    final innerLeft = theme.sectionIndentPerDepth; // 16.0
+    final innerLeft = theme.sectionIndentPerDepth; // 18.0
 
     expect(leftValues, contains(outerLeft),
         reason: 'Outer section (depth=0) must produce Padding(left=$outerLeft)');
