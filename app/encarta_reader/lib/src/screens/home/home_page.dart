@@ -8,10 +8,17 @@ import 'home_view.dart';
 const _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /// Pure assembly of the Home portal: first featured = hero, rest = tiles, A–Z strip.
+///
+/// If [featured] returns an empty list and [fallback] is provided, [fallback]
+/// is called instead — so Home is never blank even if the curated group is empty.
 Future<HomeViewData> buildHomeViewData({
   required Future<List<TitleRef>> Function({int limit}) featured,
+  Future<List<TitleRef>> Function({int limit})? fallback,
 }) async {
-  final feats = await featured(limit: 12);
+  var feats = await featured(limit: 12);
+  if (feats.isEmpty && fallback != null) {
+    feats = await fallback(limit: 12);
+  }
   return HomeViewData(
     hero: feats.isEmpty ? null : feats.first,
     tiles: feats.length > 1 ? feats.sublist(1) : const [],
@@ -35,7 +42,10 @@ class _HomePageState extends State<HomePage> {
     super.didChangeDependencies();
     final db = AppScope.of(context).db;
     if (db == null) return; // guard: shell-only mode (no DB)
-    _future = buildHomeViewData(featured: db.featured);
+    _future = buildHomeViewData(
+      featured: db.featured,
+      fallback: ({int limit = 12}) => db.titlesIndex(limit: limit),
+    );
   }
 
   Future<void> _random() async {
