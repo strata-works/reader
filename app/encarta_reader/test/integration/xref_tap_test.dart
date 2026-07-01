@@ -19,7 +19,9 @@ TapGestureRecognizer? _firstLink(WidgetTester tester) {
       if (s is TextSpan) {
         final r = s.recognizer;
         if (r is TapGestureRecognizer && r.onTap != null) { found = r; return; }
-        for (final c in s.children ?? const <InlineSpan>[]) walk(c);
+        for (final c in s.children ?? const <InlineSpan>[]) {
+          walk(c);
+        }
       }
     }
     walk(rt.text);
