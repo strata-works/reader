@@ -62,7 +62,11 @@ class _EncartaReaderAppState extends State<EncartaReaderApp> {
                     history: _history,
                     navigator: _navigator,
                   ),
-                  Expanded(child: child ?? const SizedBox()),
+                  Expanded(
+                    child: Material(
+                      child: child ?? const SizedBox(),
+                    ),
+                  ),
                 ],
               ),
             ),
