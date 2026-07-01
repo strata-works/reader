@@ -176,4 +176,31 @@ void main() {
     await _pump(tester, 'No markup here.');
     expect(_plainText(tester), 'No markup here.');
   });
+
+  // --- maxLines / overflow ---------------------------------------------------
+
+  testWidgets('maxLines and overflow are forwarded to the inner Text.rich',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: CaptionText(
+          'A very long string that should be clipped',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final richText = tester.widget<RichText>(
+      find.descendant(
+        of: find.byType(CaptionText),
+        matching: find.byType(RichText),
+      ),
+    );
+    expect(richText.maxLines, 1,
+        reason: 'maxLines must be forwarded to Text.rich');
+    expect(richText.overflow, TextOverflow.ellipsis,
+        reason: 'overflow must be forwarded to Text.rich');
+  });
 }

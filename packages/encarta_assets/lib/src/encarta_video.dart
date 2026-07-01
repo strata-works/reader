@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import 'caption_text.dart';
 import 'encarta_assets_base.dart';
 import 'media_kit_init.dart';
 
@@ -83,8 +84,10 @@ class _EncartaVideoState extends State<EncartaVideo> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.videocam_off, color: Color(0xFFBDBDBD)),
-            Text('${widget.item.title ?? 'Video'} — media unavailable',
-                style: const TextStyle(color: Color(0xFFBDBDBD))),
+            CaptionText(
+              '${widget.item.title ?? 'Video'} — media unavailable',
+              style: const TextStyle(color: Color(0xFFBDBDBD)),
+            ),
           ],
         ),
       );

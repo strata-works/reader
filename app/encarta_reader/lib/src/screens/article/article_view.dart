@@ -129,7 +129,7 @@ class _ArticleViewState extends State<ArticleView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                    child: Text(
+                    child: CaptionText(
                       widget.data.title,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),

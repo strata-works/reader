@@ -1,3 +1,4 @@
+import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_data/encarta_data.dart';
 import 'package:flutter/material.dart';
 
@@ -77,7 +78,7 @@ class _HomeViewState extends State<HomeView> {
                 color: Colors.blueGrey.shade50,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(widget.data.hero!.title,
+              child: CaptionText(widget.data.hero!.title,
                   style: Theme.of(context).textTheme.headlineMedium),
             ),
           ),
@@ -99,7 +100,7 @@ class _HomeViewState extends State<HomeView> {
                       onTap: () => widget.onOpenArticle(t.refid),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Text(t.title),
+                        child: CaptionText(t.title),
                       ),
                     ),
                   ),

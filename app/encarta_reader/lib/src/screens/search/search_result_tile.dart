@@ -47,7 +47,7 @@ class SearchResultTile extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
+                        child: CaptionText(
                           item.title,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,

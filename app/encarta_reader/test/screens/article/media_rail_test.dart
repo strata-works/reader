@@ -51,6 +51,20 @@ MediaItem _videoOtherItem() => const MediaItem(
       kind: 'other',
     );
 
+/// Audio item whose title contains inline markup (asset path is missing so the
+/// unavailable poster is shown, which also renders the title via CaptionText).
+MediaItem _audioItemWithMarkupTitle() => const MediaItem(
+      mediaRefid: 4,
+      role: 'audio',
+      group: 'article',
+      title: 'Opening Lines of <it>Henry V</it>',
+      caption: null,
+      credit: null,
+      assetPath: 'audio/missing_markup.wma',
+      ext: '.wma',
+      kind: 'audio',
+    );
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -122,5 +136,62 @@ void main() {
     expect(find.byType(EncartaImage), findsNothing);
     expect(find.byType(EncartaAudio), findsNothing);
     expect(find.byType(EncartaVideo), findsNothing);
+  });
+
+  testWidgets(
+      'media title with inline markup renders plain text + italic, '
+      'no raw <it> tag text visible', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MediaRail(
+          media: [_audioItemWithMarkupTitle()],
+          assets: _assets,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // Raw tag strings must not appear anywhere.
+    expect(find.textContaining('<it>'), findsNothing,
+        reason: 'opening <it> tag must be stripped from title');
+    expect(find.textContaining('</it>'), findsNothing,
+        reason: 'closing </it> tag must be stripped from title');
+
+    // The visible text "Henry V" (inside <it>) must be present.
+    expect(
+      find.textContaining('Henry V', findRichText: true),
+      findsOneWidget,
+      reason: 'italic inner text must be visible',
+    );
+
+    // Verify the "Henry V" span is italic.
+    final captionWidgets = find.byType(CaptionText);
+    expect(captionWidgets, findsWidgets,
+        reason: 'CaptionText must be used to render the title');
+
+    bool hasItalicHenryV = false;
+    for (final element in tester.elementList(captionWidgets)) {
+      final richTexts = find.descendant(
+        of: find.byElementPredicate((e) => e == element),
+        matching: find.byType(RichText),
+      );
+      for (final rtElement in tester.elementList(richTexts)) {
+        final rt = rtElement.widget as RichText;
+        void checkSpan(InlineSpan span) {
+          if (span is TextSpan) {
+            if ((span.text ?? '').contains('Henry V') &&
+                span.style?.fontStyle == FontStyle.italic) {
+              hasItalicHenryV = true;
+            }
+            for (final child in span.children ?? <InlineSpan>[]) {
+              checkSpan(child);
+            }
+          }
+        }
+        checkSpan(rt.text);
+      }
+    }
+    expect(hasItalicHenryV, isTrue,
+        reason: '<it>Henry V</it> must render as italic text');
   });
 }

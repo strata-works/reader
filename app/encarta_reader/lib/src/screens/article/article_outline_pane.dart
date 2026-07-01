@@ -1,3 +1,4 @@
+import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_data/encarta_data.dart';
 import 'package:encarta_render/encarta_render.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class ArticleOutlinePane extends StatelessWidget {
               onTap: () => onRelatedTap(x.targetRefid),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(x.title,
+                child: CaptionText(x.title,
                     style: const TextStyle(decoration: TextDecoration.underline)),
               ),
             ),

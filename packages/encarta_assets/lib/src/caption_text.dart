@@ -20,7 +20,14 @@ import 'package:flutter/material.dart';
 /// )
 /// ```
 class CaptionText extends StatelessWidget {
-  const CaptionText(this.raw, {this.style, this.textAlign, super.key});
+  const CaptionText(
+    this.raw, {
+    this.style,
+    this.textAlign,
+    this.maxLines,
+    this.overflow,
+    super.key,
+  });
 
   /// The raw markup string to parse and render.
   final String raw;
@@ -32,6 +39,12 @@ class CaptionText extends StatelessWidget {
   /// Text alignment forwarded to the inner [Text.rich].
   final TextAlign? textAlign;
 
+  /// Maximum number of lines forwarded to the inner [Text.rich].
+  final int? maxLines;
+
+  /// Overflow behaviour forwarded to the inner [Text.rich].
+  final TextOverflow? overflow;
+
   @override
   Widget build(BuildContext context) {
     final base = style ?? DefaultTextStyle.of(context).style;
@@ -39,6 +52,8 @@ class CaptionText extends StatelessWidget {
     return Text.rich(
       TextSpan(children: spans),
       textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: overflow,
     );
   }
 }

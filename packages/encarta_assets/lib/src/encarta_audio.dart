@@ -3,6 +3,7 @@ import 'package:encarta_data/encarta_data.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 
+import 'caption_text.dart';
 import 'encarta_assets_base.dart';
 import 'media_kit_init.dart';
 
@@ -64,7 +65,7 @@ class _EncartaAudioState extends State<EncartaAudio> {
   @override
   Widget build(BuildContext context) {
     if (_unavailable || _player == null) {
-      return _Poster(label: widget.item.title ?? 'Audio');
+      return _Poster(rawTitle: widget.item.title ?? 'Audio');
     }
     final player = _player!;
     return Row(
@@ -78,7 +79,7 @@ class _EncartaAudioState extends State<EncartaAudio> {
           icon: const Icon(Icons.pause),
           onPressed: () => player.pause(),
         ),
-        Flexible(child: Text(widget.item.title ?? 'Audio')),
+        Flexible(child: CaptionText(widget.item.title ?? 'Audio')),
       ],
     );
   }
@@ -86,8 +87,10 @@ class _EncartaAudioState extends State<EncartaAudio> {
 
 /// Shared "media unavailable" poster.
 class _Poster extends StatelessWidget {
-  const _Poster({required this.label});
-  final String label;
+  const _Poster({required this.rawTitle});
+
+  /// The raw (possibly markup-bearing) title string for the unavailable item.
+  final String rawTitle;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -99,8 +102,14 @@ class _Poster extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.music_off, color: Color(0xFF9E9E9E)),
-            Text('$label — media unavailable',
-                style: Theme.of(context).textTheme.labelSmall),
+            // CaptionText strips/renders inline markup in the title; the
+            // plain "— media unavailable" suffix follows as a normal Text span
+            // via string concatenation — CaptionText treats unknown tags and
+            // plain text after markup correctly.
+            CaptionText(
+              '$rawTitle — media unavailable',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
           ],
         ),
       );

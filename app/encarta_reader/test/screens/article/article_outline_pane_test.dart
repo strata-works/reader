@@ -1,3 +1,4 @@
+import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_data/encarta_data.dart';
 import 'package:encarta_render/encarta_render.dart';
 import 'package:encarta_reader/src/screens/article/article_outline_pane.dart';
@@ -30,5 +31,61 @@ void main() {
     expect(tappedAnchor, 'a2');
     await tester.tap(find.text('Newton'));
     expect(tappedRefid, 7);
+  });
+
+  testWidgets(
+      'related item with inline markup renders plain text + italic, no raw tags',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ArticleOutlinePane(
+          outline: const EncartaOutline(entries: []),
+          related: const [
+            XrefTarget(
+              targetRefid: 99,
+              title: '<it>A Midsummer Night\'s Dream</it> (play)',
+            ),
+          ],
+          onOutlineTap: (_) {},
+          onRelatedTap: (_) {},
+        ),
+      ),
+    ));
+
+    // Raw tag text must not appear anywhere in the widget tree.
+    expect(find.textContaining('<it>'), findsNothing,
+        reason: 'opening <it> tag must be stripped');
+    expect(find.textContaining('</it>'), findsNothing,
+        reason: 'closing </it> tag must be stripped');
+
+    // The visible text "A Midsummer Night's Dream" must be present as a
+    // rich-text span rendered by CaptionText (findRichText: true).
+    expect(
+      find.textContaining("A Midsummer Night's Dream", findRichText: true),
+      findsOneWidget,
+      reason: 'title inner text must be visible',
+    );
+
+    // The italic span must carry FontStyle.italic.
+    final richText = tester.widget<RichText>(
+      find.descendant(
+        of: find.byType(CaptionText),
+        matching: find.byType(RichText),
+      ),
+    );
+    bool hasItalicSpan = false;
+    void checkSpan(InlineSpan span) {
+      if (span is TextSpan) {
+        final text = span.text ?? '';
+        if (text.contains("A Midsummer Night's Dream")) {
+          if (span.style?.fontStyle == FontStyle.italic) hasItalicSpan = true;
+        }
+        for (final child in span.children ?? <InlineSpan>[]) {
+          checkSpan(child);
+        }
+      }
+    }
+    checkSpan(richText.text);
+    expect(hasItalicSpan, isTrue, reason: '<it>-wrapped text must be italic');
   });
 }
