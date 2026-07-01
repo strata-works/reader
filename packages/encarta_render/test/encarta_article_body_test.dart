@@ -44,4 +44,63 @@ void main() {
     await scrollFuture;
     expect(controller.offset, greaterThan(0));
   });
+
+  testWidgets(
+      'scrollToAnchor reaches a NESTED anchor (sub-section) that is off-screen',
+      (tester) async {
+    // Build a doc with 40 filler top-level pkeys to push the outer section
+    // off-screen, then a top-level section containing a nested section with
+    // id "deep". The nested section should be scrollable via scrollToAnchor.
+    final filler =
+        List.generate(40, (i) => '<pkey id="f$i">Filler $i.</pkey>').join();
+    final doc = EncartaDoc.parse(
+      _b(
+        '<content><text>'
+        '$filler'
+        '<section type="4" id="outer"><sectiontitle>Outer</sectiontitle>'
+        '<section type="5" id="deep"><sectiontitle>DeepSection</sectiontitle>'
+        '<pkey id="dp1">Deep content here.</pkey>'
+        '</section>'
+        '</section>'
+        '</text></content>',
+      ),
+      title: 'T',
+    );
+
+    final key = GlobalKey<EncartaArticleBodyState>();
+    final controller = ScrollController();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: EncartaArticleBody(
+          key: key,
+          doc: doc,
+          theme: EncartaTheme.faithfulInSpirit(),
+          assetResolver: (inlineId, inlineType) => const SizedBox.shrink(),
+          onXrefTap: (r, {paraId}) {},
+          titleForRefid: (r) => null,
+          controller: controller,
+        ),
+      ),
+    ));
+
+    // The nested section title must be off-screen initially (lazy list + filler).
+    expect(
+      find.textContaining('DeepSection', findRichText: true),
+      findsNothing,
+      reason: 'Deep section should be off-screen before scrolling',
+    );
+
+    // Capture the future first; do NOT await before pumping.
+    final scrollFuture = key.currentState!.scrollToAnchor('deep');
+    // Drive the post-frame jump + ensureVisible animation to completion.
+    await tester.pumpAndSettle();
+    await scrollFuture;
+
+    // The nested section title must now be visible on screen.
+    expect(
+      find.textContaining('DeepSection', findRichText: true),
+      findsOneWidget,
+      reason: 'Deep section should be visible after scrollToAnchor("deep")',
+    );
+  });
 }

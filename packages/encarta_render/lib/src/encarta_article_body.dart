@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:xml/xml.dart';
 import 'callbacks.dart';
 import 'block_renderer.dart';
 import 'encarta_doc.dart';
@@ -36,6 +37,11 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
   final List<GestureRecognizer> _recognizers = <GestureRecognizer>[];
   final Map<String, GlobalKey> _anchors = <String, GlobalKey>{};
 
+  /// Maps each anchor id → index of the TOP-LEVEL block in [EncartaDoc.blocks]
+  /// whose subtree contains that id. Used for off-screen proportional jumping
+  /// in [scrollToAnchor] when the target is nested inside a top-level block.
+  final Map<String, int> _anchorTopIndex = <String, int>{};
+
   ScrollController? _ownController;
 
   ScrollController get _effectiveController =>
@@ -52,6 +58,7 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.doc, widget.doc)) {
       _anchors.clear();
+      _anchorTopIndex.clear();
       _rebuildAnchors();
     }
     // If the injected controller changed and we no longer need our own, dispose it.
@@ -62,12 +69,24 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
   }
 
   void _rebuildAnchors() {
-    // Only attach keys to top-level blocks whose id is in allAnchorIds().
-    final anchorSet = widget.doc.allAnchorIds().toSet();
-    for (final block in widget.doc.blocks) {
-      final id = block.getAttribute('id');
-      if (id != null && id.isNotEmpty && anchorSet.contains(id)) {
-        _anchors.putIfAbsent(id, () => GlobalKey());
+    // Create a GlobalKey for EVERY id in allAnchorIds() — top-level and nested.
+    for (final id in widget.doc.allAnchorIds()) {
+      _anchors.putIfAbsent(id, () => GlobalKey());
+    }
+
+    // Build _anchorTopIndex: each anchor id → index of the top-level block
+    // whose subtree contains it (used for off-screen proportional jumping).
+    for (var i = 0; i < widget.doc.blocks.length; i++) {
+      final block = widget.doc.blocks[i];
+      final bid = block.getAttribute('id');
+      if (bid != null && bid.isNotEmpty) {
+        _anchorTopIndex[bid] = i;
+      }
+      for (final d in block.descendantElements) {
+        final did = d.getAttribute('id');
+        if (did != null && did.isNotEmpty) {
+          _anchorTopIndex[did] = i;
+        }
       }
     }
   }
@@ -98,12 +117,13 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
     // list to build items around the target, then ensureVisible on next frame.
     if (!controller.hasClients) return Future<void>.value();
 
-    final ids = widget.doc.blocks.map((b) => b.getAttribute('id')).toList();
-    final idx = ids.indexOf(anchorId);
-    if (idx < 0 || ids.length <= 1) return Future<void>.value();
+    // Use _anchorTopIndex to find the top-level block that owns this anchor
+    // (works for nested ids that are NOT in doc.blocks directly).
+    final idx = _anchorTopIndex[anchorId];
+    if (idx == null || widget.doc.blocks.length <= 1) return Future<void>.value();
 
     final pos = controller.position;
-    final target = (pos.maxScrollExtent * (idx / (ids.length - 1)))
+    final target = (pos.maxScrollExtent * (idx / (widget.doc.blocks.length - 1)))
         .clamp(0.0, pos.maxScrollExtent);
     controller.jumpTo(target);
 
@@ -160,7 +180,14 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
       articleTitle: widget.doc.title,
       recognizers: _recognizers,
     );
-    final blocks = BlockRenderer(theme: widget.theme, inline: inline);
+    // Pass anchorIds + anchorKeys so BlockRenderer keys every element—including
+    // nested sections and paragraphs—via KeyedSubtree, not just top-level blocks.
+    final blocks = BlockRenderer(
+      theme: widget.theme,
+      inline: inline,
+      anchorIds: _anchors.keys.toSet(),
+      anchorKeys: _anchors,
+    );
     final top = widget.doc.blocks;
 
     return Container(
@@ -173,12 +200,9 @@ class EncartaArticleBodyState extends State<EncartaArticleBody> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           itemCount: top.length,
           itemBuilder: (context, i) {
-            final el = top[i];
-            Widget w = blocks.build(el);
-            final id = el.getAttribute('id');
-            if (id != null && _anchors.containsKey(id)) {
-              w = KeyedSubtree(key: _anchors[id], child: w);
-            }
+            // BlockRenderer.build() now owns KeyedSubtree wrapping for all
+            // elements (top-level and nested) whose id is in anchorIds.
+            final Widget w = blocks.build(top[i]);
             return Padding(
               padding: EdgeInsets.only(bottom: widget.theme.blockSpacing),
               child: w,

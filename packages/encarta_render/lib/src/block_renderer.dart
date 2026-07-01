@@ -9,12 +9,40 @@ import 'inline_renderer.dart';
 ///
 /// Later tasks add section/list/sec*/rule/br branches to the same dispatch.
 class BlockRenderer {
-  BlockRenderer({required this.theme, required this.inline});
+  BlockRenderer({
+    required this.theme,
+    required this.inline,
+    this.anchorIds = const {},
+    this.anchorKeys = const {},
+  });
 
   final EncartaTheme theme;
   final InlineBuilder inline;
 
+  /// Set of element ids that should receive a [GlobalKey] via [KeyedSubtree].
+  /// Populated by [EncartaArticleBody] from [EncartaDoc.allAnchorIds].
+  final Set<String> anchorIds;
+
+  /// Map from element id → [GlobalKey]. Must contain an entry for every id in
+  /// [anchorIds]. Owned by [EncartaArticleBody]; passed here for keying.
+  final Map<String, GlobalKey> anchorKeys;
+
+  /// Build the widget for [el] at [depth], wrapping it with a [KeyedSubtree]
+  /// if the element's id is in [anchorIds] (so any level—top-level or
+  /// nested—can be scrolled to via [EncartaArticleBodyState.scrollToAnchor]).
   Widget build(XmlElement el, {int depth = 0}) {
+    Widget w = _buildWidget(el, depth: depth);
+    final id = el.getAttribute('id');
+    if (id != null && id.isNotEmpty && anchorIds.contains(id)) {
+      w = KeyedSubtree(key: anchorKeys[id]!, child: w);
+    }
+    return w;
+  }
+
+  /// Internal dispatch: computes the raw widget for [el] without anchor keying.
+  /// Recursive calls from [_section] go back through [build] so nested elements
+  /// also receive their [KeyedSubtree] wrappers.
+  Widget _buildWidget(XmlElement el, {int depth = 0}) {
     switch (el.name.local) {
       case 'pkey':
         return _prose(el, theme.body);
