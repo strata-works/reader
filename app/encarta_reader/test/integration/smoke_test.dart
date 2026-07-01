@@ -8,13 +8,15 @@ library;
 import 'package:encarta_reader/src/app.dart';
 import 'package:encarta_reader/src/bootstrap.dart';
 import 'package:encarta_reader/src/config/app_config.dart';
+import 'package:encarta_reader/src/widgets/app_scope.dart';
 import 'package:encarta_reader/src/widgets/top_toolbar.dart';
+import 'package:encarta_render/encarta_render.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'open article → search → tap xref → Back never crashes/blanks',
+    'open article → second article → back → search → back never crashes/blanks',
     (tester) async {
       // Bootstrap against the real DB; suppress libmpv (not available headless).
       final env = await bootstrap(
@@ -29,31 +31,98 @@ void main() {
 
       // ── Step 1: toolbar chrome is present on Home ─────────────────────────
       expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(find.byType(ErrorWidget), findsNothing);
 
-      // ── Step 2: type a query and submit via the toolbar search box ─────────
+      // Obtain a real refid guaranteed to exist in the corpus.
+      final featured = await env.db.featured(limit: 1);
+      expect(featured, isNotEmpty, reason: 'DB must have at least one featured article');
+      final refid1 = featured.first.refid;
+      final title1 = featured.first.title;
+
+      // ── Step 2: navigate to Article 1 via the wired AppNavigator ──────────
+      AppScope.of(tester.element(find.byType(EncartaToolbar)))
+          .navigator
+          .openArticle(refid1);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(
+        find.byType(EncartaArticleBody),
+        findsOneWidget,
+        reason:
+            'ArticlePage must inflate EncartaArticleBody for refid=$refid1 ($title1)',
+      );
+      expect(tester.takeException(), isNull,
+          reason: 'No exception loading article $refid1 ($title1)');
+      expect(find.byType(ErrorWidget), findsNothing);
+
+      // ── Step 3: navigate to Article 2 (article→article routing) ───────────
+      final article2 = await env.db.randomArticle();
+      expect(article2, isNotNull,
+          reason: 'DB must have at least one randomly-chosen article');
+      final refid2 = article2!.refid;
+
+      AppScope.of(tester.element(find.byType(EncartaToolbar)))
+          .navigator
+          .openArticle(refid2);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(
+        find.byType(EncartaArticleBody),
+        findsOneWidget,
+        reason:
+            'ArticlePage must inflate EncartaArticleBody for refid=$refid2 (${article2.title})',
+      );
+      expect(tester.takeException(), isNull,
+          reason: 'No exception loading article $refid2');
+      expect(find.byType(ErrorWidget), findsNothing);
+
+      // ── Step 4: press Back → returns to Article 1 ─────────────────────────
+      final back = find.byKey(const Key('toolbar.back'));
+      expect(
+        tester.widget<IconButton>(back).onPressed,
+        isNotNull,
+        reason: 'Back must be enabled after article→article navigation',
+      );
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(
+        find.byType(EncartaArticleBody),
+        findsOneWidget,
+        reason: 'Back from article 2 must return to an article screen',
+      );
+      expect(tester.takeException(), isNull,
+          reason: 'No exception after Back to article 1');
+      expect(find.byType(ErrorWidget), findsNothing);
+
+      // ── Step 5: type a query and submit via the toolbar search box ─────────
       await tester.enterText(
           find.byKey(const Key('toolbar.search')), 'science');
       await tester.testTextInput.receiveAction(TextInputAction.search);
       // Drain: navigates to /search?q=science and waits for search results.
       await tester.pumpAndSettle();
 
-      // ── Step 3: toolbar chrome persists on Search ─────────────────────────
+      // ── Step 6: toolbar chrome persists on Search ─────────────────────────
       expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(find.byType(ErrorWidget), findsNothing);
 
-      // ── Step 4: Back is enabled (history has '/' → '/search?q=science') ───
-      final back = find.byKey(const Key('toolbar.back'));
+      // ── Step 7: Back is enabled (history has prior entries) ───────────────
       expect(
         tester.widget<IconButton>(back).onPressed,
         isNotNull,
-        reason: 'Back must be enabled after navigating from Home → Search',
+        reason: 'Back must be enabled after navigating from article → Search',
       );
 
-      // ── Step 5: tap Back → returns to Home ────────────────────────────────
+      // ── Step 8: tap Back → returns to previous screen ─────────────────────
       await tester.tap(back);
       await tester.pumpAndSettle();
 
-      // ── Step 6: toolbar still visible; no exception thrown ────────────────
+      // ── Step 9: toolbar still visible; no exception thrown ────────────────
       expect(find.byType(EncartaToolbar), findsOneWidget);
+      expect(find.byType(ErrorWidget), findsNothing);
       expect(
         tester.takeException(),
         isNull,
