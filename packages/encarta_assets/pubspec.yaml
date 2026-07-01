@@ -14,7 +14,9 @@ dependencies:
     path: ../encarta_data
   media_kit: ^1.1.11
   media_kit_video: ^1.2.5
-  media_kit_libs_macos_audio: ^1.0.4
+  # media_kit forbids depending on more than one media_kit_libs_macos_* package
+  # ("must be uniq"). The _video libs already bundle audio (mpv), so we depend on
+  # _video only — it covers both WMV video and WMA audio playback.
   media_kit_libs_macos_video: ^1.1.4
   path: ^1.9.0
 
