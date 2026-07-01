@@ -37,13 +37,13 @@ class BlockRenderer {
       case 'list':
         return _list(el);
       case 'sec':
-        return _enumerator(el, 0);
       case 'seca':
-        return _enumerator(el, 1);
       case 'secb':
-        return _enumerator(el, 2);
       case 'secc':
-        return _enumerator(el, 3);
+        // Outline-numbering scaffolding ("II", "A", "1", "a"). Encarta used
+        // these as per-section enumerators, never as visible body content.
+        // Rendering them produces orphaned floating glyphs; suppress entirely.
+        return const SizedBox.shrink();
       case 'rule':
         return Padding(
           padding: EdgeInsets.symmetric(vertical: theme.blockSpacing / 2),
@@ -118,17 +118,6 @@ class BlockRenderer {
       ));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
-  }
-
-  Widget _enumerator(XmlElement el, int level) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: level * theme.sectionIndentPerDepth,
-        top: 4,
-        bottom: 2,
-      ),
-      child: Text.rich(TextSpan(style: theme.enumerator, children: inline.build(el, theme.enumerator))),
-    );
   }
 
   Widget _prose(XmlElement el, TextStyle style, {bool debug = false}) {

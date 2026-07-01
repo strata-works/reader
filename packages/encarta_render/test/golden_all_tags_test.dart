@@ -96,9 +96,9 @@ void main() {
     expect(find.textContaining('First item', findRichText: true), findsOneWidget);
     // sectiontitle
     expect(find.textContaining('Top Section', findRichText: true), findsOneWidget);
-    // sec enumerator: the <sec>I</sec> block renders as a RichText whose full
-    // plain text is exactly "I" — use find.text for an exact match.
-    expect(find.text('I', findRichText: true), findsOneWidget);
+    // sec/seca/secb/secc are outline scaffolding — suppressed to SizedBox.shrink().
+    // The labels ("I", "A", "1", "a") must NOT appear as visible text.
+    expect(find.text('I', findRichText: true), findsNothing);
 
     // -----------------------------------------------------------------------
     // Dead-vs-live xref distinction

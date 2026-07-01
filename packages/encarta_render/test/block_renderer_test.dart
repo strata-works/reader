@@ -221,74 +221,35 @@ void main() {
         reason: 'bullet marker must use theme.listItem fontSize');
   });
 
-  testWidgets('sec/seca/secb/secc render their enumerator label, indented by level', (tester) async {
-    final theme = EncartaTheme.faithfulInSpirit();
+  testWidgets('sec/seca/secb/secc are suppressed — render nothing visible', (tester) async {
+    // These are Encarta outline-numbering scaffolding elements ("I", "A", "1",
+    // "a") that appear as trailing children at section boundaries in the corpus.
+    // They must NOT produce any visible text or meaningful layout; each should
+    // resolve to SizedBox.shrink() so orphaned floating glyphs are eliminated.
     final r = blocks();
 
-    // Recursive span collector — handles any nesting depth.
-    List<TextSpan> allTextSpans(InlineSpan root) {
-      final result = <TextSpan>[];
-      if (root is TextSpan) {
-        result.add(root);
-        root.children?.forEach((c) => result.addAll(allTextSpans(c)));
-      }
-      return result;
-    }
-
-    // tag, label, expected left padding (level * sectionIndentPerDepth)
     final cases = [
-      ('sec',  'I', 0 * theme.sectionIndentPerDepth),   // level 0 → 0.0
-      ('seca', 'A', 1 * theme.sectionIndentPerDepth),   // level 1 → 16.0
-      ('secb', 'B', 2 * theme.sectionIndentPerDepth),   // level 2 → 32.0
-      ('secc', 'C', 3 * theme.sectionIndentPerDepth),   // level 3 → 48.0
+      ('sec',  'II'),
+      ('seca', 'A'),
+      ('secb', '1'),
+      ('secc', 'a'),
     ];
 
-    final leftValues = <double>[];
-
-    for (final (tag, label, expectedLeft) in cases) {
+    for (final (tag, label) in cases) {
       await tester.pumpWidget(MaterialApp(
           home: Scaffold(body: r.build(el('<$tag>$label</$tag>')))));
 
-      // (a) label text is present
-      expect(find.textContaining(label, findRichText: true), findsOneWidget,
-          reason: '<$tag> must render its label "$label"');
+      // No visible label text — the element is suppressed entirely.
+      expect(find.text(label, findRichText: true), findsNothing,
+          reason: '<$tag> must NOT render its label "$label" (suppressed scaffolding)');
+      expect(find.textContaining(label, findRichText: true), findsNothing,
+          reason: '<$tag> must produce no RichText containing "$label"');
 
-      // (b) label uses theme.enumerator style: fontWeight=w600, color=teal (0xFF0B7285)
-      final richText = tester.widget<RichText>(
-        find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains(label)),
-      );
-      final spans = allTextSpans(richText.text);
-      expect(
-        spans.any((s) => s.style?.color == theme.enumerator.color),
-        isTrue,
-        reason: '<$tag> must use theme.enumerator color (${theme.enumerator.color})',
-      );
-      expect(
-        spans.any((s) => s.style?.fontWeight == theme.enumerator.fontWeight),
-        isTrue,
-        reason: '<$tag> must use theme.enumerator fontWeight (${theme.enumerator.fontWeight})',
-      );
-
-      // (c) indent via Padding — _enumerator wraps in Padding(top:4, bottom:2, left:level*step)
-      final ourPaddings = tester
-          .widgetList<Padding>(find.byType(Padding))
-          .where((p) {
-            final e = p.padding as EdgeInsets;
-            return e.top == 4.0 && e.bottom == 2.0;
-          })
-          .toList();
-      expect(ourPaddings, isNotEmpty,
-          reason: '<$tag> must have an _enumerator Padding (top=4, bottom=2)');
-      final left = (ourPaddings.first.padding as EdgeInsets).left;
-      expect(left, equals(expectedLeft),
-          reason: '<$tag> (level) must have left padding $expectedLeft, got $left');
-      leftValues.add(left);
-    }
-
-    // strictly increasing: sec=0 < seca=16 < secb=32 < secc=48
-    for (var i = 1; i < leftValues.length; i++) {
-      expect(leftValues[i], greaterThan(leftValues[i - 1]),
-          reason: 'indent must strictly increase: ${leftValues[i - 1]} < ${leftValues[i]}');
+      // The widget is the zero-size shrink box, not a padded enumerator block.
+      expect(find.byType(SizedBox), findsOneWidget,
+          reason: '<$tag> must render as SizedBox.shrink() with no other structure');
+      expect(find.byType(Padding), findsNothing,
+          reason: '<$tag> must not produce any Padding widget');
     }
   });
 
