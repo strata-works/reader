@@ -29,7 +29,15 @@ class _EncartaReaderAppState extends State<EncartaReaderApp> {
     super.initState();
     _navigator = AppNavigator(
       history: _history,
-      go: (location) => _router.navigatePath(location),
+      // Our HistoryController owns Back/Forward, so `go` just needs to DISPLAY
+      // the given location. `navigatePath`/`replacePath` REUSE the existing page
+      // when the target matches the current route pattern, so article -> article
+      // never swapped the displayed ArticlePage (and history desynced, making
+      // Back take two taps). `pushPath` always inflates a fresh page for the new
+      // params, keeping display in sync with our history so Back works in one
+      // tap. (Trade-off: auto_route's own stack grows over a session; harmless
+      // here since our HistoryController — not auto_route — drives Back/Forward.)
+      go: (location) => _router.pushPath(location),
     );
     final db = widget.env?.db;
     _titles = ArticleTitleCache(
