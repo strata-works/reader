@@ -47,4 +47,23 @@ void main() {
     await tester.pump();
     expect(gone.last, '/search?q=mars');
   });
+
+  testWidgets('toolbar renders the chrome gradient', (tester) async {
+    final gone = <String>[];
+    await tester.pumpWidget(host(HistoryController(), gone));
+
+    final gradientFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration as BoxDecoration).gradient is LinearGradient,
+    );
+    expect(gradientFinder, findsOneWidget);
+
+    final container = tester.widget<Container>(gradientFinder);
+    final gradient =
+        (container.decoration as BoxDecoration).gradient! as LinearGradient;
+    expect(gradient.colors.first, const Color(0xFF1E86B0));
+    expect(gradient.colors.last, const Color(0xFF0C567C));
+  });
 }

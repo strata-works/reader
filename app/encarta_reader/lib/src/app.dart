@@ -57,6 +57,14 @@ class _EncartaReaderAppState extends State<EncartaReaderApp> {
       child: MaterialApp.router(
         title: 'Encarta Reader',
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'Selawik',
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1E86B0), // chrome teal
+          ),
+          scaffoldBackgroundColor: const Color(0xFFFCFDFE), // content bg
+        ),
         routerConfig: _router.config(),
         builder: (context, child) => Overlay(
           initialEntries: [
