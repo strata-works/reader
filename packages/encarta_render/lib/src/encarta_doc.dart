@@ -46,9 +46,46 @@ class EncartaDoc {
       final texts = content.findElements('text').toList();
       final XmlElement body = texts.isNotEmpty ? texts.first : content;
       final blocks = body.childElements.toList();
+      // Encarta ids are NOT unique across a document (a section and a pkey can
+      // both carry id="8"). The renderer keys anchored elements by id for
+      // scroll-to-anchor, and Flutter forbids the same GlobalKey in two places
+      // — duplicate ids would crash the article body. Make ids unique BEFORE
+      // building the outline/anchors so every keyed element is distinct.
+      _dedupeIds(blocks);
       return EncartaDoc._(title: title, blocks: blocks, outline: _buildOutline(blocks));
     } on Exception catch (_) {
       return EncartaDoc._(title: title, blocks: const [], outline: const EncartaOutline(entries: []));
+    }
+  }
+
+  /// Rename every DUPLICATE `id` occurrence to a fresh unique id so the
+  /// renderer can key anchored elements without a GlobalKey collision. The
+  /// FIRST occurrence of each id is kept stable, so outline anchors and paraID
+  /// deep-links (which point at the canonical/first element) still resolve.
+  static void _dedupeIds(List<XmlElement> blocks) {
+    final seen = <String>{};
+    var counter = 0;
+    void visit(XmlElement el) {
+      final id = el.getAttribute('id');
+      if (id != null && id.isNotEmpty) {
+        if (seen.contains(id)) {
+          String fresh;
+          do {
+            fresh = '$id~dup$counter';
+            counter++;
+          } while (seen.contains(fresh));
+          el.setAttribute('id', fresh);
+          seen.add(fresh);
+        } else {
+          seen.add(id);
+        }
+      }
+      for (final c in el.childElements) {
+        visit(c);
+      }
+    }
+    for (final b in blocks) {
+      visit(b);
     }
   }
 

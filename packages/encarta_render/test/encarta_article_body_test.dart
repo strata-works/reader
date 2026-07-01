@@ -46,6 +46,40 @@ void main() {
   });
 
   testWidgets(
+      'renders a doc with DUPLICATE ids without a GlobalKey collision crash',
+      (tester) async {
+    // Real Encarta articles reuse ids (a section and a pkey both id="8"). Before
+    // dedup, anchor keying gave two elements the same GlobalKey → framework
+    // assertion crash. This reproduces the real-article structure.
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4" id="8"><sectiontitle>Sec</sectiontitle>'
+         '<pkey id="8">dup one</pkey>'
+         '<section type="5" id="8"><sectiontitle>Nested</sectiontitle>'
+         '<pkey id="8">dup two</pkey></section>'
+         '</section>'
+         '<pkey id="8">dup three</pkey>'
+         '</text></content>'),
+      title: 'T',
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: EncartaArticleBody(
+          doc: doc,
+          theme: EncartaTheme.faithfulInSpirit(),
+          assetResolver: (inlineId, inlineType) => const SizedBox.shrink(),
+          onXrefTap: (r, {paraId}) {},
+          titleForRefid: (r) => null,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    // No framework GlobalKey-collision assertion.
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('dup one', findRichText: true), findsOneWidget);
+  });
+
+  testWidgets(
       'scrollToAnchor reaches a NESTED anchor (sub-section) that is off-screen',
       (tester) async {
     // Build a doc with 40 filler top-level pkeys to push the outer section

@@ -19,6 +19,27 @@ void main() {
     expect(doc.allAnchorIds(), containsAll(<String>['p1', 'p2']));
   });
 
+  test('deduplicates repeated ids (Encarta reuses ids) keeping the first stable', () {
+    // Real Encarta articles reuse ids across elements (e.g. a section and a
+    // pkey both id="8"). Duplicate ids would give two elements the same
+    // GlobalKey and crash the article body. Parse must make them unique.
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section id="8"><sectiontitle>A</sectiontitle>'
+         '<pkey id="8">first dup</pkey></section>'
+         '<pkey id="8">second dup</pkey>'
+         '</text></content>'),
+      title: 'T',
+    );
+    final ids = doc.allAnchorIds().toList();
+    // No duplicates remain.
+    expect(ids.toSet().length, ids.length);
+    // The FIRST occurrence keeps the original id (so anchors/paraIDs still resolve).
+    expect(ids.first, '8');
+    // Later duplicates are still present, just renamed to be unique.
+    expect(ids.length, greaterThanOrEqualTo(3));
+  });
+
   test('parse falls back to <content> children when <text> is absent', () {
     final doc = EncartaDoc.parse(
       _b('<content refid="2" revision="1"><pkey id="x">Body</pkey></content>'),
