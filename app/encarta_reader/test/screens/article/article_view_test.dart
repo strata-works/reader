@@ -18,6 +18,22 @@ EncartaDoc _doc() => EncartaDoc.parse(
       title: 'Test',
     );
 
+/// A tall doc: 40 filler pkeys followed by a section with a nested section
+/// id="deep" at the bottom. Callers can use paraId='deep' to test scrolling.
+EncartaDoc _tallDocWithDeepAnchor() => EncartaDoc.parse(
+      Uint8List.fromList(utf8.encode(
+        '<content><text>'
+        '${List.generate(40, (i) => '<pkey id="f$i">Filler $i.</pkey>').join()}'
+        '<section type="4" id="outer"><sectiontitle>Outer</sectiontitle>'
+        '<section type="5" id="deep"><sectiontitle>DeepSection</sectiontitle>'
+        '<pkey id="dp1">Deep content.</pkey>'
+        '</section>'
+        '</section>'
+        '</text></content>',
+      )),
+      title: 'Tall',
+    );
+
 ArticleViewData _data({
   List<XrefTarget> related = const [],
   List<MediaItem> media = const [],
@@ -145,6 +161,121 @@ void main() {
     // The rendered EncartaArticleBody must not exceed the measure.
     final bodySize = tester.getSize(find.byType(EncartaArticleBody));
     expect(bodySize.width, lessThanOrEqualTo(theme.measure));
+  });
+
+  group('paraId deep-link', () {
+    testWidgets(
+        'ArticleView with paraId scrolls the target anchor into view after build',
+        (tester) async {
+      // Use a tall viewport so the deep section starts off-screen.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final doc = _tallDocWithDeepAnchor();
+      final data = ArticleViewData(
+        doc: doc,
+        outline: EncartaOutline(entries: [
+          OutlineEntry(title: 'Outer', anchorId: 'outer', depth: 1),
+          OutlineEntry(title: 'DeepSection', anchorId: 'deep', depth: 2),
+        ]),
+        title: 'Tall',
+        source: 'CONTDLX',
+        related: const [],
+        media: const [],
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ArticleView(
+            data: data,
+            theme: EncartaTheme.faithfulInSpirit(),
+            assetResolver: (id, type) => const Icon(Icons.image),
+            onXrefTap: (refid, {paraId}) {},
+            titleForRefid: (_) => null,
+            onRelatedTap: (_) {},
+            paraId: 'deep',
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // After pumpAndSettle the post-frame callback and ensureVisible have run;
+      // the deep section's body pkey should now be visible (it only appears in
+      // the article body, NOT in the outline pane, so findsOneWidget is reliable).
+      expect(
+        find.textContaining('Deep content.', findRichText: true),
+        findsOneWidget,
+        reason: 'paraId=deep should scroll the deep section body into view',
+      );
+    });
+
+    testWidgets('changing paraId re-triggers scrollToAnchor', (tester) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final doc = _tallDocWithDeepAnchor();
+      final data = ArticleViewData(
+        doc: doc,
+        outline: EncartaOutline(entries: [
+          OutlineEntry(title: 'Outer', anchorId: 'outer', depth: 1),
+          OutlineEntry(title: 'DeepSection', anchorId: 'deep', depth: 2),
+        ]),
+        title: 'Tall',
+        source: 'CONTDLX',
+        related: const [],
+        media: const [],
+      );
+
+      String? currentParaId;
+      late StateSetter setSt;
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              setSt = setState;
+              return ArticleView(
+                data: data,
+                theme: EncartaTheme.faithfulInSpirit(),
+                assetResolver: (id, type) => const Icon(Icons.image),
+                onXrefTap: (refid, {paraId}) {},
+                titleForRefid: (_) => null,
+                onRelatedTap: (_) {},
+                paraId: currentParaId,
+              );
+            },
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // 'Deep content.' is the pkey inside the nested section — only rendered
+      // when the section is scrolled into view. The outline shows section titles
+      // (not pkey content) so this check is unambiguous.
+      expect(
+        find.textContaining('Deep content.', findRichText: true),
+        findsNothing,
+        reason: 'Deep section body should be off-screen before any paraId scroll',
+      );
+
+      // Change paraId to 'deep' to trigger didUpdateWidget → _scheduleParaIdScroll.
+      setSt(() => currentParaId = 'deep');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Deep content.', findRichText: true),
+        findsOneWidget,
+        reason: 'Updating paraId to "deep" should scroll the deep section body into view',
+      );
+    });
   });
 
   group('media rail', () {

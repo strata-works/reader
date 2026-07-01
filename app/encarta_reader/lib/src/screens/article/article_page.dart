@@ -116,6 +116,7 @@ class _ArticlePageState extends State<ArticlePage> {
               scope.navigator.openArticle(refid, paraId: paraId),
           titleForRefid: scope.titles.cached,
           onRelatedTap: (refid) => scope.navigator.openArticle(refid),
+          paraId: widget.paraId,
           assets: scope.assets,
         );
       },

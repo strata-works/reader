@@ -40,6 +40,12 @@ class ArticleView extends StatefulWidget {
   final TitleForRefid titleForRefid;
   final void Function(int refid) onRelatedTap;
 
+  /// When non-null and non-empty, the view calls [EncartaArticleBodyState.scrollToAnchor]
+  /// with this id after the body is built (initState) and whenever this value
+  /// changes (didUpdateWidget). Supports both initial deep-links and same-article
+  /// "see section" xref navigation.
+  final String? paraId;
+
   /// Required only when [data.media] is non-empty. Forwarded to [MediaRail].
   final EncartaAssets? assets;
 
@@ -51,6 +57,7 @@ class ArticleView extends StatefulWidget {
     required this.onXrefTap,
     required this.titleForRefid,
     required this.onRelatedTap,
+    this.paraId,
     this.assets,
   });
 
@@ -59,8 +66,34 @@ class ArticleView extends StatefulWidget {
 }
 
 class _ArticleViewState extends State<ArticleView> {
-  /// Key into [EncartaArticleBodyState] so outline taps can call [scrollToAnchor].
+  /// Key into [EncartaArticleBodyState] so outline taps and paraId deep-links
+  /// can call [scrollToAnchor].
   final _bodyKey = GlobalKey<EncartaArticleBodyState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleParaIdScroll();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArticleView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.paraId != widget.paraId) {
+      _scheduleParaIdScroll();
+    }
+  }
+
+  /// Schedule a post-frame scroll to [widget.paraId] if it is non-null and
+  /// non-empty. The post-frame delay ensures [_bodyKey.currentState] is
+  /// available (body must be built before we can call scrollToAnchor).
+  void _scheduleParaIdScroll() {
+    final paraId = widget.paraId;
+    if (paraId == null || paraId.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bodyKey.currentState?.scrollToAnchor(paraId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
