@@ -50,6 +50,26 @@ class InlineBuilder {
     return spans;
   }
 
+  /// Render an injected article title that may itself carry inline markup
+  /// (e.g. `<it>Love's Labour's Lost</it>`) by parsing it as inline XML so the
+  /// markup renders. On any parse failure, strip tags so nothing leaks raw.
+  List<InlineSpan> _titleSpans(String rawTitle, TextStyle base) {
+    if (rawTitle.isEmpty) return const [];
+    try {
+      return build(
+        XmlDocument.parse('<inlinetitle>$rawTitle</inlinetitle>').rootElement,
+        base,
+      );
+    } catch (_) {
+      return [
+        TextSpan(
+          text: rawTitle.replaceAll(RegExp(r'<[^>]*>'), ''),
+          style: base,
+        ),
+      ];
+    }
+  }
+
   /// Dispatches a single inline [XmlElement] to the appropriate span builder.
   ///
   /// Unknown tags fall through to the `default` case, which renders their
@@ -98,7 +118,10 @@ class InlineBuilder {
         return const [TextSpan(text: '\n')];
 
       case 'inlinetitle':
-        return [TextSpan(text: articleTitle, style: base)];
+        // The injected article title may itself carry inline markup (many are
+        // stored as e.g. `<it>Love's Labour's Lost</it>`). Parse it so the
+        // markup renders (italic/small-caps) rather than leaking as raw text.
+        return _titleSpans(articleTitle, base);
 
       case 'xref':
         return [_xref(el, base)];

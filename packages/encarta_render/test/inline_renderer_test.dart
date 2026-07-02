@@ -39,10 +39,10 @@ void main() {
       void walk(InlineSpan s) {
         if (s is TextSpan) {
           if (s.text == t) found = s.style;
-          for (final c in s.children ?? const <InlineSpan>[]) walk(c);
+          for (final c in s.children ?? const <InlineSpan>[]) { walk(c); }
         }
       }
-      for (final s in spans) walk(s);
+      for (final s in spans) { walk(s); }
       return found;
     }
     expect(styleOf('title')?.fontStyle, FontStyle.italic);
@@ -107,6 +107,25 @@ void main() {
     final spans = builder(title: 'Mercury (planet)')
         .build(el('<pkey>See <inlinetitle></inlinetitle> now</pkey>'), const TextStyle());
     expect(spans.whereType<TextSpan>().any((s) => s.text == 'Mercury (planet)'), isTrue);
+  });
+
+  test('inlinetitle renders markup inside the injected title (<it>...</it>)', () {
+    // Many titles are stored WITH markup, e.g. "<it>Love's Labour's Lost</it>".
+    final spans = builder(title: "<it>Love's Labour's Lost</it>")
+        .build(el('<pkey><inlinetitle></inlinetitle>, a play.</pkey>'), const TextStyle());
+    TextStyle? found;
+    void walk(InlineSpan sp) {
+      if (sp is TextSpan) {
+        if (sp.text != null && sp.text!.contains('Labour')) found = sp.style;
+        for (final c in sp.children ?? const <InlineSpan>[]) { walk(c); }
+      }
+    }
+    for (final sp in spans) { walk(sp); }
+    expect(found?.fontStyle, FontStyle.italic,
+        reason: 'a title carrying <it> must render italic, not leak raw tags');
+    // No literal tag text leaks.
+    final flat = spans.map((s) => s is TextSpan ? (s.toPlainText()) : '').join();
+    expect(flat.contains('<it>'), isFalse);
   });
 
   test('xref type=9 external becomes a tappable link span and is recorded', () {
