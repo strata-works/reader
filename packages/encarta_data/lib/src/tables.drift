@@ -60,7 +60,7 @@ CREATE TABLE mm_answer (
   id            INTEGER NOT NULL PRIMARY KEY,
   question_id   INTEGER,
   ordinal       INTEGER,
-  answer_text   TEXT,
+  text          TEXT AS answerText,
   article_refid INTEGER,
   is_correct    INTEGER,
   flag          INTEGER

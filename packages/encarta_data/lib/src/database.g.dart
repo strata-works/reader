@@ -2318,8 +2318,10 @@ class MmAnswer extends Table with TableInfo<MmAnswer, MmAnswerData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _textMeta = const VerificationMeta('text');
-  late final GeneratedColumn<String> text = GeneratedColumn<String>(
+  static const VerificationMeta _answerTextMeta = const VerificationMeta(
+    'answerText',
+  );
+  late final GeneratedColumn<String> answerText = GeneratedColumn<String>(
     'text',
     aliasedName,
     true,
@@ -2363,7 +2365,7 @@ class MmAnswer extends Table with TableInfo<MmAnswer, MmAnswerData> {
     id,
     questionId,
     ordinal,
-    text,
+    answerText,
     articleRefid,
     isCorrect,
     flag,
@@ -2397,8 +2399,8 @@ class MmAnswer extends Table with TableInfo<MmAnswer, MmAnswerData> {
     }
     if (data.containsKey('text')) {
       context.handle(
-        _textMeta,
-        text.isAcceptableOrUnknown(data['text']!, _textMeta),
+        _answerTextMeta,
+        answerText.isAcceptableOrUnknown(data['text']!, _answerTextMeta),
       );
     }
     if (data.containsKey('article_refid')) {
@@ -2443,7 +2445,7 @@ class MmAnswer extends Table with TableInfo<MmAnswer, MmAnswerData> {
         DriftSqlType.int,
         data['${effectivePrefix}ordinal'],
       ),
-      text: attachedDatabase.typeMapping.read(
+      answerText: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}text'],
       ),
@@ -2475,7 +2477,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
   final int id;
   final int? questionId;
   final int? ordinal;
-  final String? text;
+  final String? answerText;
   final int? articleRefid;
   final int? isCorrect;
   final int? flag;
@@ -2483,7 +2485,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
     required this.id,
     this.questionId,
     this.ordinal,
-    this.text,
+    this.answerText,
     this.articleRefid,
     this.isCorrect,
     this.flag,
@@ -2498,8 +2500,8 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
     if (!nullToAbsent || ordinal != null) {
       map['ordinal'] = Variable<int>(ordinal);
     }
-    if (!nullToAbsent || text != null) {
-      map['text'] = Variable<String>(text);
+    if (!nullToAbsent || answerText != null) {
+      map['text'] = Variable<String>(answerText);
     }
     if (!nullToAbsent || articleRefid != null) {
       map['article_refid'] = Variable<int>(articleRefid);
@@ -2522,7 +2524,9 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
       ordinal: ordinal == null && nullToAbsent
           ? const Value.absent()
           : Value(ordinal),
-      text: text == null && nullToAbsent ? const Value.absent() : Value(text),
+      answerText: answerText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(answerText),
       articleRefid: articleRefid == null && nullToAbsent
           ? const Value.absent()
           : Value(articleRefid),
@@ -2542,7 +2546,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
       id: serializer.fromJson<int>(json['id']),
       questionId: serializer.fromJson<int?>(json['question_id']),
       ordinal: serializer.fromJson<int?>(json['ordinal']),
-      text: serializer.fromJson<String?>(json['text']),
+      answerText: serializer.fromJson<String?>(json['text']),
       articleRefid: serializer.fromJson<int?>(json['article_refid']),
       isCorrect: serializer.fromJson<int?>(json['is_correct']),
       flag: serializer.fromJson<int?>(json['flag']),
@@ -2555,7 +2559,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
       'id': serializer.toJson<int>(id),
       'question_id': serializer.toJson<int?>(questionId),
       'ordinal': serializer.toJson<int?>(ordinal),
-      'text': serializer.toJson<String?>(text),
+      'text': serializer.toJson<String?>(answerText),
       'article_refid': serializer.toJson<int?>(articleRefid),
       'is_correct': serializer.toJson<int?>(isCorrect),
       'flag': serializer.toJson<int?>(flag),
@@ -2566,7 +2570,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
     int? id,
     Value<int?> questionId = const Value.absent(),
     Value<int?> ordinal = const Value.absent(),
-    Value<String?> text = const Value.absent(),
+    Value<String?> answerText = const Value.absent(),
     Value<int?> articleRefid = const Value.absent(),
     Value<int?> isCorrect = const Value.absent(),
     Value<int?> flag = const Value.absent(),
@@ -2574,7 +2578,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
     id: id ?? this.id,
     questionId: questionId.present ? questionId.value : this.questionId,
     ordinal: ordinal.present ? ordinal.value : this.ordinal,
-    text: text.present ? text.value : this.text,
+    answerText: answerText.present ? answerText.value : this.answerText,
     articleRefid: articleRefid.present ? articleRefid.value : this.articleRefid,
     isCorrect: isCorrect.present ? isCorrect.value : this.isCorrect,
     flag: flag.present ? flag.value : this.flag,
@@ -2586,7 +2590,9 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
           ? data.questionId.value
           : this.questionId,
       ordinal: data.ordinal.present ? data.ordinal.value : this.ordinal,
-      text: data.text.present ? data.text.value : this.text,
+      answerText: data.answerText.present
+          ? data.answerText.value
+          : this.answerText,
       articleRefid: data.articleRefid.present
           ? data.articleRefid.value
           : this.articleRefid,
@@ -2601,7 +2607,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
           ..write('id: $id, ')
           ..write('questionId: $questionId, ')
           ..write('ordinal: $ordinal, ')
-          ..write('text: $text, ')
+          ..write('answerText: $answerText, ')
           ..write('articleRefid: $articleRefid, ')
           ..write('isCorrect: $isCorrect, ')
           ..write('flag: $flag')
@@ -2610,8 +2616,15 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, questionId, ordinal, text, articleRefid, isCorrect, flag);
+  int get hashCode => Object.hash(
+    id,
+    questionId,
+    ordinal,
+    answerText,
+    articleRefid,
+    isCorrect,
+    flag,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2619,7 +2632,7 @@ class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
           other.id == this.id &&
           other.questionId == this.questionId &&
           other.ordinal == this.ordinal &&
-          other.text == this.text &&
+          other.answerText == this.answerText &&
           other.articleRefid == this.articleRefid &&
           other.isCorrect == this.isCorrect &&
           other.flag == this.flag);
@@ -2629,7 +2642,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
   final Value<int> id;
   final Value<int?> questionId;
   final Value<int?> ordinal;
-  final Value<String?> text;
+  final Value<String?> answerText;
   final Value<int?> articleRefid;
   final Value<int?> isCorrect;
   final Value<int?> flag;
@@ -2637,7 +2650,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
     this.id = const Value.absent(),
     this.questionId = const Value.absent(),
     this.ordinal = const Value.absent(),
-    this.text = const Value.absent(),
+    this.answerText = const Value.absent(),
     this.articleRefid = const Value.absent(),
     this.isCorrect = const Value.absent(),
     this.flag = const Value.absent(),
@@ -2646,7 +2659,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
     this.id = const Value.absent(),
     this.questionId = const Value.absent(),
     this.ordinal = const Value.absent(),
-    this.text = const Value.absent(),
+    this.answerText = const Value.absent(),
     this.articleRefid = const Value.absent(),
     this.isCorrect = const Value.absent(),
     this.flag = const Value.absent(),
@@ -2655,7 +2668,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
     Expression<int>? id,
     Expression<int>? questionId,
     Expression<int>? ordinal,
-    Expression<String>? text,
+    Expression<String>? answerText,
     Expression<int>? articleRefid,
     Expression<int>? isCorrect,
     Expression<int>? flag,
@@ -2664,7 +2677,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
       if (id != null) 'id': id,
       if (questionId != null) 'question_id': questionId,
       if (ordinal != null) 'ordinal': ordinal,
-      if (text != null) 'text': text,
+      if (answerText != null) 'text': answerText,
       if (articleRefid != null) 'article_refid': articleRefid,
       if (isCorrect != null) 'is_correct': isCorrect,
       if (flag != null) 'flag': flag,
@@ -2675,7 +2688,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
     Value<int>? id,
     Value<int?>? questionId,
     Value<int?>? ordinal,
-    Value<String?>? text,
+    Value<String?>? answerText,
     Value<int?>? articleRefid,
     Value<int?>? isCorrect,
     Value<int?>? flag,
@@ -2684,7 +2697,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
       id: id ?? this.id,
       questionId: questionId ?? this.questionId,
       ordinal: ordinal ?? this.ordinal,
-      text: text ?? this.text,
+      answerText: answerText ?? this.answerText,
       articleRefid: articleRefid ?? this.articleRefid,
       isCorrect: isCorrect ?? this.isCorrect,
       flag: flag ?? this.flag,
@@ -2703,8 +2716,8 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
     if (ordinal.present) {
       map['ordinal'] = Variable<int>(ordinal.value);
     }
-    if (text.present) {
-      map['text'] = Variable<String>(text.value);
+    if (answerText.present) {
+      map['text'] = Variable<String>(answerText.value);
     }
     if (articleRefid.present) {
       map['article_refid'] = Variable<int>(articleRefid.value);
@@ -2724,7 +2737,7 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
           ..write('id: $id, ')
           ..write('questionId: $questionId, ')
           ..write('ordinal: $ordinal, ')
-          ..write('text: $text, ')
+          ..write('answerText: $answerText, ')
           ..write('articleRefid: $articleRefid, ')
           ..write('isCorrect: $isCorrect, ')
           ..write('flag: $flag')
@@ -4324,7 +4337,7 @@ typedef $MmAnswerCreateCompanionBuilder =
       Value<int> id,
       Value<int?> questionId,
       Value<int?> ordinal,
-      Value<String?> text,
+      Value<String?> answerText,
       Value<int?> articleRefid,
       Value<int?> isCorrect,
       Value<int?> flag,
@@ -4334,7 +4347,7 @@ typedef $MmAnswerUpdateCompanionBuilder =
       Value<int> id,
       Value<int?> questionId,
       Value<int?> ordinal,
-      Value<String?> text,
+      Value<String?> answerText,
       Value<int?> articleRefid,
       Value<int?> isCorrect,
       Value<int?> flag,
@@ -4363,8 +4376,8 @@ class $MmAnswerFilterComposer extends Composer<_$EncartaDatabase, MmAnswer> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get text => $composableBuilder(
-    column: $table.text,
+  ColumnFilters<String> get answerText => $composableBuilder(
+    column: $table.answerText,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4407,8 +4420,8 @@ class $MmAnswerOrderingComposer extends Composer<_$EncartaDatabase, MmAnswer> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get text => $composableBuilder(
-    column: $table.text,
+  ColumnOrderings<String> get answerText => $composableBuilder(
+    column: $table.answerText,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4448,8 +4461,10 @@ class $MmAnswerAnnotationComposer
   GeneratedColumn<int> get ordinal =>
       $composableBuilder(column: $table.ordinal, builder: (column) => column);
 
-  GeneratedColumn<String> get text =>
-      $composableBuilder(column: $table.text, builder: (column) => column);
+  GeneratedColumn<String> get answerText => $composableBuilder(
+    column: $table.answerText,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get articleRefid => $composableBuilder(
     column: $table.articleRefid,
@@ -4497,7 +4512,7 @@ class $MmAnswerTableManager
                 Value<int> id = const Value.absent(),
                 Value<int?> questionId = const Value.absent(),
                 Value<int?> ordinal = const Value.absent(),
-                Value<String?> text = const Value.absent(),
+                Value<String?> answerText = const Value.absent(),
                 Value<int?> articleRefid = const Value.absent(),
                 Value<int?> isCorrect = const Value.absent(),
                 Value<int?> flag = const Value.absent(),
@@ -4505,7 +4520,7 @@ class $MmAnswerTableManager
                 id: id,
                 questionId: questionId,
                 ordinal: ordinal,
-                text: text,
+                answerText: answerText,
                 articleRefid: articleRefid,
                 isCorrect: isCorrect,
                 flag: flag,
@@ -4515,7 +4530,7 @@ class $MmAnswerTableManager
                 Value<int> id = const Value.absent(),
                 Value<int?> questionId = const Value.absent(),
                 Value<int?> ordinal = const Value.absent(),
-                Value<String?> text = const Value.absent(),
+                Value<String?> answerText = const Value.absent(),
                 Value<int?> articleRefid = const Value.absent(),
                 Value<int?> isCorrect = const Value.absent(),
                 Value<int?> flag = const Value.absent(),
@@ -4523,7 +4538,7 @@ class $MmAnswerTableManager
                 id: id,
                 questionId: questionId,
                 ordinal: ordinal,
-                text: text,
+                answerText: answerText,
                 articleRefid: articleRefid,
                 isCorrect: isCorrect,
                 flag: flag,
