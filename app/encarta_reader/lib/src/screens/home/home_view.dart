@@ -33,6 +33,7 @@ class HomeView extends StatefulWidget {
   final void Function(String letter) onBrowseLetter;
   final void Function(String query) onSearch;
   final VoidCallback onRandom;
+  final VoidCallback? onPlayMindMaze;
 
   const HomeView({
     super.key,
@@ -41,6 +42,7 @@ class HomeView extends StatefulWidget {
     required this.onBrowseLetter,
     required this.onSearch,
     required this.onRandom,
+    this.onPlayMindMaze,
   });
 
   @override
@@ -86,6 +88,18 @@ class _HomeViewState extends State<HomeView> {
                   onSearch: widget.onSearch,
                   onRandom: widget.onRandom,
                 ),
+                if (widget.onPlayMindMaze != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Center(
+                      child: FilledButton.icon(
+                        key: const ValueKey('mm-play'),
+                        onPressed: widget.onPlayMindMaze,
+                        icon: const Icon(Icons.castle),
+                        label: const Text('Play MindMaze'),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 28),
                 // Hero: featured article card.
                 if (widget.data.hero != null) ...[

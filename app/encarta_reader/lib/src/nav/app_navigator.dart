@@ -22,6 +22,8 @@ class AppNavigator {
     _navigate('/article/$refid$anchor');
   }
 
+  void openMindMaze() => _navigate('/mindmaze');
+
   void back() {
     final loc = history.back();
     if (loc != null) go(loc);
