@@ -209,26 +209,29 @@ class _Masthead extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                SizedBox(
-                  height: 40,
-                  child: FilledButton(
-                    key: const Key('home.random'),
-                    onPressed: onRandom,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 18),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                FilledButton(
+                  key: const Key('home.random'),
+                  onPressed: onRandom,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('Surprise me'),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    fixedSize: const Size.fromHeight(40),
+                    minimumSize: const Size(0, 40),
+                    alignment: Alignment.center,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    // height:1.0 drops the font's extra leading so the label
+                    // sits dead-center in the 40px button.
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.0,
+                    ),
                   ),
+                  child: const Text('Surprise me'),
                 ),
               ],
             ),
