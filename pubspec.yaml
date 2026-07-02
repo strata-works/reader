@@ -21,6 +21,7 @@ workspace:
   - packages/encarta_render
   - packages/encarta_assets
   - app/encarta_reader
+  - packages/encarta_mindmaze
 
 dev_dependencies:
   lints: ^5.0.0
