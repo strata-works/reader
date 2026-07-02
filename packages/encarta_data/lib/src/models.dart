@@ -159,3 +159,69 @@ class AssetRow {
   @override
   int get hashCode => Object.hash(baggageId, hash, kind, ext, path);
 }
+
+bool _answersEqual(List<MindMazeAnswer> a, List<MindMazeAnswer> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+/// One MindMaze answer choice. `ordinal` 0 is the authored correct answer;
+/// 1–3 are decoys. `articleRefid` joins article.refid ("learn more" target).
+class MindMazeAnswer {
+  const MindMazeAnswer({
+    required this.ordinal,
+    required this.text,
+    required this.articleRefid,
+    required this.isCorrect,
+  });
+
+  final int ordinal;
+  final String text;
+  final int articleRefid;
+  final bool isCorrect;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MindMazeAnswer &&
+      other.ordinal == ordinal &&
+      other.text == text &&
+      other.articleRefid == articleRefid &&
+      other.isCorrect == isCorrect;
+
+  @override
+  int get hashCode => Object.hash(ordinal, text, articleRefid, isCorrect);
+}
+
+/// One MindMaze question: a definition-style clue plus its four answers
+/// (ordinal-ordered, index 0 correct). `area` is the castle wing 0–8, or null
+/// when the question's topic matched no Area*.lst pool.
+class MindMazeQuestion {
+  const MindMazeQuestion({
+    required this.id,
+    required this.area,
+    required this.clue,
+    required this.answers,
+  });
+
+  final int id;
+  final int? area;
+  final String clue;
+  final List<MindMazeAnswer> answers;
+
+  /// The authored correct answer (ordinal 0 / is_correct = 1).
+  MindMazeAnswer get correct => answers.firstWhere((a) => a.isCorrect);
+
+  @override
+  bool operator ==(Object other) =>
+      other is MindMazeQuestion &&
+      other.id == id &&
+      other.area == area &&
+      other.clue == clue &&
+      _answersEqual(other.answers, answers);
+
+  @override
+  int get hashCode => Object.hash(id, area, clue, answers.length);
+}
