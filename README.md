@@ -4,7 +4,7 @@ A faithful-in-spirit desktop reader — and game — for the recovered **Microso
 
 ## Purpose & Disclaimer
 
-This project is for educational, archival, interoperability, and digital-preservation research. It is **not affiliated with, endorsed by, or sponsored by Microsoft**. It ships only reader/renderer code — no Encarta content. You are responsible for having the legal right to any data you process with it. The software is provided as-is, without warranty.
+This project is for educational, archival, interoperability, and digital-preservation research. It is **not affiliated with, endorsed by, or sponsored by Microsoft**. The **repository contains only reader/renderer code** — it does not include or redistribute any Encarta content. At runtime the app reads and displays content from a corpus **you supply and build yourself** (see [Data source](#data-source)); you are responsible for having the legal right to that data. The software is provided as-is, without warranty.
 
 ## What it is
 
