@@ -505,23 +505,19 @@ void main() {
   testWidgets('answering through to the goal shows the win overlay', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pump();
-    // Greedy loop: answer correctly, then step toward an uncleared neighbor.
-    for (var step = 0; step < 40; step++) {
-      if (find.byKey(const ValueKey('mm-won')).evaluate().isNotEmpty) break;
-      final correct = _correctAnswerFinder(tester);
-      if (correct.evaluate().isNotEmpty) {
-        await tester.tap(correct);
-        await tester.pump();
-        continue;
-      }
-      // room cleared — tap the first available door
-      final door = find.byWidgetPredicate(
-        (w) => w.key is ValueKey && '${w.key}'.contains('mm-door-'),
-      );
-      if (door.evaluate().isEmpty) break;
-      await tester.tap(door.first);
+    // Follow the known winning path over minimalMaze() deterministically. (A
+    // greedy first-door walk would cycle atrium↔library forever: library lists
+    // its backward edge (left→atrium) before right→hall.)
+    //   atrium --right--> library --right--> hall --tower--> throne(goal)
+    const path = [Direction.right, Direction.right, Direction.tower];
+    for (final dir in path) {
+      await tester.tap(_correctAnswerFinder(tester)); // clear current room
+      await tester.pump();
+      await tester.tap(find.byKey(ValueKey('mm-door-${dir.name}'))); // step forward
       await tester.pump();
     }
+    await tester.tap(_correctAnswerFinder(tester)); // answer the throne's question
+    await tester.pump();
     expect(find.byKey(const ValueKey('mm-won')), findsOneWidget);
   });
 }
