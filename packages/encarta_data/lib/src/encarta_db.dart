@@ -12,6 +12,18 @@ import 'package:sqlite3/sqlite3.dart';
 import 'database.dart' hide Article;
 import 'models.dart';
 
+/// Common shape shared by `mindmazeAllQuestions()` and
+/// `mindmazeQuestionsByArea()` result rows (see [EncartaDb.mindmazeQuestions]).
+typedef _MindmazeRow = ({
+  int questionId,
+  int? area,
+  String? clue,
+  int? ordinal,
+  String? text,
+  int? articleRefid,
+  int? isCorrect,
+});
+
 bool _fts5LoaderInstalled = false;
 
 /// Ensure the `sqlite3` package uses an fts5-capable libsqlite3.
@@ -189,6 +201,73 @@ class EncartaDb {
   /// Test seam: the most media-rich article id in the corpus.
   Future<int> mostMediaRefid() async {
     return _db.mostMediaRefid().getSingle();
+  }
+
+  /// All MindMaze questions for a castle wing ([area] 0–8), each with its four
+  /// ordinal-ordered answers. When [area] is null, returns EVERY question
+  /// (including area==null ones); the game core buckets by each question's
+  /// `.area`. Questions are ordered by id; answers by ordinal.
+  Future<List<MindMazeQuestion>> mindmazeQuestions({int? area}) async {
+    // `mindmazeAllQuestions()` and `mindmazeQuestionsByArea()` return distinct
+    // drift-generated result classes (structurally identical, no common
+    // supertype), so each branch is normalized into the same record shape
+    // before the shared fold below.
+    final List<_MindmazeRow> rows = area == null
+        ? [
+            for (final r in await _db.mindmazeAllQuestions().get())
+              (
+                questionId: r.questionId,
+                area: r.area,
+                clue: r.clue,
+                ordinal: r.ordinal,
+                text: r.text,
+                articleRefid: r.articleRefid,
+                isCorrect: r.isCorrect,
+              ),
+          ]
+        : [
+            for (final r in await _db.mindmazeQuestionsByArea(area).get())
+              (
+                questionId: r.questionId,
+                area: r.area,
+                clue: r.clue,
+                ordinal: r.ordinal,
+                text: r.text,
+                articleRefid: r.articleRefid,
+                isCorrect: r.isCorrect,
+              ),
+          ];
+    final out = <MindMazeQuestion>[];
+    final buf = <MindMazeAnswer>[];
+    for (var i = 0; i < rows.length; i++) {
+      final r = rows[i];
+      buf.add(MindMazeAnswer(
+        ordinal: r.ordinal ?? 0,
+        text: r.text ?? '',
+        articleRefid: r.articleRefid ?? 0,
+        isCorrect: (r.isCorrect ?? 0) != 0,
+      ));
+      final isLast = i == rows.length - 1;
+      // Rows are ordered by (q.id, a.ordinal), so a question's answers are
+      // contiguous; emit at each boundary.
+      if (isLast || rows[i + 1].questionId != r.questionId) {
+        out.add(MindMazeQuestion(
+          id: r.questionId,
+          area: r.area,
+          clue: r.clue ?? '',
+          answers: List<MindMazeAnswer>.unmodifiable(buf),
+        ));
+        buf.clear();
+      }
+    }
+    return out;
+  }
+
+  /// Count of MindMaze questions overall, or in one wing when [area] is given.
+  Future<int> mindmazeQuestionCount({int? area}) async {
+    return area == null
+        ? _db.mindmazeCountAll().getSingle()
+        : _db.mindmazeCountByArea(area).getSingle();
   }
 
   /// Looks up a single asset by its baggage_id (the `inlinebmp type=27` id),
