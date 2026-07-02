@@ -59,6 +59,10 @@ class InlineBuilder {
   List<InlineSpan> _element(XmlElement el, TextStyle base) {
     switch (el.name.local) {
       case 'i':
+      // `it` is the caption-vocabulary alias for italic; some article BODIES
+      // use it too (e.g. a play title `<it>Love's Labour's Lost</it>`), so we
+      // treat it identically to `i` instead of leaking raw tags.
+      case 'it':
         return build(el, base.copyWith(fontStyle: FontStyle.italic));
 
       case 'b':
@@ -68,6 +72,8 @@ class InlineBuilder {
         return build(el, base.copyWith(decoration: TextDecoration.underline));
 
       case 'smallcaps':
+      // `scp` is the caption-vocabulary alias for small caps; bodies use it too.
+      case 'scp':
         // Prefer the OpenType 'smcp' feature; if the runtime font doesn't
         // support it the engine falls back to ordinary rendering silently.
         // An uppercase fallback would alter the text value, so we don't.

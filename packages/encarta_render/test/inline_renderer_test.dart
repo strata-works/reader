@@ -25,6 +25,30 @@ InlineBuilder builder({
     );
 
 void main() {
+  test('it -> italic and scp -> small caps (caption-vocab tags in bodies)', () {
+    final spans = InlineBuilder(
+      theme: EncartaTheme.faithfulInSpirit(),
+      assetResolver: (i, t) => const SizedBox.shrink(),
+      onXrefTap: (r, {paraId}) {},
+      titleForRefid: (r) => null,
+      articleTitle: 'T',
+      recognizers: <GestureRecognizer>[],
+    ).build(el('<pkey><it>title</it> and <scp>caps</scp></pkey>'), const TextStyle());
+    TextStyle? styleOf(String t) {
+      TextStyle? found;
+      void walk(InlineSpan s) {
+        if (s is TextSpan) {
+          if (s.text == t) found = s.style;
+          for (final c in s.children ?? const <InlineSpan>[]) walk(c);
+        }
+      }
+      for (final s in spans) walk(s);
+      return found;
+    }
+    expect(styleOf('title')?.fontStyle, FontStyle.italic);
+    expect(styleOf('caps')?.fontFeatures?.any((f) => f.feature == 'smcp'), isTrue);
+  });
+
   test('plain text passes through with the base style', () {
     final spans = builder().build(el('<pkey>hello</pkey>'), const TextStyle(fontSize: 16));
     final t = spans.whereType<TextSpan>().single;
