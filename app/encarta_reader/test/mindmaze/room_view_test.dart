@@ -102,6 +102,20 @@ void main() {
     await tester.tap(_correctAnswerFinder(tester)); // answer the throne's question
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-won')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mm-answer-0')), findsNothing);
+  });
+
+  testWidgets('construction failure degrades to a message, not a red screen', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: () => throw ArgumentError('boom'),
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+      ),
+    ));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-start-failed')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
 

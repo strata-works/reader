@@ -29,6 +29,9 @@ class _MindMazePageState extends State<MindMazePage> {
       _future = Future.value(null);
       return;
     }
+    // Coupling: the loaded pools' areas must cover every room.area used by
+    // the maze below. buildMindMazePools defaults to areas [0,1], and
+    // minimalMaze() uses exactly {0,1} — keep them in sync if either changes.
     _future = buildMindMazePools(
       mindmazeQuestions: (area) => db.mindmazeQuestions(area: area),
     );

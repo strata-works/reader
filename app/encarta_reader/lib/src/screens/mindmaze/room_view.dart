@@ -25,16 +25,30 @@ class RoomView extends StatefulWidget {
 
 class _RoomViewState extends State<RoomView> {
   late GameSession _session;
+  bool _startFailed = false;
 
   @override
   void initState() {
     super.initState();
-    _session = widget.newGame();
+    _start();
+  }
+
+  // GameSession's constructor throws ArgumentError if an area's pool has no
+  // posable question (exactly one correct choice) — e.g. a maze/pool area
+  // mismatch. Guard construction so a bad pool degrades gracefully instead of
+  // throwing inside initState/setState (never a red screen).
+  void _start() {
+    try {
+      _session = widget.newGame();
+      _startFailed = false;
+    } catch (_) {
+      _startFailed = true;
+    }
   }
 
   void _answer(int i) => setState(() => _session.answer(i));
   void _move(Direction d) => setState(() => _session.move(d));
-  void _restart() => setState(() => _session = widget.newGame());
+  void _restart() => setState(_start);
 
   String _directionLabel(Direction d) {
     switch (d) {
@@ -53,6 +67,16 @@ class _RoomViewState extends State<RoomView> {
 
   @override
   Widget build(BuildContext context) {
+    if (_startFailed) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'MindMaze could not start.',
+            key: ValueKey('mm-start-failed'),
+          ),
+        ),
+      );
+    }
     final snap = _session.snapshot;
     final room = widget.maze.room(snap.currentRoomId);
 
@@ -139,30 +163,35 @@ class _RoomViewState extends State<RoomView> {
                 color: Colors.white, fontStyle: FontStyle.italic)),
       ));
     }
-    final q = snap.currentQuestion;
-    if (q != null) {
-      children.add(Text(q.clue, style: const TextStyle(color: Colors.white)));
-      children.add(const SizedBox(height: 8));
-      for (var i = 0; i < q.choices.length; i++) {
-        children.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: FilledButton(
-            key: ValueKey('mm-answer-$i'),
-            onPressed: () => _answer(i),
-            child: Text(q.choices[i].text),
-          ),
-        ));
-      }
-    } else if (snap.currentRoomCleared) {
-      for (final door in room.doors) {
-        children.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: OutlinedButton(
-            key: ValueKey('mm-door-${door.direction.name}'),
-            onPressed: () => _move(door.direction),
-            child: Text(_directionLabel(door.direction)),
-          ),
-        ));
+    // Only show answer/door buttons while actually playing — once the game
+    // is won or lost, the overlay covers this panel, and leaving these live
+    // would let a tap reach dead buttons behind it.
+    if (snap.status == GameStatus.playing) {
+      final q = snap.currentQuestion;
+      if (q != null) {
+        children.add(Text(q.clue, style: const TextStyle(color: Colors.white)));
+        children.add(const SizedBox(height: 8));
+        for (var i = 0; i < q.choices.length; i++) {
+          children.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: FilledButton(
+              key: ValueKey('mm-answer-$i'),
+              onPressed: () => _answer(i),
+              child: Text(q.choices[i].text),
+            ),
+          ));
+        }
+      } else if (snap.currentRoomCleared) {
+        for (final door in room.doors) {
+          children.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: OutlinedButton(
+              key: ValueKey('mm-door-${door.direction.name}'),
+              onPressed: () => _move(door.direction),
+              child: Text(_directionLabel(door.direction)),
+            ),
+          ));
+        }
       }
     }
     return Container(
