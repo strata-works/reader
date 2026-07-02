@@ -18,6 +18,8 @@ dependencies:
     path: ../../packages/encarta_render
   encarta_assets:
     path: ../../packages/encarta_assets
+  encarta_mindmaze:
+    path: ../../packages/encarta_mindmaze
   auto_route: ^11.1.0
   media_kit: ^1.1.11
   # Bundles an FTS5-enabled libsqlite3 inside the packaged app so search works

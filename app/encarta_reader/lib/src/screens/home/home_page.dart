@@ -80,6 +80,7 @@ class _HomePageState extends State<HomePage> {
           onBrowseLetter: _browseLetter,
           onSearch: scope.navigator.openSearch,
           onRandom: _random,
+          onPlayMindMaze: () => AppScope.of(context).navigator.openMindMaze(),
         );
       },
     );

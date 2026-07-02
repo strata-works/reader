@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../screens/article/article_page.dart';
 import '../screens/home/home_page.dart';
+import '../screens/mindmaze/mindmaze_page.dart';
 import '../screens/search/search_page.dart';
 
 part 'app_router.gr.dart';
@@ -25,5 +26,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: HomeRoute.page, path: '/', initial: true),
         AutoRoute(page: SearchRoute.page, path: '/search'),
         AutoRoute(page: ArticleRoute.page, path: '/article/:refid'),
+        AutoRoute(page: MindMazeRoute.page, path: '/mindmaze'),
       ];
 }

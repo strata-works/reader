@@ -86,6 +86,22 @@ class HomeRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [MindMazePage]
+class MindMazeRoute extends PageRouteInfo<void> {
+  const MindMazeRoute({List<PageRouteInfo>? children})
+    : super(MindMazeRoute.name, initialChildren: children);
+
+  static const String name = 'MindMazeRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MindMazePage();
+    },
+  );
+}
+
+/// generated route for
 /// [SearchPage]
 class SearchRoute extends PageRouteInfo<SearchRouteArgs> {
   SearchRoute({Key? key, String q = '', List<PageRouteInfo>? children})
