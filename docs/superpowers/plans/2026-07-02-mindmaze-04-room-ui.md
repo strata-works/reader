@@ -305,23 +305,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('missing derived PNG → labeled placeholder', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: mindMazeArt(const AssetConfig('/no/such/dir'), 'atrium'),
-    ));
-    expect(find.byKey(const ValueKey('mm-art-missing-atrium')), findsOneWidget);
-    expect(find.byType(Image), findsNothing);
+  // Unit-level (no pumpWidget): assert the RETURNED widget type. Do NOT pump
+  // Image.file — its real async codec never settles under flutter_test and
+  // hangs the test to a 10-minute timeout.
+
+  test('missing derived PNG → labeled placeholder container (not an Image)', () {
+    final w = mindMazeArt(const AssetConfig('/no/such/dir'), 'atrium');
+    expect(w, isA<Container>());
+    expect((w as Container).key, const ValueKey('mm-art-missing-atrium'));
   });
 
-  testWidgets('present derived PNG → an Image widget', (tester) async {
-    final dir = await Directory.systemTemp.createTemp('mmart');
+  test('present derived PNG → an Image widget', () {
+    final dir = Directory.systemTemp.createTempSync('mmart');
     File('${dir.path}/assets_derived/mindmaze/atrium.png')
       ..createSync(recursive: true)
-      ..writeAsBytesSync([0, 1, 2, 3]); // content need not decode; widget still builds
-    await tester.pumpWidget(MaterialApp(
-      home: mindMazeArt(AssetConfig(dir.path), 'atrium'),
-    ));
-    expect(find.byType(Image), findsOneWidget);
+      ..writeAsBytesSync([0, 1, 2, 3]); // content need not decode; assert the type
+    final w = mindMazeArt(AssetConfig(dir.path), 'atrium');
+    expect(w, isA<Image>());
     dir.deleteSync(recursive: true);
   });
 
