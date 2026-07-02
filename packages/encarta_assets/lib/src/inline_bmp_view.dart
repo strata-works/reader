@@ -7,10 +7,14 @@ import 'encarta_image.dart';
 
 /// Inline bitmap widget returned by [EncartaAssets.inlineBmp].
 ///
-/// type==27: [inlineId] is an `asset.baggage_id` → resolve it through
-/// `db.assetByBaggageId` and render an [EncartaImage] (which applies the `.dib`
-/// shim if needed). type!=27: original NAME.DIB form, unresolvable today → small
-/// placeholder. Never throws.
+/// `inlinebmp` ids come in two flavours REGARDLESS of the `type` attribute:
+///  * an 8-hex `asset.baggage_id` (type 27 AND many type 28) → resolves to a
+///    stored image (usually `.gif`/`.dib`) → render an [EncartaImage].
+///  * an original `NAME.DIB` filename (some type 28) → not in the asset store →
+///    resolves to null → placeholder.
+/// So we ALWAYS attempt `db.assetByBaggageId(id)` and let the lookup decide,
+/// rather than gating on `type` (which mis-classified resolvable type-28 gifs
+/// as placeholders). Never throws.
 ///
 /// The DB lookup is performed exactly once per widget instance (in State
 /// initialisation) so that parent rebuilds, theme changes, and scroll events
@@ -53,8 +57,8 @@ class _InlineBmpViewState extends State<InlineBmpView> {
 
   @override
   Widget build(BuildContext context) {
-    // Only type-27 inlinebmp ids are asset.baggage_id values (verified).
-    if (widget.inlineType != 27) return _placeholder();
+    // Try to resolve every id as a baggage_id regardless of `type` — hex ids
+    // resolve to a stored image, NAME.DIB ids resolve to null → placeholder.
     return FutureBuilder<AssetRow?>(
       future: _future,
       builder: (context, snap) {
@@ -85,14 +89,19 @@ class _InlineBmpViewState extends State<InlineBmpView> {
     );
   }
 
+  // A quiet "figure unavailable" chip — a muted outlined box, not an alarming
+  // broken-image glyph — for the rare ids that don't resolve (NAME.DIB) or a
+  // format we can't decode.
   Widget _placeholder() => Container(
         key: _placeholderKey,
-        width: 16,
-        height: 16,
+        width: 22,
+        height: 22,
         decoration: BoxDecoration(
-          color: const Color(0xFFE0E0E0),
-          borderRadius: BorderRadius.circular(2),
+          color: const Color(0xFFF1F4F6),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD6E0E7)),
         ),
-        child: const Icon(Icons.image_not_supported, size: 12),
+        child: const Icon(Icons.image_outlined,
+            size: 13, color: Color(0xFF9BAAB4)),
       );
 }
