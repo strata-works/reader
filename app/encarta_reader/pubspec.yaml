@@ -1,0 +1,50 @@
+name: encarta_reader
+description: Faithful-in-spirit reader for the recovered Encarta 2009 corpus.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: '>=3.12.0-0 <4.0.0'
+  flutter: '>=3.42.0-0'
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  encarta_data:
+    path: ../../packages/encarta_data
+  encarta_render:
+    path: ../../packages/encarta_render
+  encarta_assets:
+    path: ../../packages/encarta_assets
+  auto_route: ^11.1.0
+  media_kit: ^1.1.11
+  # Bundles an FTS5-enabled libsqlite3 inside the packaged app so search works
+  # under the macOS App Sandbox (which blocks the Homebrew dylib path that
+  # encarta_data probes for, and only reaches, on a dev host during `dart test`).
+  sqlite3_flutter_libs: ^0.5.24
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  auto_route_generator: ^10.5.0
+  build_runner: ^2.15.0
+
+flutter:
+  uses-material-design: true
+  # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
+  # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
+  # is the period-accurate reading face for the reader.
+  fonts:
+    - family: Selawik
+      fonts:
+        - asset: assets/fonts/Selawik-Semilight.ttf
+          weight: 300
+        - asset: assets/fonts/Selawik-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Selawik-Semibold.ttf
+          weight: 600
+        - asset: assets/fonts/Selawik-Bold.ttf
+          weight: 700

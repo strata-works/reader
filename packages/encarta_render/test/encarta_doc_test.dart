@@ -1,0 +1,134 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:xml/xml.dart';
+import 'package:encarta_render/encarta_render.dart';
+
+Uint8List _b(String s) => Uint8List.fromList(utf8.encode(s));
+
+void main() {
+  test('parse walks content -> text -> blocks and keeps the injected title', () {
+    final doc = EncartaDoc.parse(
+      _b('<content refid="1" revision="1"><text xml:space="preserve">'
+         '<pkey id="p1">Hello</pkey><pkey id="p2">World</pkey></text></content>'),
+      title: 'My Title',
+    );
+    expect(doc.title, 'My Title');
+    expect(doc.blocks.length, 2);
+    expect(doc.blocks.first.name.local, 'pkey');
+    expect(doc.blocks.first.getAttribute('id'), 'p1');
+    expect(doc.allAnchorIds(), containsAll(<String>['p1', 'p2']));
+  });
+
+  test('deduplicates repeated ids (Encarta reuses ids) keeping the first stable', () {
+    // Real Encarta articles reuse ids across elements (e.g. a section and a
+    // pkey both id="8"). Duplicate ids would give two elements the same
+    // GlobalKey and crash the article body. Parse must make them unique.
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section id="8"><sectiontitle>A</sectiontitle>'
+         '<pkey id="8">first dup</pkey></section>'
+         '<pkey id="8">second dup</pkey>'
+         '</text></content>'),
+      title: 'T',
+    );
+    final ids = doc.allAnchorIds().toList();
+    // No duplicates remain.
+    expect(ids.toSet().length, ids.length);
+    // The FIRST occurrence keeps the original id (so anchors/paraIDs still resolve).
+    expect(ids.first, '8');
+    // Later duplicates are still present, just renamed to be unique.
+    expect(ids.length, greaterThanOrEqualTo(3));
+  });
+
+  test('repeated inlinebmp ids are NOT renamed (they are image baggage_ids)', () {
+    // The same figure is often reused across a page. Its id must stay verbatim
+    // for asset resolution, and must not become a scroll anchor.
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<pkey>a <inlinebmp type="28" id="00abc"></inlinebmp> '
+         'b <inlinebmp type="28" id="00abc"></inlinebmp></pkey>'
+         '</text></content>'),
+      title: 'T',
+    );
+    final bmps = doc.blocks.first.descendantElements
+        .where((e) => e.name.local == 'inlinebmp')
+        .map((e) => e.getAttribute('id'))
+        .toList();
+    // Both occurrences keep the SAME, un-renamed id.
+    expect(bmps, ['00abc', '00abc']);
+    // And inlinebmp ids are not exposed as scroll anchors.
+    expect(doc.allAnchorIds(), isNot(contains('00abc')));
+  });
+
+  test('parse falls back to <content> children when <text> is absent', () {
+    final doc = EncartaDoc.parse(
+      _b('<content refid="2" revision="1"><pkey id="x">Body</pkey></content>'),
+      title: 'T',
+    );
+    expect(doc.blocks.single.name.local, 'pkey');
+  });
+
+  test('parse degrades gracefully on malformed/empty XML', () {
+    expect(
+      () => EncartaDoc.parse(_b(''), title: 'Bad'),
+      returnsNormally,
+    );
+    final doc = EncartaDoc.parse(_b(''), title: 'Bad');
+    expect(doc.blocks, isEmpty);
+  });
+
+  test('outline captures nested sectiontitles with 1-based depth and anchors', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4" id="s1"><sectiontitle>Top</sectiontitle>'
+         '<pkey id="p1">body</pkey>'
+         '<section type="5" id="s2"><sectiontitle>Sub</sectiontitle></section>'
+         '</section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.map((e) => e.title).toList(), <String>['Top', 'Sub']);
+    expect(doc.outline.entries.map((e) => e.depth).toList(), <int>[1, 2]);
+    expect(doc.outline.entries.first.anchorId, 's1');
+  });
+
+  test('outline skips sections without a sectiontitle', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text><section type="4" id="s1"></section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries, isEmpty);
+  });
+
+  // Finding 1: every anchorId in the outline must be resolvable via allAnchorIds().
+  test('every outline anchorId is present in allAnchorIds (mixed real/synthetic)', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4" id="s1"><sectiontitle>Real ID</sectiontitle></section>'
+         '<section type="5"><sectiontitle>Synthetic ID</sectiontitle></section>'
+         '</text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.length, 2);
+    final anchors = doc.allAnchorIds().toSet();
+    for (final entry in doc.outline.entries) {
+      expect(anchors, contains(entry.anchorId),
+          reason: 'anchorId "${entry.anchorId}" not found in allAnchorIds()');
+    }
+  });
+
+  // Finding 3: a titleless parent section must still count as a nesting level.
+  test('titleless parent section depth still counts for titled child', () {
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<section type="4">'
+         '  <section type="5" id="c1"><sectiontitle>Child</sectiontitle></section>'
+         '</section></text></content>'),
+      title: 'T',
+    );
+    expect(doc.outline.entries.length, 1);
+    expect(doc.outline.entries.first.title, 'Child');
+    expect(doc.outline.entries.first.anchorId, 'c1');
+    expect(doc.outline.entries.first.depth, 2);
+  });
+}

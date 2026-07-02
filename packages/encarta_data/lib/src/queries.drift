@@ -1,0 +1,126 @@
+import 'tables.drift';
+
+-- Named queries are added by later tasks. Keep this file present so the
+-- `include:` in database.dart resolves.
+
+-- Counts fts rows whose rowid is NOT a valid article.refid. Must be 0.
+ftsRowidUnmapped:
+SELECT count(*) AS unmapped FROM article_fts f
+WHERE NOT EXISTS (SELECT 1 FROM article a WHERE a.refid = f.rowid);
+
+-- Picks a seed article for the positive FTS round-trip check (part b of
+-- verifyFtsRowidMapping). Returns refid + raw xml for token extraction.
+-- :offset lets the caller skip articles whose xml yields no usable token.
+ftsSeedArticle:
+SELECT refid, xml FROM article WHERE length(xml) > 200 ORDER BY refid LIMIT 1 OFFSET :offset;
+
+-- FTS5 MATCH search used by the positive round-trip check. Returns the rowids
+-- of all fts rows whose indexed body contains :token. Because rowid == refid,
+-- the seed article's refid must appear here when the invariant holds.
+ftsMatchToken:
+SELECT rowid FROM article_fts WHERE article_fts MATCH :token;
+
+getArticleByRefid:
+SELECT refid, title, source, xml FROM article WHERE refid = :refid;
+
+-- Test seam: smallest titled refid, used by unit tests to pick a real row.
+firstTitledRefid:
+SELECT refid FROM article WHERE title IS NOT NULL ORDER BY refid LIMIT 1;
+
+-- Contentless FTS: returns rowid (== article.refid), title, and bm25 rank.
+-- Lower bm25 = more relevant. CAST keeps drift's inferred type a double.
+searchArticles:
+SELECT f.rowid AS refid, a.title AS title, CAST(bm25(article_fts) AS REAL) AS rank
+FROM article_fts f
+JOIN article a ON a.refid = f.rowid
+WHERE article_fts MATCH :query
+ORDER BY rank
+LIMIT :limit OFFSET :offset;
+
+mediaForArticle:
+SELECT
+  m.refid    AS mediaRefid,
+  mf.role    AS role,
+  m."group"  AS mgroup,
+  m.title    AS title,
+  m.caption  AS caption,
+  m.credit   AS credit,
+  a.path     AS assetPath,
+  a.ext      AS ext,
+  a.kind     AS kind
+FROM article_media am
+JOIN media m       ON m.refid = am.media_refid
+JOIN media_file mf ON mf.media_refid = am.media_refid
+JOIN asset a       ON a.baggage_id = mf.baggage_id
+WHERE am.article_refid = :refid
+ORDER BY mf.role;
+
+-- Test seam: the article carrying the most media in the fixture.
+mostMediaRefid:
+SELECT a.refid AS refid FROM article_media am
+JOIN article a ON a.refid = am.article_refid
+GROUP BY a.refid ORDER BY count(*) DESC LIMIT 1;
+
+assetByBaggageId:
+SELECT baggage_id, hash, kind, ext, path FROM asset WHERE baggage_id = :id;
+
+-- Test seam: any baggage_id present in the (fixture) asset table.
+anyBaggageId:
+SELECT baggage_id FROM asset LIMIT 1;
+
+titlesIndex:
+SELECT refid, title FROM article
+WHERE title IS NOT NULL AND title != '' AND title LIKE :prefix || '%'
+ORDER BY title COLLATE NOCASE
+LIMIT :limit OFFSET :offset;
+
+outboundXrefs:
+SELECT x.target_refid AS targetRefid, a.title AS title
+FROM xref x
+JOIN article a ON a.refid = x.target_refid
+WHERE x.refid = :refid AND a.title IS NOT NULL
+ORDER BY a.title;
+
+-- Test seam: any source refid that has at least one resolvable xref.
+anyXrefSourceRefid:
+SELECT x.refid AS refid FROM xref x
+JOIN article a ON a.refid = x.target_refid
+LIMIT 1;
+
+-- Random pick: jump to a random point in the refid range, take the next
+-- titled article. Fast (index range scan), uniform enough for "I'm feeling
+-- lucky". Returns nothing only if the random point lands past the last
+-- titled refid; randomArticleFallback covers that.
+randomArticleInRange:
+SELECT refid, title, source, xml FROM article
+WHERE refid >= (
+  SELECT min(refid) + abs(random()) % (max(refid) - min(refid) + 1) FROM article
+) AND title IS NOT NULL
+ORDER BY refid LIMIT 1;
+
+randomArticleFallback:
+SELECT refid, title, source, xml FROM article
+WHERE title IS NOT NULL ORDER BY refid LIMIT 1;
+
+-- Primary probe: articles reachable from home-group media. (Verified empty in
+-- the current corpus — home media have no article_media links — but kept so
+-- the behavior auto-upgrades if the ETL ever wires home content to articles.)
+featuredHomeArticles:
+SELECT a.refid AS refid, a.title AS title
+FROM media m
+JOIN article_media am ON am.media_refid = m.refid
+JOIN article a ON a.refid = am.article_refid
+WHERE m."group" = 'home' AND a.title IS NOT NULL
+GROUP BY a.refid
+ORDER BY m.refid
+LIMIT :limit;
+
+-- Fallback: most media-rich articles (recognizable, image-heavy entries).
+featuredByMediaCount:
+SELECT a.refid AS refid, a.title AS title
+FROM article_media am
+JOIN article a ON a.refid = am.article_refid
+WHERE a.title IS NOT NULL
+GROUP BY a.refid
+ORDER BY count(*) DESC
+LIMIT :limit;
