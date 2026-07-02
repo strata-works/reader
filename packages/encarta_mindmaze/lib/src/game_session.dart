@@ -63,6 +63,19 @@ class GameSession {
         _config = config,
         _random = random,
         _picker = QuestionPicker(pools, random) {
+    // Fail fast: every room must have at least one posable question, or the
+    // game would soft-lock on entering it. Pools are injected by the caller
+    // (the app maps encarta_data questions in), so this is a precondition.
+    for (final room in maze.rooms.values) {
+      final pool = pools[room.area];
+      final hasPosable = pool != null &&
+          pool.any((q) => q.choices.where((c) => c.isCorrect).length == 1);
+      if (!hasPosable) {
+        throw ArgumentError(
+          'room "${room.id}" (area ${room.area}) has no posable question',
+        );
+      }
+    }
     _lives = config.startingLives;
     _enterRoom(maze.startRoomId, greet: true);
   }

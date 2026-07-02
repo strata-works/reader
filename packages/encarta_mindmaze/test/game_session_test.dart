@@ -141,4 +141,66 @@ void main() {
     expect(s.snapshot.status, GameStatus.lost);
     expect(s.snapshot.currentQuestion, isNull);
   });
+
+  test('construction throws when a room\'s area is absent from pools', () {
+    final maze = MazeGraph(
+      startRoomId: 'a',
+      goalRoomId: 'c',
+      rooms: {
+        'a': const Room(id: 'a', area: 0, backdropId: 'atrium', character: _char,
+            doors: [Door(direction: Direction.right, targetRoomId: 'c')]),
+        // Room 'c' lives in area 5, which has no entry in the pools below.
+        'c': const Room(id: 'c', area: 5, backdropId: 'atrium', character: _char,
+            doors: [Door(direction: Direction.left, targetRoomId: 'a')]),
+      },
+    );
+    final pools = {
+      0: [_q(1, 0)],
+      1: [_q(11, 1)],
+    };
+    expect(
+      () => GameSession(
+        maze: maze,
+        pools: pools,
+        config: const GameConfig(),
+        random: Random(1),
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test('construction throws when a room\'s area pool is present but every question is malformed', () {
+    final maze = MazeGraph(
+      startRoomId: 'a',
+      goalRoomId: 'a',
+      rooms: {
+        'a': const Room(id: 'a', area: 0, backdropId: 'atrium', character: _char, doors: []),
+      },
+    );
+    // A pool with an entry for area 0, but its only question has zero correct
+    // choices, so it is not posable.
+    final malformedQuestion = Question(
+      id: 1,
+      area: 0,
+      clue: 'clue 1',
+      choices: const [
+        AnswerChoice(text: 'w1', articleRefid: 0, isCorrect: false),
+        AnswerChoice(text: 'w2', articleRefid: 0, isCorrect: false),
+      ],
+    );
+    final pools = {0: [malformedQuestion]};
+    expect(
+      () => GameSession(
+        maze: maze,
+        pools: pools,
+        config: const GameConfig(),
+        random: Random(1),
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test('construction does not throw when every room\'s area has a posable question', () {
+    expect(() => _session(), returnsNormally);
+  });
 }

@@ -77,7 +77,10 @@ MazeGraph minimalMaze() => const MazeGraph(
           ],
         ),
         'throne': Room(
-          id: 'throne', area: 1, backdropId: 'atrium', character: _duke,
+          id: 'throne',
+          area: 1,
+          backdropId: 'atrium', // deliberate placeholder — no throne backdrop was extracted
+          character: _duke,
           doors: [
             Door(direction: Direction.south, targetRoomId: 'hall'),
           ],
