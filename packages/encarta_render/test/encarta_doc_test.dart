@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:xml/xml.dart';
 import 'package:encarta_render/encarta_render.dart';
 
 Uint8List _b(String s) => Uint8List.fromList(utf8.encode(s));
@@ -38,6 +39,26 @@ void main() {
     expect(ids.first, '8');
     // Later duplicates are still present, just renamed to be unique.
     expect(ids.length, greaterThanOrEqualTo(3));
+  });
+
+  test('repeated inlinebmp ids are NOT renamed (they are image baggage_ids)', () {
+    // The same figure is often reused across a page. Its id must stay verbatim
+    // for asset resolution, and must not become a scroll anchor.
+    final doc = EncartaDoc.parse(
+      _b('<content><text>'
+         '<pkey>a <inlinebmp type="28" id="00abc"></inlinebmp> '
+         'b <inlinebmp type="28" id="00abc"></inlinebmp></pkey>'
+         '</text></content>'),
+      title: 'T',
+    );
+    final bmps = doc.blocks.first.descendantElements
+        .where((e) => e.name.local == 'inlinebmp')
+        .map((e) => e.getAttribute('id'))
+        .toList();
+    // Both occurrences keep the SAME, un-renamed id.
+    expect(bmps, ['00abc', '00abc']);
+    // And inlinebmp ids are not exposed as scroll anchors.
+    expect(doc.allAnchorIds(), isNot(contains('00abc')));
   });
 
   test('parse falls back to <content> children when <text> is absent', () {

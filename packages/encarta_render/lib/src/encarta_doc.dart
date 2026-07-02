@@ -66,7 +66,11 @@ class EncartaDoc {
     final seen = <String>{};
     var counter = 0;
     void visit(XmlElement el) {
-      final id = el.getAttribute('id');
+      // `inlinebmp` is the exception: its `id` is an image baggage_id used for
+      // asset resolution, NOT a scroll anchor. Renaming duplicates (the same
+      // figure reused across a page) would break resolution for every repeat.
+      final id =
+          el.name.local == 'inlinebmp' ? null : el.getAttribute('id');
       if (id != null && id.isNotEmpty) {
         if (seen.contains(id)) {
           String fresh;
@@ -139,13 +143,18 @@ class EncartaDoc {
     return EncartaOutline(entries: entries);
   }
 
-  /// Every element `id` attribute in the body, in document order.
-  /// Used for paraID deep-links and section/title outline anchors.
+  /// Every SCROLL-ANCHOR `id` attribute in the body, in document order.
+  /// Used for paraID deep-links and section/title outline anchors. Excludes
+  /// `inlinebmp`, whose `id` is an image baggage_id (not a scroll target) — so
+  /// repeated figures never mint colliding GlobalKeys.
   Iterable<String> allAnchorIds() sync* {
     for (final b in blocks) {
-      final bid = b.getAttribute('id');
-      if (bid != null && bid.isNotEmpty) yield bid;
+      if (b.name.local != 'inlinebmp') {
+        final bid = b.getAttribute('id');
+        if (bid != null && bid.isNotEmpty) yield bid;
+      }
       for (final d in b.descendantElements) {
+        if (d.name.local == 'inlinebmp') continue;
         final id = d.getAttribute('id');
         if (id != null && id.isNotEmpty) yield id;
       }
