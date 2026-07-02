@@ -124,3 +124,29 @@ WHERE a.title IS NOT NULL
 GROUP BY a.refid
 ORDER BY count(*) DESC
 LIMIT :limit;
+
+-- MindMaze: question × answer rows for one castle wing, ordered so a fold in
+-- Dart can group consecutive rows by questionId with answers ordinal-ordered.
+mindmazeQuestionsByArea:
+SELECT q.id AS questionId, q.area AS area, q.clue AS clue,
+       a.ordinal AS ordinal, a.text AS text,
+       a.article_refid AS articleRefid, a.is_correct AS isCorrect
+FROM mm_question q
+JOIN mm_answer a ON a.question_id = q.id
+WHERE q.area = :area
+ORDER BY q.id, a.ordinal;
+
+-- Same projection across every wing (including area IS NULL).
+mindmazeAllQuestions:
+SELECT q.id AS questionId, q.area AS area, q.clue AS clue,
+       a.ordinal AS ordinal, a.text AS text,
+       a.article_refid AS articleRefid, a.is_correct AS isCorrect
+FROM mm_question q
+JOIN mm_answer a ON a.question_id = q.id
+ORDER BY q.id, a.ordinal;
+
+mindmazeCountByArea:
+SELECT count(*) AS n FROM mm_question WHERE area = :area;
+
+mindmazeCountAll:
+SELECT count(*) AS n FROM mm_question;
