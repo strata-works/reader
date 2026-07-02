@@ -49,6 +49,8 @@ void main() {
     CREATE TABLE article_media (article_refid INTEGER, media_refid INTEGER, PRIMARY KEY(article_refid, media_refid));
     CREATE TABLE xref (refid INTEGER, target_refid INTEGER, PRIMARY KEY(refid, target_refid));
     CREATE VIRTUAL TABLE article_fts USING fts5(body, content='', contentless_delete=1, tokenize='unicode61');
+    CREATE TABLE mm_question (id INTEGER PRIMARY KEY, area INTEGER, clue TEXT);
+    CREATE TABLE mm_answer (id INTEGER PRIMARY KEY, question_id INTEGER, ordinal INTEGER, text TEXT, article_refid INTEGER, is_correct INTEGER, flag INTEGER);
   ''');
 
   // Pick the slice: 10 titled articles per source tier ...
@@ -92,6 +94,24 @@ void main() {
     fts.execute([refid, text]);
   }
   fts.dispose();
+
+  // MindMaze: a deterministic slice — 3 questions each from wings 0 and 1, plus
+  // 2 area==null questions, with all four answers each, so the query-API tests
+  // have real rows to assert against.
+  final qids = <int>{};
+  for (final area in const [0, 1]) {
+    for (final r in dst.select(
+        'SELECT id FROM src.mm_question WHERE area = ? ORDER BY id LIMIT 3', [area])) {
+      qids.add(r['id'] as int);
+    }
+  }
+  for (final r in dst.select(
+      'SELECT id FROM src.mm_question WHERE area IS NULL ORDER BY id LIMIT 2')) {
+    qids.add(r['id'] as int);
+  }
+  final qIn = qids.join(',');
+  dst.execute('INSERT INTO mm_question SELECT * FROM src.mm_question WHERE id IN ($qIn)');
+  dst.execute('INSERT INTO mm_answer SELECT * FROM src.mm_answer WHERE question_id IN ($qIn)');
 
   dst.execute('DETACH DATABASE src');
   final n = dst.select('SELECT count(*) AS n FROM article').first['n'];

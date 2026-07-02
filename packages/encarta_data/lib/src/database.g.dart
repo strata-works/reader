@@ -2039,6 +2039,713 @@ class XrefCompanion extends UpdateCompanion<XrefData> {
   }
 }
 
+class MmQuestion extends Table with TableInfo<MmQuestion, MmQuestionData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MmQuestion(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _areaMeta = const VerificationMeta('area');
+  late final GeneratedColumn<int> area = GeneratedColumn<int>(
+    'area',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _clueMeta = const VerificationMeta('clue');
+  late final GeneratedColumn<String> clue = GeneratedColumn<String>(
+    'clue',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, area, clue];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mm_question';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MmQuestionData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('area')) {
+      context.handle(
+        _areaMeta,
+        area.isAcceptableOrUnknown(data['area']!, _areaMeta),
+      );
+    }
+    if (data.containsKey('clue')) {
+      context.handle(
+        _clueMeta,
+        clue.isAcceptableOrUnknown(data['clue']!, _clueMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MmQuestionData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MmQuestionData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      area: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}area'],
+      ),
+      clue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}clue'],
+      ),
+    );
+  }
+
+  @override
+  MmQuestion createAlias(String alias) {
+    return MmQuestion(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MmQuestionData extends DataClass implements Insertable<MmQuestionData> {
+  final int id;
+  final int? area;
+  final String? clue;
+  const MmQuestionData({required this.id, this.area, this.clue});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || area != null) {
+      map['area'] = Variable<int>(area);
+    }
+    if (!nullToAbsent || clue != null) {
+      map['clue'] = Variable<String>(clue);
+    }
+    return map;
+  }
+
+  MmQuestionCompanion toCompanion(bool nullToAbsent) {
+    return MmQuestionCompanion(
+      id: Value(id),
+      area: area == null && nullToAbsent ? const Value.absent() : Value(area),
+      clue: clue == null && nullToAbsent ? const Value.absent() : Value(clue),
+    );
+  }
+
+  factory MmQuestionData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MmQuestionData(
+      id: serializer.fromJson<int>(json['id']),
+      area: serializer.fromJson<int?>(json['area']),
+      clue: serializer.fromJson<String?>(json['clue']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'area': serializer.toJson<int?>(area),
+      'clue': serializer.toJson<String?>(clue),
+    };
+  }
+
+  MmQuestionData copyWith({
+    int? id,
+    Value<int?> area = const Value.absent(),
+    Value<String?> clue = const Value.absent(),
+  }) => MmQuestionData(
+    id: id ?? this.id,
+    area: area.present ? area.value : this.area,
+    clue: clue.present ? clue.value : this.clue,
+  );
+  MmQuestionData copyWithCompanion(MmQuestionCompanion data) {
+    return MmQuestionData(
+      id: data.id.present ? data.id.value : this.id,
+      area: data.area.present ? data.area.value : this.area,
+      clue: data.clue.present ? data.clue.value : this.clue,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmQuestionData(')
+          ..write('id: $id, ')
+          ..write('area: $area, ')
+          ..write('clue: $clue')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, area, clue);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MmQuestionData &&
+          other.id == this.id &&
+          other.area == this.area &&
+          other.clue == this.clue);
+}
+
+class MmQuestionCompanion extends UpdateCompanion<MmQuestionData> {
+  final Value<int> id;
+  final Value<int?> area;
+  final Value<String?> clue;
+  const MmQuestionCompanion({
+    this.id = const Value.absent(),
+    this.area = const Value.absent(),
+    this.clue = const Value.absent(),
+  });
+  MmQuestionCompanion.insert({
+    this.id = const Value.absent(),
+    this.area = const Value.absent(),
+    this.clue = const Value.absent(),
+  });
+  static Insertable<MmQuestionData> custom({
+    Expression<int>? id,
+    Expression<int>? area,
+    Expression<String>? clue,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (area != null) 'area': area,
+      if (clue != null) 'clue': clue,
+    });
+  }
+
+  MmQuestionCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? area,
+    Value<String?>? clue,
+  }) {
+    return MmQuestionCompanion(
+      id: id ?? this.id,
+      area: area ?? this.area,
+      clue: clue ?? this.clue,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (area.present) {
+      map['area'] = Variable<int>(area.value);
+    }
+    if (clue.present) {
+      map['clue'] = Variable<String>(clue.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmQuestionCompanion(')
+          ..write('id: $id, ')
+          ..write('area: $area, ')
+          ..write('clue: $clue')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class MmAnswer extends Table with TableInfo<MmAnswer, MmAnswerData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MmAnswer(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _questionIdMeta = const VerificationMeta(
+    'questionId',
+  );
+  late final GeneratedColumn<int> questionId = GeneratedColumn<int>(
+    'question_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _ordinalMeta = const VerificationMeta(
+    'ordinal',
+  );
+  late final GeneratedColumn<int> ordinal = GeneratedColumn<int>(
+    'ordinal',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _answerTextMeta = const VerificationMeta(
+    'answerText',
+  );
+  late final GeneratedColumn<String> answerText = GeneratedColumn<String>(
+    'text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _articleRefidMeta = const VerificationMeta(
+    'articleRefid',
+  );
+  late final GeneratedColumn<int> articleRefid = GeneratedColumn<int>(
+    'article_refid',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isCorrectMeta = const VerificationMeta(
+    'isCorrect',
+  );
+  late final GeneratedColumn<int> isCorrect = GeneratedColumn<int>(
+    'is_correct',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _flagMeta = const VerificationMeta('flag');
+  late final GeneratedColumn<int> flag = GeneratedColumn<int>(
+    'flag',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    questionId,
+    ordinal,
+    answerText,
+    articleRefid,
+    isCorrect,
+    flag,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mm_answer';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MmAnswerData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('question_id')) {
+      context.handle(
+        _questionIdMeta,
+        questionId.isAcceptableOrUnknown(data['question_id']!, _questionIdMeta),
+      );
+    }
+    if (data.containsKey('ordinal')) {
+      context.handle(
+        _ordinalMeta,
+        ordinal.isAcceptableOrUnknown(data['ordinal']!, _ordinalMeta),
+      );
+    }
+    if (data.containsKey('text')) {
+      context.handle(
+        _answerTextMeta,
+        answerText.isAcceptableOrUnknown(data['text']!, _answerTextMeta),
+      );
+    }
+    if (data.containsKey('article_refid')) {
+      context.handle(
+        _articleRefidMeta,
+        articleRefid.isAcceptableOrUnknown(
+          data['article_refid']!,
+          _articleRefidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_correct')) {
+      context.handle(
+        _isCorrectMeta,
+        isCorrect.isAcceptableOrUnknown(data['is_correct']!, _isCorrectMeta),
+      );
+    }
+    if (data.containsKey('flag')) {
+      context.handle(
+        _flagMeta,
+        flag.isAcceptableOrUnknown(data['flag']!, _flagMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MmAnswerData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MmAnswerData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      questionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}question_id'],
+      ),
+      ordinal: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ordinal'],
+      ),
+      answerText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text'],
+      ),
+      articleRefid: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}article_refid'],
+      ),
+      isCorrect: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_correct'],
+      ),
+      flag: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}flag'],
+      ),
+    );
+  }
+
+  @override
+  MmAnswer createAlias(String alias) {
+    return MmAnswer(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MmAnswerData extends DataClass implements Insertable<MmAnswerData> {
+  final int id;
+  final int? questionId;
+  final int? ordinal;
+  final String? answerText;
+  final int? articleRefid;
+  final int? isCorrect;
+  final int? flag;
+  const MmAnswerData({
+    required this.id,
+    this.questionId,
+    this.ordinal,
+    this.answerText,
+    this.articleRefid,
+    this.isCorrect,
+    this.flag,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || questionId != null) {
+      map['question_id'] = Variable<int>(questionId);
+    }
+    if (!nullToAbsent || ordinal != null) {
+      map['ordinal'] = Variable<int>(ordinal);
+    }
+    if (!nullToAbsent || answerText != null) {
+      map['text'] = Variable<String>(answerText);
+    }
+    if (!nullToAbsent || articleRefid != null) {
+      map['article_refid'] = Variable<int>(articleRefid);
+    }
+    if (!nullToAbsent || isCorrect != null) {
+      map['is_correct'] = Variable<int>(isCorrect);
+    }
+    if (!nullToAbsent || flag != null) {
+      map['flag'] = Variable<int>(flag);
+    }
+    return map;
+  }
+
+  MmAnswerCompanion toCompanion(bool nullToAbsent) {
+    return MmAnswerCompanion(
+      id: Value(id),
+      questionId: questionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(questionId),
+      ordinal: ordinal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ordinal),
+      answerText: answerText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(answerText),
+      articleRefid: articleRefid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(articleRefid),
+      isCorrect: isCorrect == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isCorrect),
+      flag: flag == null && nullToAbsent ? const Value.absent() : Value(flag),
+    );
+  }
+
+  factory MmAnswerData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MmAnswerData(
+      id: serializer.fromJson<int>(json['id']),
+      questionId: serializer.fromJson<int?>(json['question_id']),
+      ordinal: serializer.fromJson<int?>(json['ordinal']),
+      answerText: serializer.fromJson<String?>(json['text']),
+      articleRefid: serializer.fromJson<int?>(json['article_refid']),
+      isCorrect: serializer.fromJson<int?>(json['is_correct']),
+      flag: serializer.fromJson<int?>(json['flag']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'question_id': serializer.toJson<int?>(questionId),
+      'ordinal': serializer.toJson<int?>(ordinal),
+      'text': serializer.toJson<String?>(answerText),
+      'article_refid': serializer.toJson<int?>(articleRefid),
+      'is_correct': serializer.toJson<int?>(isCorrect),
+      'flag': serializer.toJson<int?>(flag),
+    };
+  }
+
+  MmAnswerData copyWith({
+    int? id,
+    Value<int?> questionId = const Value.absent(),
+    Value<int?> ordinal = const Value.absent(),
+    Value<String?> answerText = const Value.absent(),
+    Value<int?> articleRefid = const Value.absent(),
+    Value<int?> isCorrect = const Value.absent(),
+    Value<int?> flag = const Value.absent(),
+  }) => MmAnswerData(
+    id: id ?? this.id,
+    questionId: questionId.present ? questionId.value : this.questionId,
+    ordinal: ordinal.present ? ordinal.value : this.ordinal,
+    answerText: answerText.present ? answerText.value : this.answerText,
+    articleRefid: articleRefid.present ? articleRefid.value : this.articleRefid,
+    isCorrect: isCorrect.present ? isCorrect.value : this.isCorrect,
+    flag: flag.present ? flag.value : this.flag,
+  );
+  MmAnswerData copyWithCompanion(MmAnswerCompanion data) {
+    return MmAnswerData(
+      id: data.id.present ? data.id.value : this.id,
+      questionId: data.questionId.present
+          ? data.questionId.value
+          : this.questionId,
+      ordinal: data.ordinal.present ? data.ordinal.value : this.ordinal,
+      answerText: data.answerText.present
+          ? data.answerText.value
+          : this.answerText,
+      articleRefid: data.articleRefid.present
+          ? data.articleRefid.value
+          : this.articleRefid,
+      isCorrect: data.isCorrect.present ? data.isCorrect.value : this.isCorrect,
+      flag: data.flag.present ? data.flag.value : this.flag,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmAnswerData(')
+          ..write('id: $id, ')
+          ..write('questionId: $questionId, ')
+          ..write('ordinal: $ordinal, ')
+          ..write('answerText: $answerText, ')
+          ..write('articleRefid: $articleRefid, ')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('flag: $flag')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    questionId,
+    ordinal,
+    answerText,
+    articleRefid,
+    isCorrect,
+    flag,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MmAnswerData &&
+          other.id == this.id &&
+          other.questionId == this.questionId &&
+          other.ordinal == this.ordinal &&
+          other.answerText == this.answerText &&
+          other.articleRefid == this.articleRefid &&
+          other.isCorrect == this.isCorrect &&
+          other.flag == this.flag);
+}
+
+class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
+  final Value<int> id;
+  final Value<int?> questionId;
+  final Value<int?> ordinal;
+  final Value<String?> answerText;
+  final Value<int?> articleRefid;
+  final Value<int?> isCorrect;
+  final Value<int?> flag;
+  const MmAnswerCompanion({
+    this.id = const Value.absent(),
+    this.questionId = const Value.absent(),
+    this.ordinal = const Value.absent(),
+    this.answerText = const Value.absent(),
+    this.articleRefid = const Value.absent(),
+    this.isCorrect = const Value.absent(),
+    this.flag = const Value.absent(),
+  });
+  MmAnswerCompanion.insert({
+    this.id = const Value.absent(),
+    this.questionId = const Value.absent(),
+    this.ordinal = const Value.absent(),
+    this.answerText = const Value.absent(),
+    this.articleRefid = const Value.absent(),
+    this.isCorrect = const Value.absent(),
+    this.flag = const Value.absent(),
+  });
+  static Insertable<MmAnswerData> custom({
+    Expression<int>? id,
+    Expression<int>? questionId,
+    Expression<int>? ordinal,
+    Expression<String>? answerText,
+    Expression<int>? articleRefid,
+    Expression<int>? isCorrect,
+    Expression<int>? flag,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (questionId != null) 'question_id': questionId,
+      if (ordinal != null) 'ordinal': ordinal,
+      if (answerText != null) 'text': answerText,
+      if (articleRefid != null) 'article_refid': articleRefid,
+      if (isCorrect != null) 'is_correct': isCorrect,
+      if (flag != null) 'flag': flag,
+    });
+  }
+
+  MmAnswerCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? questionId,
+    Value<int?>? ordinal,
+    Value<String?>? answerText,
+    Value<int?>? articleRefid,
+    Value<int?>? isCorrect,
+    Value<int?>? flag,
+  }) {
+    return MmAnswerCompanion(
+      id: id ?? this.id,
+      questionId: questionId ?? this.questionId,
+      ordinal: ordinal ?? this.ordinal,
+      answerText: answerText ?? this.answerText,
+      articleRefid: articleRefid ?? this.articleRefid,
+      isCorrect: isCorrect ?? this.isCorrect,
+      flag: flag ?? this.flag,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (questionId.present) {
+      map['question_id'] = Variable<int>(questionId.value);
+    }
+    if (ordinal.present) {
+      map['ordinal'] = Variable<int>(ordinal.value);
+    }
+    if (answerText.present) {
+      map['text'] = Variable<String>(answerText.value);
+    }
+    if (articleRefid.present) {
+      map['article_refid'] = Variable<int>(articleRefid.value);
+    }
+    if (isCorrect.present) {
+      map['is_correct'] = Variable<int>(isCorrect.value);
+    }
+    if (flag.present) {
+      map['flag'] = Variable<int>(flag.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmAnswerCompanion(')
+          ..write('id: $id, ')
+          ..write('questionId: $questionId, ')
+          ..write('ordinal: $ordinal, ')
+          ..write('answerText: $answerText, ')
+          ..write('articleRefid: $articleRefid, ')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('flag: $flag')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$EncartaDatabase extends GeneratedDatabase {
   _$EncartaDatabase(QueryExecutor e) : super(e);
   $EncartaDatabaseManager get managers => $EncartaDatabaseManager(this);
@@ -2049,6 +2756,8 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
   late final MediaFile mediaFile = MediaFile(this);
   late final Asset asset = Asset(this);
   late final Xref xref = Xref(this);
+  late final MmQuestion mmQuestion = MmQuestion(this);
+  late final MmAnswer mmAnswer = MmAnswer(this);
   Selectable<int> ftsRowidUnmapped() {
     return customSelect(
       'SELECT count(*) AS unmapped FROM article_fts AS f WHERE NOT EXISTS (SELECT 1 AS _c0 FROM article AS a WHERE a.refid = f."rowid")',
@@ -2252,6 +2961,58 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<MindmazeQuestionsByAreaResult> mindmazeQuestionsByArea(int? area) {
+    return customSelect(
+      'SELECT q.id AS questionId, q.area AS area, q.clue AS clue, a.ordinal AS ordinal, a.text AS text, a.article_refid AS articleRefid, a.is_correct AS isCorrect FROM mm_question AS q JOIN mm_answer AS a ON a.question_id = q.id WHERE q.area = ?1 ORDER BY q.id, a.ordinal',
+      variables: [Variable<int>(area)],
+      readsFrom: {mmQuestion, mmAnswer},
+    ).map(
+      (QueryRow row) => MindmazeQuestionsByAreaResult(
+        questionId: row.read<int>('questionId'),
+        area: row.readNullable<int>('area'),
+        clue: row.readNullable<String>('clue'),
+        ordinal: row.readNullable<int>('ordinal'),
+        text: row.readNullable<String>('text'),
+        articleRefid: row.readNullable<int>('articleRefid'),
+        isCorrect: row.readNullable<int>('isCorrect'),
+      ),
+    );
+  }
+
+  Selectable<MindmazeAllQuestionsResult> mindmazeAllQuestions() {
+    return customSelect(
+      'SELECT q.id AS questionId, q.area AS area, q.clue AS clue, a.ordinal AS ordinal, a.text AS text, a.article_refid AS articleRefid, a.is_correct AS isCorrect FROM mm_question AS q JOIN mm_answer AS a ON a.question_id = q.id ORDER BY q.id, a.ordinal',
+      variables: [],
+      readsFrom: {mmQuestion, mmAnswer},
+    ).map(
+      (QueryRow row) => MindmazeAllQuestionsResult(
+        questionId: row.read<int>('questionId'),
+        area: row.readNullable<int>('area'),
+        clue: row.readNullable<String>('clue'),
+        ordinal: row.readNullable<int>('ordinal'),
+        text: row.readNullable<String>('text'),
+        articleRefid: row.readNullable<int>('articleRefid'),
+        isCorrect: row.readNullable<int>('isCorrect'),
+      ),
+    );
+  }
+
+  Selectable<int> mindmazeCountByArea(int? area) {
+    return customSelect(
+      'SELECT count(*) AS n FROM mm_question WHERE area = ?1',
+      variables: [Variable<int>(area)],
+      readsFrom: {mmQuestion},
+    ).map((QueryRow row) => row.read<int>('n'));
+  }
+
+  Selectable<int> mindmazeCountAll() {
+    return customSelect(
+      'SELECT count(*) AS n FROM mm_question',
+      variables: [],
+      readsFrom: {mmQuestion},
+    ).map((QueryRow row) => row.read<int>('n'));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2264,6 +3025,8 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     mediaFile,
     asset,
     xref,
+    mmQuestion,
+    mmAnswer,
   ];
 }
 
@@ -3421,6 +4184,387 @@ typedef $XrefProcessedTableManager =
       XrefData,
       PrefetchHooks Function()
     >;
+typedef $MmQuestionCreateCompanionBuilder =
+    MmQuestionCompanion Function({
+      Value<int> id,
+      Value<int?> area,
+      Value<String?> clue,
+    });
+typedef $MmQuestionUpdateCompanionBuilder =
+    MmQuestionCompanion Function({
+      Value<int> id,
+      Value<int?> area,
+      Value<String?> clue,
+    });
+
+class $MmQuestionFilterComposer
+    extends Composer<_$EncartaDatabase, MmQuestion> {
+  $MmQuestionFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clue => $composableBuilder(
+    column: $table.clue,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $MmQuestionOrderingComposer
+    extends Composer<_$EncartaDatabase, MmQuestion> {
+  $MmQuestionOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clue => $composableBuilder(
+    column: $table.clue,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $MmQuestionAnnotationComposer
+    extends Composer<_$EncartaDatabase, MmQuestion> {
+  $MmQuestionAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get area =>
+      $composableBuilder(column: $table.area, builder: (column) => column);
+
+  GeneratedColumn<String> get clue =>
+      $composableBuilder(column: $table.clue, builder: (column) => column);
+}
+
+class $MmQuestionTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          MmQuestion,
+          MmQuestionData,
+          $MmQuestionFilterComposer,
+          $MmQuestionOrderingComposer,
+          $MmQuestionAnnotationComposer,
+          $MmQuestionCreateCompanionBuilder,
+          $MmQuestionUpdateCompanionBuilder,
+          (
+            MmQuestionData,
+            BaseReferences<_$EncartaDatabase, MmQuestion, MmQuestionData>,
+          ),
+          MmQuestionData,
+          PrefetchHooks Function()
+        > {
+  $MmQuestionTableManager(_$EncartaDatabase db, MmQuestion table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $MmQuestionFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $MmQuestionOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $MmQuestionAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> area = const Value.absent(),
+                Value<String?> clue = const Value.absent(),
+              }) => MmQuestionCompanion(id: id, area: area, clue: clue),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> area = const Value.absent(),
+                Value<String?> clue = const Value.absent(),
+              }) => MmQuestionCompanion.insert(id: id, area: area, clue: clue),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $MmQuestionProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      MmQuestion,
+      MmQuestionData,
+      $MmQuestionFilterComposer,
+      $MmQuestionOrderingComposer,
+      $MmQuestionAnnotationComposer,
+      $MmQuestionCreateCompanionBuilder,
+      $MmQuestionUpdateCompanionBuilder,
+      (
+        MmQuestionData,
+        BaseReferences<_$EncartaDatabase, MmQuestion, MmQuestionData>,
+      ),
+      MmQuestionData,
+      PrefetchHooks Function()
+    >;
+typedef $MmAnswerCreateCompanionBuilder =
+    MmAnswerCompanion Function({
+      Value<int> id,
+      Value<int?> questionId,
+      Value<int?> ordinal,
+      Value<String?> answerText,
+      Value<int?> articleRefid,
+      Value<int?> isCorrect,
+      Value<int?> flag,
+    });
+typedef $MmAnswerUpdateCompanionBuilder =
+    MmAnswerCompanion Function({
+      Value<int> id,
+      Value<int?> questionId,
+      Value<int?> ordinal,
+      Value<String?> answerText,
+      Value<int?> articleRefid,
+      Value<int?> isCorrect,
+      Value<int?> flag,
+    });
+
+class $MmAnswerFilterComposer extends Composer<_$EncartaDatabase, MmAnswer> {
+  $MmAnswerFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get ordinal => $composableBuilder(
+    column: $table.ordinal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get answerText => $composableBuilder(
+    column: $table.answerText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isCorrect => $composableBuilder(
+    column: $table.isCorrect,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get flag => $composableBuilder(
+    column: $table.flag,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $MmAnswerOrderingComposer extends Composer<_$EncartaDatabase, MmAnswer> {
+  $MmAnswerOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get ordinal => $composableBuilder(
+    column: $table.ordinal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get answerText => $composableBuilder(
+    column: $table.answerText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isCorrect => $composableBuilder(
+    column: $table.isCorrect,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get flag => $composableBuilder(
+    column: $table.flag,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $MmAnswerAnnotationComposer
+    extends Composer<_$EncartaDatabase, MmAnswer> {
+  $MmAnswerAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get ordinal =>
+      $composableBuilder(column: $table.ordinal, builder: (column) => column);
+
+  GeneratedColumn<String> get answerText => $composableBuilder(
+    column: $table.answerText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get articleRefid => $composableBuilder(
+    column: $table.articleRefid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get isCorrect =>
+      $composableBuilder(column: $table.isCorrect, builder: (column) => column);
+
+  GeneratedColumn<int> get flag =>
+      $composableBuilder(column: $table.flag, builder: (column) => column);
+}
+
+class $MmAnswerTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          MmAnswer,
+          MmAnswerData,
+          $MmAnswerFilterComposer,
+          $MmAnswerOrderingComposer,
+          $MmAnswerAnnotationComposer,
+          $MmAnswerCreateCompanionBuilder,
+          $MmAnswerUpdateCompanionBuilder,
+          (
+            MmAnswerData,
+            BaseReferences<_$EncartaDatabase, MmAnswer, MmAnswerData>,
+          ),
+          MmAnswerData,
+          PrefetchHooks Function()
+        > {
+  $MmAnswerTableManager(_$EncartaDatabase db, MmAnswer table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $MmAnswerFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $MmAnswerOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $MmAnswerAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> questionId = const Value.absent(),
+                Value<int?> ordinal = const Value.absent(),
+                Value<String?> answerText = const Value.absent(),
+                Value<int?> articleRefid = const Value.absent(),
+                Value<int?> isCorrect = const Value.absent(),
+                Value<int?> flag = const Value.absent(),
+              }) => MmAnswerCompanion(
+                id: id,
+                questionId: questionId,
+                ordinal: ordinal,
+                answerText: answerText,
+                articleRefid: articleRefid,
+                isCorrect: isCorrect,
+                flag: flag,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> questionId = const Value.absent(),
+                Value<int?> ordinal = const Value.absent(),
+                Value<String?> answerText = const Value.absent(),
+                Value<int?> articleRefid = const Value.absent(),
+                Value<int?> isCorrect = const Value.absent(),
+                Value<int?> flag = const Value.absent(),
+              }) => MmAnswerCompanion.insert(
+                id: id,
+                questionId: questionId,
+                ordinal: ordinal,
+                answerText: answerText,
+                articleRefid: articleRefid,
+                isCorrect: isCorrect,
+                flag: flag,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $MmAnswerProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      MmAnswer,
+      MmAnswerData,
+      $MmAnswerFilterComposer,
+      $MmAnswerOrderingComposer,
+      $MmAnswerAnnotationComposer,
+      $MmAnswerCreateCompanionBuilder,
+      $MmAnswerUpdateCompanionBuilder,
+      (MmAnswerData, BaseReferences<_$EncartaDatabase, MmAnswer, MmAnswerData>),
+      MmAnswerData,
+      PrefetchHooks Function()
+    >;
 
 class $EncartaDatabaseManager {
   final _$EncartaDatabase _db;
@@ -3435,6 +4579,10 @@ class $EncartaDatabaseManager {
       $MediaFileTableManager(_db, _db.mediaFile);
   $AssetTableManager get asset => $AssetTableManager(_db, _db.asset);
   $XrefTableManager get xref => $XrefTableManager(_db, _db.xref);
+  $MmQuestionTableManager get mmQuestion =>
+      $MmQuestionTableManager(_db, _db.mmQuestion);
+  $MmAnswerTableManager get mmAnswer =>
+      $MmAnswerTableManager(_db, _db.mmAnswer);
 }
 
 class FtsSeedArticleResult {
@@ -3510,4 +4658,42 @@ class FeaturedByMediaCountResult {
   final int refid;
   final String? title;
   FeaturedByMediaCountResult({required this.refid, this.title});
+}
+
+class MindmazeQuestionsByAreaResult {
+  final int questionId;
+  final int? area;
+  final String? clue;
+  final int? ordinal;
+  final String? text;
+  final int? articleRefid;
+  final int? isCorrect;
+  MindmazeQuestionsByAreaResult({
+    required this.questionId,
+    this.area,
+    this.clue,
+    this.ordinal,
+    this.text,
+    this.articleRefid,
+    this.isCorrect,
+  });
+}
+
+class MindmazeAllQuestionsResult {
+  final int questionId;
+  final int? area;
+  final String? clue;
+  final int? ordinal;
+  final String? text;
+  final int? articleRefid;
+  final int? isCorrect;
+  MindmazeAllQuestionsResult({
+    required this.questionId,
+    this.area,
+    this.clue,
+    this.ordinal,
+    this.text,
+    this.articleRefid,
+    this.isCorrect,
+  });
 }

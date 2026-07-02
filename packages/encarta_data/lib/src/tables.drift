@@ -49,3 +49,19 @@ CREATE VIRTUAL TABLE article_fts USING fts5(
   contentless_delete=1,
   tokenize='unicode61'
 );
+
+CREATE TABLE mm_question (
+  id    INTEGER NOT NULL PRIMARY KEY,
+  area  INTEGER,
+  clue  TEXT
+);
+
+CREATE TABLE mm_answer (
+  id            INTEGER NOT NULL PRIMARY KEY,
+  question_id   INTEGER,
+  ordinal       INTEGER,
+  text          TEXT AS answerText,
+  article_refid INTEGER,
+  is_correct    INTEGER,
+  flag          INTEGER
+);
