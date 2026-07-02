@@ -42,6 +42,21 @@ void main() {
     expect(picker.pick(9, {}), isNull); // absent area
   });
 
+  test('avoid: exhausted pool resets but never returns the avoided id when an alternative exists', () {
+    final picker = QuestionPicker({0: [_q(1), _q(2)]}, Random(3));
+    for (var trial = 0; trial < 20; trial++) {
+      final q = picker.pick(0, {1, 2}, avoid: 1)!;
+      expect(q.id, isNot(1));
+    }
+  });
+
+  test('avoid: sole valid question is still returned even if it is the avoided id', () {
+    final picker = QuestionPicker({0: [_q(1)]}, Random(3));
+    final q = picker.pick(0, {1}, avoid: 1);
+    expect(q, isNotNull);
+    expect(q!.id, 1);
+  });
+
   test('is deterministic under a fixed seed', () {
     List<int> run() {
       final p = QuestionPicker({0: [_q(1), _q(2), _q(3), _q(4)]}, Random(42));

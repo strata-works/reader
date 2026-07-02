@@ -14,13 +14,17 @@ class QuestionPicker {
   /// choices. If every valid question in the area is already seen, reuses the
   /// full valid pool (so play never stalls). Returns null only when the area
   /// has no question with exactly one correct choice.
-  Question? pick(int area, Set<int> seen) {
+  Question? pick(int area, Set<int> seen, {int? avoid}) {
     final pool = _pools[area];
     if (pool == null || pool.isEmpty) return null;
     final valid = pool.where(_hasOneCorrect).toList();
     if (valid.isEmpty) return null;
     var candidates = valid.where((q) => !seen.contains(q.id)).toList();
     if (candidates.isEmpty) candidates = valid; // reset: reuse full pool
+    if (avoid != null && candidates.length > 1) {
+      final filtered = candidates.where((q) => q.id != avoid).toList();
+      if (filtered.isNotEmpty) candidates = filtered;
+    }
     final chosen = candidates[_random.nextInt(candidates.length)];
     return _withShuffledChoices(chosen);
   }

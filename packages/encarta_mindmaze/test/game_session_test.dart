@@ -109,4 +109,36 @@ void main() {
     final s = _session();
     expect(s.snapshot, equals(s.snapshot));
   });
+
+  test('retry never re-poses the immediately-preceding question id, even with only 2 in the pool', () {
+    final maze = MazeGraph(
+      startRoomId: 'a',
+      goalRoomId: 'a',
+      rooms: {
+        'a': const Room(id: 'a', area: 0, backdropId: 'atrium', character: _char, doors: []),
+      },
+    );
+    final pools = {0: [_q(1, 0), _q(2, 0)]};
+    final s = GameSession(
+      maze: maze,
+      pools: pools,
+      config: const GameConfig(startingLives: 5),
+      random: Random(1),
+    );
+    var previousId = s.snapshot.currentQuestion!.id;
+    for (var i = 0; i < 10; i++) {
+      s.answer(_wrongIndex(s));
+      if (s.snapshot.status == GameStatus.lost) break;
+      final currentId = s.snapshot.currentQuestion!.id;
+      expect(currentId, isNot(previousId));
+      previousId = currentId;
+    }
+  });
+
+  test('losing the game leaves currentQuestion null in the snapshot', () {
+    final s = _session(config: const GameConfig(startingLives: 1));
+    s.answer(_wrongIndex(s));
+    expect(s.snapshot.status, GameStatus.lost);
+    expect(s.snapshot.currentQuestion, isNull);
+  });
 }

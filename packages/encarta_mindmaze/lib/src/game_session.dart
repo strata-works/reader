@@ -111,8 +111,9 @@ class GameSession {
       if (_lives <= 0) {
         _lives = 0;
         _status = GameStatus.lost;
+        _currentQuestion = null;
       } else {
-        _poseQuestion(room); // retry with a fresh unseen question
+        _poseQuestion(room, avoid: q.id); // retry with a fresh unseen question
       }
     }
   }
@@ -139,8 +140,8 @@ class GameSession {
     _poseQuestion(room);
   }
 
-  void _poseQuestion(Room room) {
-    final q = _picker.pick(room.area, _seen);
+  void _poseQuestion(Room room, {int? avoid}) {
+    final q = _picker.pick(room.area, _seen, avoid: avoid);
     _currentQuestion = q;
     if (q != null) _seen.add(q.id);
   }
