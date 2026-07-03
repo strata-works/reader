@@ -183,6 +183,21 @@ void main() {
     bytes += src.lengthSync();
   }
 
+  // MindMaze backdrop/sprite art are standalone derived PNGs at
+  // assets_derived/mindmaze/<id>.png, referenced by string id in the maze
+  // (not via the DB asset table), so copy the whole dir or room art won't render.
+  final mmArtSrc = Directory('$srcRoot/assets_derived/mindmaze');
+  var mmArt = 0;
+  if (mmArtSrc.existsSync()) {
+    final mmArtOut = Directory('$outRoot/assets_derived/mindmaze')
+      ..createSync(recursive: true);
+    for (final f in mmArtSrc.listSync().whereType<File>()) {
+      f.copySync('${mmArtOut.path}/${f.uri.pathSegments.last}');
+      mmArt++;
+    }
+  }
+  stdout.writeln('MindMaze art files copied: $mmArt');
+
   // 8. Self-check the output (integration guard from the spec).
   final artN = dst.select('SELECT count(*) AS n FROM article').first['n'] as int;
   final ftsN = dst
