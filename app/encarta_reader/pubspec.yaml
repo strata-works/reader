@@ -38,6 +38,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sample_corpus.zip
   # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
   # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
   # is the period-accurate reading face for the reader.

@@ -5,6 +5,8 @@ import 'package:archive/archive.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 
+import 'app_config.dart';
+
 /// Bump when a new sample_corpus.zip ships so devices re-unpack it.
 const String sampleVersion = '2026-07-03-1';
 
@@ -53,4 +55,22 @@ Future<String> provisionBundledCorpus() async {
     rethrow;
   }
   return corpus.path;
+}
+
+/// Resolve the app's [AppConfig], provisioning the bundled sample corpus on
+/// mobile when no CLI/env override is present. CLI `--data-dir=` / env
+/// `ENCARTA_DATA_DIR` always win (dev override, even on a device).
+Future<AppConfig> resolveAppConfig({
+  required List<String> args,
+  required Map<String, String> env,
+  required bool isMobile,
+  Future<String> Function()? provisionCorpus,
+}) async {
+  final base = AppConfig.resolve(args: args, env: env);
+  final hasOverride = base.dataDir != AppConfig.defaultDataDir;
+  if (isMobile && !hasOverride && provisionCorpus != null) {
+    final dir = await provisionCorpus();
+    return AppConfig.resolve(args: args, env: env, setting: dir);
+  }
+  return base;
 }
