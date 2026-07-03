@@ -49,9 +49,45 @@ ArticleViewData _data({
       media: media,
     );
 
+/// A doc with two top-level sections so the outline is non-empty.
+ArticleViewData _richData({List<MediaItem> media = const []}) {
+  final doc = EncartaDoc.parse(
+    Uint8List.fromList(utf8.encode(
+      '<content><text>'
+      '<section type="4" id="s1"><sectiontitle>History</sectiontitle>'
+      '<pkey id="p1">Some history.</pkey>'
+      '</section>'
+      '<section type="4" id="s2"><sectiontitle>Geography</sectiontitle>'
+      '<pkey id="p2">Some geography.</pkey>'
+      '</section>'
+      '</text></content>',
+    )),
+    title: 'Earth',
+  );
+  return ArticleViewData(
+    doc: doc,
+    outline: const EncartaOutline(entries: [
+      OutlineEntry(title: 'History', anchorId: 's1', depth: 0),
+      OutlineEntry(title: 'Geography', anchorId: 's2', depth: 0),
+    ]),
+    title: 'Earth',
+    source: 'CONTDLX',
+    related: const [],
+    media: media,
+  );
+}
+
 void main() {
   testWidgets('renders three panes with the article body in the center',
       (tester) async {
+    // Wide surface so the three-pane Row layout is active.
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     final data = ArticleViewData(
       doc: _doc(),
       outline: const EncartaOutline(entries: [
@@ -82,6 +118,14 @@ void main() {
   });
 
   testWidgets('tapping a related link fires onRelatedTap', (tester) async {
+    // Wide surface so the outline/related pane is always visible (no tab needed).
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     int? tapped;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -106,6 +150,14 @@ void main() {
 
   testWidgets('tapping outline entry triggers scrollToAnchor without error',
       (tester) async {
+    // Wide surface so the outline pane is always visible (no tab needed).
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: ArticleView(
@@ -291,6 +343,14 @@ void main() {
 
     testWidgets('renders MediaRail when media items are present',
         (tester) async {
+      // Wide surface so MediaRail is visible in the three-pane layout.
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final media = [
         const MediaItem(
           mediaRefid: 1,
@@ -320,6 +380,151 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      expect(find.byType(MediaRail), findsOneWidget);
+    });
+  });
+
+  group('responsive layout', () {
+    late Directory root;
+    late EncartaAssets assets;
+
+    setUp(() {
+      root = Directory.systemTemp
+          .createTempSync('encarta_reader_article_view_responsive');
+      assets = EncartaAssets.forTesting(AssetConfig(root.path));
+    });
+    tearDown(() => root.deleteSync(recursive: true));
+
+    testWidgets('NARROW with media — no overflow, 3 tabs present',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final media = [
+        const MediaItem(
+          mediaRefid: 2,
+          role: 'image',
+          group: 'article',
+          title: 'Globe',
+          caption: 'The globe',
+          credit: 'NASA',
+          assetPath: 'image/globe.jpg',
+          ext: '.jpg',
+          kind: 'image',
+        ),
+      ];
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ArticleView(
+            data: _richData(media: media),
+            theme: EncartaTheme.faithfulInSpirit(),
+            assetResolver: (id, type) => const Icon(Icons.image),
+            onXrefTap: (refid, {paraId}) {},
+            titleForRefid: (_) => null,
+            onRelatedTap: (_) {},
+            assets: assets,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // No overflow.
+      expect(tester.takeException(), isNull);
+
+      // TabBar is present.
+      expect(find.byType(TabBar), findsOneWidget);
+
+      // All three tab labels are visible.
+      expect(find.text('Article'), findsOneWidget);
+      expect(find.text('Contents'), findsOneWidget);
+      expect(find.text('Media'), findsOneWidget);
+    });
+
+    testWidgets('NARROW without media — 2 tabs, no Media tab, no overflow',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ArticleView(
+            data: _richData(),
+            theme: EncartaTheme.faithfulInSpirit(),
+            assetResolver: (id, type) => const Icon(Icons.image),
+            onXrefTap: (refid, {paraId}) {},
+            titleForRefid: (_) => null,
+            onRelatedTap: (_) {},
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // No overflow.
+      expect(tester.takeException(), isNull);
+
+      // TabBar with exactly 2 tabs.
+      expect(find.byType(TabBar), findsOneWidget);
+      expect(find.text('Article'), findsOneWidget);
+      expect(find.text('Contents'), findsOneWidget);
+      expect(find.text('Media'), findsNothing);
+    });
+
+    testWidgets('WIDE — no TabBar, three-pane widgets present, no overflow',
+        (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final media = [
+        const MediaItem(
+          mediaRefid: 3,
+          role: 'image',
+          group: 'article',
+          title: 'Earth2',
+          caption: 'The planet',
+          credit: 'ESA',
+          assetPath: 'image/earth2.jpg',
+          ext: '.jpg',
+          kind: 'image',
+        ),
+      ];
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ArticleView(
+            data: _richData(media: media),
+            theme: EncartaTheme.faithfulInSpirit(),
+            assetResolver: (id, type) => const Icon(Icons.image),
+            onXrefTap: (refid, {paraId}) {},
+            titleForRefid: (_) => null,
+            onRelatedTap: (_) {},
+            assets: assets,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // No overflow.
+      expect(tester.takeException(), isNull);
+
+      // No TabBar in wide layout.
+      expect(find.byType(TabBar), findsNothing);
+
+      // Three-pane widgets all present.
+      expect(find.byType(ArticleOutlinePane), findsOneWidget);
+      expect(find.byType(EncartaArticleBody), findsOneWidget);
       expect(find.byType(MediaRail), findsOneWidget);
     });
   });

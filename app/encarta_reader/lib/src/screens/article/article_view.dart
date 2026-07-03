@@ -32,6 +32,12 @@ class ArticleViewData {
 /// [assetResolver] serves the body's inline images; [assets] serves the rail's
 /// block media. Both are needed when the article has media — but [assets] is
 /// optional so callers without media (or in tests) need not supply it.
+///
+/// On screens narrower than 900 logical pixels the three-pane row is replaced
+/// by a [TabBar] / [TabBarView] layout so nothing overflows:
+///   • Tab 0 "Article"  — the body (always present; default tab)
+///   • Tab 1 "Contents" — [ArticleOutlinePane] (always present)
+///   • Tab 2 "Media"    — [MediaRail] (only when [showRail] is true)
 class ArticleView extends StatefulWidget {
   final ArticleViewData data;
   final EncartaTheme theme;
@@ -95,6 +101,192 @@ class _ArticleViewState extends State<ArticleView> {
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Design-system constants (shared by both layout branches).
+  // ---------------------------------------------------------------------------
+
+  static const _sideRailBg = Color(0xFFEEF3F6);
+  static const _contentBg = Color(0xFFFCFDFE);
+  static const _hairline = Color(0xFFD6E0E7);
+  static const _ink = Color(0xFF1B2831);
+
+  // ---------------------------------------------------------------------------
+  // Shared sub-widgets (reused by both wide and narrow branches).
+  // ---------------------------------------------------------------------------
+
+  /// LEFT pane: 244px outline + related.
+  Widget _buildOutlineContainer() {
+    return Container(
+      width: 244,
+      decoration: const BoxDecoration(
+        color: _sideRailBg,
+        border: Border(
+          right: BorderSide(color: _hairline, width: 1),
+        ),
+      ),
+      child: ArticleOutlinePane(
+        outline: widget.data.outline,
+        related: widget.data.related,
+        onOutlineTap: (anchorId) =>
+            _bodyKey.currentState?.scrollToAnchor(anchorId),
+        onRelatedTap: widget.onRelatedTap,
+      ),
+    );
+  }
+
+  /// CENTER pane: content bg, width-capped, title + divider + body.
+  Widget _buildBodyColumn() {
+    return ColoredBox(
+      color: _contentBg,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: widget.theme.measure),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CaptionText(
+                      widget.data.title,
+                      style: const TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w600,
+                        color: _ink,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: widget.theme.ruleColor,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: EncartaArticleBody(
+                  key: _bodyKey,
+                  doc: widget.data.doc,
+                  theme: widget.theme,
+                  assetResolver: widget.assetResolver,
+                  onXrefTap: widget.onXrefTap,
+                  titleForRefid: widget.titleForRefid,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// RIGHT pane: 300px media rail.
+  Widget _buildRailContainer() {
+    return Container(
+      width: 300,
+      decoration: const BoxDecoration(
+        color: _sideRailBg,
+        border: Border(
+          left: BorderSide(color: _hairline, width: 1),
+        ),
+      ),
+      child: MediaRail(
+        media: widget.data.media,
+        assets: widget.assets!,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Layout branches
+  // ---------------------------------------------------------------------------
+
+  /// Wide (>= 900 px): exact current three-pane Row.
+  Widget _buildWide(bool showRail) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildOutlineContainer(),
+        Expanded(child: _buildBodyColumn()),
+        if (showRail) _buildRailContainer(),
+      ],
+    );
+  }
+
+  /// Narrow (< 900 px): tabbed layout — Article | Contents | [Media].
+  Widget _buildNarrow(bool showRail) {
+    final tabCount = showRail ? 3 : 2;
+    final chromeColor = widget.theme.chromeColor;
+
+    return DefaultTabController(
+      length: tabCount,
+      child: Builder(
+        builder: (context) {
+          return Column(
+            children: [
+              Material(
+                color: _sideRailBg,
+                child: TabBar(
+                  labelColor: chromeColor,
+                  indicatorColor: chromeColor,
+                  unselectedLabelColor: const Color(0xFF51636D),
+                  tabs: [
+                    const Tab(text: 'Article'),
+                    const Tab(text: 'Contents'),
+                    if (showRail) const Tab(text: 'Media'),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    // Tab 0: Article body
+                    _buildBodyColumn(),
+
+                    // Tab 1: Contents (outline + related)
+                    ColoredBox(
+                      color: _sideRailBg,
+                      child: ArticleOutlinePane(
+                        outline: widget.data.outline,
+                        related: widget.data.related,
+                        onRelatedTap: widget.onRelatedTap,
+                        onOutlineTap: (anchorId) {
+                          DefaultTabController.of(context).animateTo(0);
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _bodyKey.currentState?.scrollToAnchor(anchorId);
+                          });
+                        },
+                      ),
+                    ),
+
+                    // Tab 2: Media (only when showRail)
+                    if (showRail)
+                      ColoredBox(
+                        color: _sideRailBg,
+                        child: MediaRail(
+                          media: widget.data.media,
+                          assets: widget.assets!,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     assert(
@@ -103,102 +295,13 @@ class _ArticleViewState extends State<ArticleView> {
     );
     final showRail = widget.data.media.isNotEmpty && widget.assets != null;
 
-    // Design-system constants.
-    const sideRailBg = Color(0xFFEEF3F6);
-    const contentBg = Color(0xFFFCFDFE);
-    const hairline = Color(0xFFD6E0E7);
-    const ink = Color(0xFF1B2831);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // LEFT: 244px outline+related pane — side-rail bg + 1px right hairline.
-        Container(
-          width: 244,
-          decoration: const BoxDecoration(
-            color: sideRailBg,
-            border: Border(
-              right: BorderSide(color: hairline, width: 1),
-            ),
-          ),
-          child: ArticleOutlinePane(
-            outline: widget.data.outline,
-            related: widget.data.related,
-            onOutlineTap: (anchorId) =>
-                _bodyKey.currentState?.scrollToAnchor(anchorId),
-            onRelatedTap: widget.onRelatedTap,
-          ),
-        ),
-
-        // CENTER: content bg; article capped at theme.measure and centered;
-        // padding 28h / 20t; title header with 1px hairline rule beneath.
-        Expanded(
-          child: ColoredBox(
-            color: contentBg,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: widget.theme.measure),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CaptionText(
-                            widget.data.title,
-                            style: const TextStyle(
-                              fontSize: 27,
-                              fontWeight: FontWeight.w600,
-                              color: ink,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: widget.theme.ruleColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: EncartaArticleBody(
-                        key: _bodyKey,
-                        doc: widget.data.doc,
-                        theme: widget.theme,
-                        assetResolver: widget.assetResolver,
-                        onXrefTap: widget.onXrefTap,
-                        titleForRefid: widget.titleForRefid,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // RIGHT: 300px block media rail — side-rail bg + 1px left hairline.
-        // Only shown when media is present + assets provided.
-        if (showRail)
-          Container(
-            width: 300,
-            decoration: const BoxDecoration(
-              color: sideRailBg,
-              border: Border(
-                left: BorderSide(color: hairline, width: 1),
-              ),
-            ),
-            child: MediaRail(
-              media: widget.data.media,
-              assets: widget.assets!,
-            ),
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 900) {
+          return _buildWide(showRail);
+        }
+        return _buildNarrow(showRail);
+      },
     );
   }
 }
