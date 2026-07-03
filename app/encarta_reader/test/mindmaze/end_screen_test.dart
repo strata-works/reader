@@ -8,7 +8,7 @@ void main() {
     var played = 0;
     await tester.pumpWidget(MaterialApp(
       home: MindMazeEndScreen(
-        config: const AssetConfig.defaultConfig(),
+        config: const AssetConfig('/no/such/dir'), // nonexistent → art placeholders (never a real Image.file)
         score: 700,
         onPlayAgain: () => played++,
       ),
