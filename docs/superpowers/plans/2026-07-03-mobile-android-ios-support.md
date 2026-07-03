@@ -32,6 +32,8 @@
 - Consumes: the full corpus at `/Users/nexus/projects/experiments/strata/quarry/build/{encarta.sqlite,assets,assets_derived}`; an FTS5-capable libsqlite3 (`/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib`).
 - Produces: `app/encarta_reader/assets/sample_corpus.zip` whose ROOT contains `encarta.sqlite`, `assets/<kind>/…` and/or `assets_derived/<kind>/…` (no wrapping top dir).
 
+ > **Note (as-built):** the final builder ranks by rare decodable images, unions ~8 audio-bearing articles, skips undecodable .jtn/.gtn, and landed 208 articles / 18.3 MB — see the committed tool for the exact queries.
+
 - [ ] **Step 1: Add the `archive` dev_dependency to encarta_data**
 
 In `packages/encarta_data/pubspec.yaml`, under `dev_dependencies:` add:

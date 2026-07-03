@@ -89,10 +89,6 @@ void main() {
       [targetArticles])) {
     ids.add(r['refid'] as int);
   }
-  if (ids.isEmpty) {
-    stderr.writeln('No image-bearing titled articles found.');
-    exit(1);
-  }
   // Union in a SMALL audio demo: ~8 titled articles carrying 1–3 audio clips
   // each (a handful of .wma, not hundreds), so audio playback can be demoed.
   for (final r in dst.select(
@@ -104,6 +100,10 @@ void main() {
       "GROUP BY a.refid HAVING count(*) BETWEEN 1 AND 3 "
       "ORDER BY count(*) ASC LIMIT 8")) {
     ids.add(r['refid'] as int);
+  }
+  if (ids.isEmpty) {
+    stderr.writeln('No image-bearing titled articles found.');
+    exit(1);
   }
   final inC = ids.join(',');
 
