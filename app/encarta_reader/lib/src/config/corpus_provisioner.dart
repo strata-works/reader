@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'app_config.dart';
 
 /// Bump when a new sample_corpus.zip ships so devices re-unpack it.
-const String sampleVersion = '2026-07-03-1';
+const String sampleVersion = '2026-07-03-2';
 
 /// Bundled asset key for the packaged sample corpus.
 const String _sampleAsset = 'assets/sample_corpus.zip';

@@ -56,6 +56,8 @@ void main() {
     CREATE TABLE article_media (article_refid INTEGER, media_refid INTEGER, PRIMARY KEY(article_refid, media_refid));
     CREATE TABLE xref (refid INTEGER, target_refid INTEGER, PRIMARY KEY(refid, target_refid));
     CREATE VIRTUAL TABLE article_fts USING fts5(body, content='', contentless_delete=1, tokenize='unicode61');
+    CREATE TABLE mm_question (id INTEGER PRIMARY KEY, area INTEGER, clue TEXT);
+    CREATE TABLE mm_answer (id INTEGER PRIMARY KEY, question_id INTEGER, ordinal INTEGER, text TEXT, article_refid INTEGER, is_correct INTEGER, flag INTEGER);
   ''');
 
   // 4. Select ~targetArticles genuinely illustrated articles that show REAL,
@@ -114,6 +116,21 @@ void main() {
   dst.execute('INSERT INTO media_file SELECT * FROM src.media_file WHERE media_refid IN (SELECT refid FROM media)');
   dst.execute('INSERT INTO asset SELECT * FROM src.asset WHERE baggage_id IN (SELECT baggage_id FROM media_file)');
   dst.execute('INSERT INTO xref SELECT * FROM src.xref WHERE refid IN ($inC) AND target_refid IN ($inC)');
+
+  // MindMaze: minimalMaze uses areas 0 and 1. Copy a generous per-area slice
+  // (with all answers) so every maze room has a rich, posable question pool.
+  // Without this the mobile sample has no questions and MindMaze can't start.
+  final qids = <int>{};
+  for (final area in const [0, 1]) {
+    for (final r in dst.select(
+        'SELECT id FROM src.mm_question WHERE area = ? ORDER BY id LIMIT 80',
+        [area])) {
+      qids.add(r['id'] as int);
+    }
+  }
+  final qIn = qids.join(',');
+  dst.execute('INSERT INTO mm_question SELECT * FROM src.mm_question WHERE id IN ($qIn)');
+  dst.execute('INSERT INTO mm_answer SELECT * FROM src.mm_answer WHERE question_id IN ($qIn)');
 
   // 6. Rebuild contentless FTS (rowid == refid invariant).
   final tagRe = RegExp(r'<[^>]*>');
@@ -176,6 +193,10 @@ void main() {
   final imgN = dst.select("SELECT count(*) AS n FROM asset "
       "WHERE kind='image' AND lower(ext) IN ('.jpg','.jpeg','.gif','.png','.bmp')")
       .first['n'] as int;
+  final mmqN = dst.select('SELECT count(*) AS n FROM mm_question').first['n'] as int;
+  final mmqArea0 = dst.select('SELECT count(*) AS n FROM mm_question WHERE area=0').first['n'] as int;
+  final mmqArea1 = dst.select('SELECT count(*) AS n FROM mm_question WHERE area=1').first['n'] as int;
+  stdout.writeln('MindMaze questions: $mmqN (area0=$mmqArea0, area1=$mmqArea1)');
   dst.dispose();
   if (ftsN != artN) {
     stderr.writeln('FTS invariant broken: $ftsN joined != $artN articles');
