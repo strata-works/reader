@@ -93,6 +93,10 @@ class _RoomViewState extends State<RoomView> {
                 _dialogPanel(snap, room),
               ],
             ),
+            // The won end-screen and the lost overlay both key their restart
+            // button 'mm-restart'. That is safe only because these two branches
+            // are mutually exclusive (status is never both) — never render both
+            // at once or the shared key collides.
             if (snap.status == GameStatus.won)
               MindMazeEndScreen(
                 config: widget.config,
