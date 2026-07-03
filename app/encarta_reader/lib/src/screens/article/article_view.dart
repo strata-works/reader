@@ -256,10 +256,21 @@ class _ArticleViewState extends State<ArticleView> {
                         related: widget.data.related,
                         onRelatedTap: widget.onRelatedTap,
                         onOutlineTap: (anchorId) {
+                          // Switch to the Article tab, then scroll to the
+                          // section. The tab switch is ANIMATED (~kTabScrollDuration):
+                          // a single post-frame callback fires while the Article
+                          // tab is still transitioning and its viewport isn't
+                          // positioned, so the scroll is silently lost. Wait for
+                          // the transition to settle, then scroll on the next frame.
                           DefaultTabController.of(context).animateTo(0);
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _bodyKey.currentState?.scrollToAnchor(anchorId);
-                          });
+                          Future.delayed(
+                            kTabScrollDuration + const Duration(milliseconds: 50),
+                            () {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _bodyKey.currentState?.scrollToAnchor(anchorId);
+                              });
+                            },
+                          );
                         },
                       ),
                     ),

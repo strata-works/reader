@@ -478,6 +478,57 @@ void main() {
       expect(find.text('Media'), findsNothing);
     });
 
+    testWidgets(
+        'NARROW — tapping a Contents outline entry switches to the Article tab '
+        'AND scrolls the body to that section', (tester) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final data = ArticleViewData(
+        doc: _tallDocWithDeepAnchor(),
+        outline: const EncartaOutline(entries: [
+          OutlineEntry(title: 'Outer', anchorId: 'outer', depth: 0),
+          OutlineEntry(title: 'DeepSection', anchorId: 'deep', depth: 1),
+        ]),
+        title: 'Tall',
+        source: 'CONTDLX',
+        related: const [],
+        media: const [],
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ArticleView(
+            data: data,
+            theme: EncartaTheme.faithfulInSpirit(),
+            assetResolver: (id, type) => const SizedBox.shrink(),
+            onXrefTap: (refid, {paraId}) {},
+            titleForRefid: (_) => null,
+            onRelatedTap: (_) {},
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // On the Article tab the deep section body is off-screen (lazy list).
+      expect(find.text('Deep content.', findRichText: true), findsNothing);
+
+      // Go to the Contents tab and tap the deep outline entry.
+      await tester.tap(find.text('Contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('DeepSection'));
+      await tester.pumpAndSettle();
+
+      // Regression guard: the scroll must survive the tab switch — the body
+      // must now be scrolled so the deep section content is visible. (Before
+      // the fix, scrollToAnchor fired mid-transition and was silently lost.)
+      expect(find.text('Deep content.', findRichText: true), findsOneWidget);
+    });
+
     testWidgets('WIDE — no TabBar, three-pane widgets present, no overflow',
         (tester) async {
       tester.view.physicalSize = const Size(1400, 1000);
