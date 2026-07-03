@@ -46,6 +46,7 @@ void main() {
           ),
           preview: null,
           onSelect: (_) {},
+          onOpen: (_) {},
           onNextPage: null,
         ),
       ),
@@ -77,6 +78,7 @@ void main() {
           preview: _previewData(),
           theme: EncartaTheme.faithfulInSpirit(),
           onSelect: (_) {},
+          onOpen: (_) {},
           onNextPage: null,
         ),
       ),
@@ -115,6 +117,7 @@ void main() {
           ),
           preview: null,
           onSelect: (refid) => selected = refid,
+          onOpen: (_) {},
           onNextPage: null,
         ),
       ),
@@ -123,5 +126,101 @@ void main() {
     await tester.tap(find.text('Jupiter'));
     await tester.pump();
     expect(selected, 2);
+  });
+
+  // Responsive layout tests
+
+  const narrowData = SearchViewData(
+    query: 'mars',
+    results: [
+      SearchResultItem(
+        refid: 42,
+        title: 'Mars',
+        snippet: 'fourth planet',
+        tierBadge: 'Deluxe',
+        thumb: null,
+      ),
+    ],
+    offset: 0,
+    hasMore: false,
+  );
+
+  Widget buildInWidth(
+    double width, {
+    required void Function(int) onSelect,
+    required void Function(int) onOpen,
+  }) =>
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: width,
+            child: SearchView(
+              data: narrowData,
+              preview: null,
+              onSelect: onSelect,
+              onOpen: onOpen,
+              onNextPage: null,
+            ),
+          ),
+        ),
+      );
+
+  testWidgets(
+      'narrow layout (390 px): no overflow and tap invokes onOpen not onSelect',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    int? opened;
+    int? selected;
+
+    await tester.pumpWidget(buildInWidth(
+      390,
+      onSelect: (id) => selected = id,
+      onOpen: (id) => opened = id,
+    ));
+
+    // No overflow exception.
+    expect(tester.takeException(), isNull);
+
+    // Results are shown.
+    expect(find.byType(SearchResultTile), findsOneWidget);
+
+    // Tap invokes onOpen, not onSelect.
+    await tester.tap(find.text('Mars'));
+    await tester.pump();
+    expect(opened, 42);
+    expect(selected, isNull);
+  });
+
+  testWidgets(
+      'wide layout (800 px): two-pane shown and tap invokes onSelect not onOpen',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    int? opened;
+    int? selected;
+
+    await tester.pumpWidget(buildInWidth(
+      800,
+      onSelect: (id) => selected = id,
+      onOpen: (id) => opened = id,
+    ));
+
+    expect(tester.takeException(), isNull);
+
+    // Preview placeholder visible (two-pane).
+    expect(find.text('Select a result to preview'), findsOneWidget);
+
+    // Tap invokes onSelect, not onOpen.
+    await tester.tap(find.text('Mars'));
+    await tester.pump();
+    expect(selected, 42);
+    expect(opened, isNull);
   });
 }

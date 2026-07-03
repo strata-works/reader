@@ -145,6 +145,7 @@ class _SearchPageState extends State<SearchPage> {
               scope.navigator.openArticle(refid, paraId: paraId),
           titleForRefid: scope.titles.cached,
           onSelect: _select,
+          onOpen: (refid) => scope.navigator.openArticle(refid),
           onNextPage: null,
         );
       },
