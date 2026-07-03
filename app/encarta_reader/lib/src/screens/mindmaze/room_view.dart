@@ -127,10 +127,19 @@ class _RoomViewState extends State<RoomView> {
                     style: const TextStyle(color: Colors.white70)),
               ],
             ),
-            Text('Score ${snap.score}',
-                style: const TextStyle(color: Colors.white)),
-            Text(room.character.id,
-                style: const TextStyle(color: Colors.white54)),
+            Flexible(
+              child: Text('Score ${snap.score}',
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: const TextStyle(color: Colors.white)),
+            ),
+            Flexible(
+              child: Text(room.character.id,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(color: Colors.white54)),
+            ),
           ],
         ),
       );

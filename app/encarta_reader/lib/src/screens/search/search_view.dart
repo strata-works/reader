@@ -48,7 +48,10 @@ class SearchViewData {
   });
 }
 
-/// Two-column search screen: LEFT = ranked result list, RIGHT = live preview.
+/// Responsive search screen.
+///
+/// - Wide (>= 640 px): two-pane layout — fixed 420 results list + live preview.
+/// - Narrow (< 640 px): single full-width results column; tap navigates to article.
 class SearchView extends StatelessWidget {
   final SearchViewData data;
   final ArticleViewData? preview;
@@ -57,6 +60,7 @@ class SearchView extends StatelessWidget {
   final XrefTap? onXrefTap;
   final TitleForRefid? titleForRefid;
   final void Function(int refid) onSelect;
+  final void Function(int refid) onOpen;
   final VoidCallback? onNextPage;
 
   const SearchView({
@@ -64,6 +68,7 @@ class SearchView extends StatelessWidget {
     required this.data,
     required this.preview,
     required this.onSelect,
+    required this.onOpen,
     this.theme,
     this.assetResolver,
     this.onXrefTap,
@@ -71,44 +76,52 @@ class SearchView extends StatelessWidget {
     this.onNextPage,
   });
 
+  Widget _resultsList(void Function(int refid) onTileTap) => ListView(
+        children: [
+          for (final r in data.results)
+            SearchResultTile(item: r, onTap: () => onTileTap(r.refid)),
+          if (data.hasMore && onNextPage != null)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: OutlinedButton(
+                onPressed: onNextPage,
+                child: const Text('More results'),
+              ),
+            ),
+        ],
+      );
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: 420,
-          child: ListView(
-            children: [
-              for (final r in data.results)
-                SearchResultTile(item: r, onTap: () => onSelect(r.refid)),
-              if (data.hasMore && onNextPage != null)
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: OutlinedButton(
-                    onPressed: onNextPage,
-                    child: const Text('More results'),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: preview == null || theme == null
-              ? const Center(child: Text('Select a result to preview'))
-              : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: EncartaArticleBody(
-                    doc: preview!.doc,
-                    theme: theme!,
-                    assetResolver: assetResolver ?? (_, __) => const SizedBox(),
-                    onXrefTap: onXrefTap ?? (_, {paraId}) {},
-                    titleForRefid: titleForRefid ?? (_) => null,
-                  ),
-                ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 640) {
+          // Phone: single full-width column; tap opens the article.
+          return _resultsList(onOpen);
+        }
+        // Wide: two-pane with live preview; tap selects (previews).
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(width: 420, child: _resultsList(onSelect)),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: preview == null || theme == null
+                  ? const Center(child: Text('Select a result to preview'))
+                  : Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: EncartaArticleBody(
+                        doc: preview!.doc,
+                        theme: theme!,
+                        assetResolver: assetResolver ?? (_, __) => const SizedBox(),
+                        onXrefTap: onXrefTap ?? (_, {paraId}) {},
+                        titleForRefid: titleForRefid ?? (_) => null,
+                      ),
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

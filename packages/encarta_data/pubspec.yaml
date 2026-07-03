@@ -15,6 +15,7 @@ dependencies:
   sqlite3: ^2.4.0
 
 dev_dependencies:
+  archive: ^3.6.0
   build_runner: ^2.4.0
   drift_dev: ^2.20.0
   lints: ^5.0.0

@@ -26,6 +26,8 @@ dependencies:
   # under the macOS App Sandbox (which blocks the Homebrew dylib path that
   # encarta_data probes for, and only reaches, on a dev host during `dart test`).
   sqlite3_flutter_libs: ^0.5.24
+  archive: ^3.6.0
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:
@@ -36,6 +38,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sample_corpus.zip
   # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
   # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
   # is the period-accurate reading face for the reader.

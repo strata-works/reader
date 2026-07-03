@@ -1,5 +1,6 @@
 import 'package:encarta_render/encarta_render.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../nav/app_navigator.dart';
 import '../nav/history_controller.dart';
@@ -50,6 +51,7 @@ class _EncartaToolbarState extends State<EncartaToolbar> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
+    final topInset = MediaQuery.of(context).padding.top;
 
     // Hover overlay: white @ 14% circle; no splash/ripple.
     final navButtonStyle = ButtonStyle(
@@ -69,120 +71,123 @@ class _EncartaToolbarState extends State<EncartaToolbar> {
 
     // Material(transparency) provides the Material ancestor that TextField
     // requires; the visible chrome comes from the Container gradient below.
-    return Material(
-      type: MaterialType.transparency,
-      child: Container(
-        height: 52,
-        decoration: const BoxDecoration(
-          // Vertical teal → blue gradient per design spec.
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E86B0), Color(0xFF0C567C)],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          height: 52 + topInset,
+          decoration: const BoxDecoration(
+            // Vertical teal → blue gradient per design spec.
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF1E86B0), Color(0xFF0C567C)],
+            ),
+            // 1px bottom edge in the darker gradient stop.
+            border: Border(
+              bottom: BorderSide(color: Color(0xFF0C567C), width: 1),
+            ),
+            // Soft drop-shadow: blur 6, y 2, black @ 12%.
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x1F000000),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          // 1px bottom edge in the darker gradient stop.
-          border: Border(
-            bottom: BorderSide(color: Color(0xFF0C567C), width: 1),
-          ),
-          // Soft drop-shadow: blur 6, y 2, black @ 12%.
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x1F000000),
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            IconButton(
-              key: const Key('toolbar.home'),
-              iconSize: 20,
-              color: t.onChromeColor,
-              icon: const Icon(Icons.home),
-              tooltip: 'Home',
-              onPressed: widget.navigator.openHome,
-              style: navButtonStyle,
-            ),
-            IconButton(
-              key: const Key('toolbar.back'),
-              iconSize: 20,
-              color: t.onChromeColor,
-              disabledColor: Colors.white38,
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Back',
-              onPressed:
-                  widget.history.canGoBack ? widget.navigator.back : null,
-              style: navButtonStyle,
-            ),
-            IconButton(
-              key: const Key('toolbar.forward'),
-              iconSize: 20,
-              color: t.onChromeColor,
-              disabledColor: Colors.white38,
-              icon: const Icon(Icons.arrow_forward),
-              tooltip: 'Forward',
-              onPressed:
-                  widget.history.canGoForward ? widget.navigator.forward : null,
-              style: navButtonStyle,
-            ),
-            const SizedBox(width: 12),
-            // Search field: white, 34px tall, radius 6, grows to fill up to 560px.
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: SizedBox(
-                    height: 34,
-                    child: TextField(
-                      key: const Key('toolbar.search'),
-                      controller: _search,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: _submit,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF1B2831),
-                      ),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 9,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 16,
-                          color: Color(0xFF51636D), // ink-soft
-                        ),
-                        hintText: 'Search Encarta…',
-                        hintStyle: TextStyle(
+          padding: EdgeInsets.only(left: 12, right: 12, top: topInset),
+          child: Row(
+            children: [
+              IconButton(
+                key: const Key('toolbar.home'),
+                iconSize: 20,
+                color: t.onChromeColor,
+                icon: const Icon(Icons.home),
+                tooltip: 'Home',
+                onPressed: widget.navigator.openHome,
+                style: navButtonStyle,
+              ),
+              IconButton(
+                key: const Key('toolbar.back'),
+                iconSize: 20,
+                color: t.onChromeColor,
+                disabledColor: Colors.white38,
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back',
+                onPressed:
+                    widget.history.canGoBack ? widget.navigator.back : null,
+                style: navButtonStyle,
+              ),
+              IconButton(
+                key: const Key('toolbar.forward'),
+                iconSize: 20,
+                color: t.onChromeColor,
+                disabledColor: Colors.white38,
+                icon: const Icon(Icons.arrow_forward),
+                tooltip: 'Forward',
+                onPressed:
+                    widget.history.canGoForward ? widget.navigator.forward : null,
+                style: navButtonStyle,
+              ),
+              const SizedBox(width: 12),
+              // Search field: white, 34px tall, radius 6, grows to fill up to 560px.
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: SizedBox(
+                      height: 34,
+                      child: TextField(
+                        key: const Key('toolbar.search'),
+                        controller: _search,
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: _submit,
+                        style: const TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFF51636D).withValues(alpha: 0.7),
+                          color: Color(0xFF1B2831),
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 9,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            size: 16,
+                            color: Color(0xFF51636D), // ink-soft
+                          ),
+                          hintText: 'Search Encarta…',
+                          hintStyle: TextStyle(
+                            fontSize: 14,
+                            color: const Color(0xFF51636D).withValues(alpha: 0.7),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-          ],
+              const SizedBox(width: 12),
+            ],
+          ),
         ),
       ),
     );
