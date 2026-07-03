@@ -29,9 +29,17 @@ Widget _placeholder(String id) => Container(
 const _spriteFrame = <String, String>{
   'jester': 'jester1',
   'king': 'king1',
-  'sorceres': 'sorceres',
-  'lady': 'lady1',
   'duke': 'duke1',
+  'suitarm': 'suitarm1', // guard
+  'secnldy': 'secnldy1', // lady
+  'servant': 'servant1',
+  // Sets whose art id has no numeric suffix resolve to themselves via the
+  // fallback below, but list them for clarity:
+  'sorceres': 'sorceres',
+  'alchem': 'alchem',
+  'asiantra': 'asiantra', // merchant
+  'parrot': 'parrot',
+  'maninst': 'maninst', // prisoner
 };
 
 /// The transcoded frame id for a character [spriteSetId]; falls back to the id

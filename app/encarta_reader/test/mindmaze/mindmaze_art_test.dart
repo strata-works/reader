@@ -32,4 +32,20 @@ void main() {
     expect(spriteFrameFor('sorceres'), 'sorceres');
     expect(spriteFrameFor('unknown'), 'unknown'); // fallback: id itself
   });
+
+  test('spriteFrameFor resolves every decoded sprite set to a real frame', () {
+    // Numbered-only sets resolve to their first frame…
+    expect(spriteFrameFor('suitarm'), 'suitarm1');
+    expect(spriteFrameFor('secnldy'), 'secnldy1');
+    expect(spriteFrameFor('servant'), 'servant1');
+    expect(spriteFrameFor('duke'), 'duke1');
+    expect(spriteFrameFor('king'), 'king1');
+    expect(spriteFrameFor('jester'), 'jester1');
+    // …bare-id sets resolve to themselves.
+    expect(spriteFrameFor('alchem'), 'alchem');
+    expect(spriteFrameFor('asiantra'), 'asiantra');
+    expect(spriteFrameFor('parrot'), 'parrot');
+    expect(spriteFrameFor('maninst'), 'maninst');
+    expect(spriteFrameFor('sorceres'), 'sorceres');
+  });
 }
