@@ -51,6 +51,9 @@ void main() {
     CREATE VIRTUAL TABLE article_fts USING fts5(body, content='', contentless_delete=1, tokenize='unicode61');
     CREATE TABLE mm_question (id INTEGER PRIMARY KEY, area INTEGER, clue TEXT);
     CREATE TABLE mm_answer (id INTEGER PRIMARY KEY, question_id INTEGER, ordinal INTEGER, text TEXT, article_refid INTEGER, is_correct INTEGER, flag INTEGER);
+    CREATE TABLE mm_room (id TEXT PRIMARY KEY, area INTEGER, backdrop_id TEXT, character_id TEXT, is_goal INTEGER);
+    CREATE TABLE mm_door (room_id TEXT, direction TEXT, target_room_id TEXT, PRIMARY KEY (room_id, direction));
+    CREATE TABLE mm_character (id TEXT PRIMARY KEY, sprite_set TEXT, greeting TEXT, banter_json TEXT);
   ''');
 
   // Pick the slice: 10 titled articles per source tier ...
@@ -112,6 +115,12 @@ void main() {
   final qIn = qids.join(',');
   dst.execute('INSERT INTO mm_question SELECT * FROM src.mm_question WHERE id IN ($qIn)');
   dst.execute('INSERT INTO mm_answer SELECT * FROM src.mm_answer WHERE question_id IN ($qIn)');
+
+  // MindMaze castle (Phase 5b): copy the whole graph — it is small and the
+  // adapter/tests assert against the real 11-room / 20-door / 11-character set.
+  dst.execute('INSERT INTO mm_room SELECT * FROM src.mm_room');
+  dst.execute('INSERT INTO mm_door SELECT * FROM src.mm_door');
+  dst.execute('INSERT INTO mm_character SELECT * FROM src.mm_character');
 
   dst.execute('DETACH DATABASE src');
   final n = dst.select('SELECT count(*) AS n FROM article').first['n'];

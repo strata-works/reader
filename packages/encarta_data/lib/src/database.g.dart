@@ -2746,6 +2746,971 @@ class MmAnswerCompanion extends UpdateCompanion<MmAnswerData> {
   }
 }
 
+class MmRoom extends Table with TableInfo<MmRoom, MmRoomData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MmRoom(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _areaMeta = const VerificationMeta('area');
+  late final GeneratedColumn<int> area = GeneratedColumn<int>(
+    'area',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _backdropIdMeta = const VerificationMeta(
+    'backdropId',
+  );
+  late final GeneratedColumn<String> backdropId = GeneratedColumn<String>(
+    'backdrop_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _characterIdMeta = const VerificationMeta(
+    'characterId',
+  );
+  late final GeneratedColumn<String> characterId = GeneratedColumn<String>(
+    'character_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isGoalMeta = const VerificationMeta('isGoal');
+  late final GeneratedColumn<int> isGoal = GeneratedColumn<int>(
+    'is_goal',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    area,
+    backdropId,
+    characterId,
+    isGoal,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mm_room';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MmRoomData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('area')) {
+      context.handle(
+        _areaMeta,
+        area.isAcceptableOrUnknown(data['area']!, _areaMeta),
+      );
+    }
+    if (data.containsKey('backdrop_id')) {
+      context.handle(
+        _backdropIdMeta,
+        backdropId.isAcceptableOrUnknown(data['backdrop_id']!, _backdropIdMeta),
+      );
+    }
+    if (data.containsKey('character_id')) {
+      context.handle(
+        _characterIdMeta,
+        characterId.isAcceptableOrUnknown(
+          data['character_id']!,
+          _characterIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_goal')) {
+      context.handle(
+        _isGoalMeta,
+        isGoal.isAcceptableOrUnknown(data['is_goal']!, _isGoalMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MmRoomData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MmRoomData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      area: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}area'],
+      ),
+      backdropId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}backdrop_id'],
+      ),
+      characterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}character_id'],
+      ),
+      isGoal: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_goal'],
+      ),
+    );
+  }
+
+  @override
+  MmRoom createAlias(String alias) {
+    return MmRoom(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MmRoomData extends DataClass implements Insertable<MmRoomData> {
+  final String id;
+  final int? area;
+  final String? backdropId;
+  final String? characterId;
+  final int? isGoal;
+  const MmRoomData({
+    required this.id,
+    this.area,
+    this.backdropId,
+    this.characterId,
+    this.isGoal,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || area != null) {
+      map['area'] = Variable<int>(area);
+    }
+    if (!nullToAbsent || backdropId != null) {
+      map['backdrop_id'] = Variable<String>(backdropId);
+    }
+    if (!nullToAbsent || characterId != null) {
+      map['character_id'] = Variable<String>(characterId);
+    }
+    if (!nullToAbsent || isGoal != null) {
+      map['is_goal'] = Variable<int>(isGoal);
+    }
+    return map;
+  }
+
+  MmRoomCompanion toCompanion(bool nullToAbsent) {
+    return MmRoomCompanion(
+      id: Value(id),
+      area: area == null && nullToAbsent ? const Value.absent() : Value(area),
+      backdropId: backdropId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backdropId),
+      characterId: characterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(characterId),
+      isGoal: isGoal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isGoal),
+    );
+  }
+
+  factory MmRoomData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MmRoomData(
+      id: serializer.fromJson<String>(json['id']),
+      area: serializer.fromJson<int?>(json['area']),
+      backdropId: serializer.fromJson<String?>(json['backdrop_id']),
+      characterId: serializer.fromJson<String?>(json['character_id']),
+      isGoal: serializer.fromJson<int?>(json['is_goal']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'area': serializer.toJson<int?>(area),
+      'backdrop_id': serializer.toJson<String?>(backdropId),
+      'character_id': serializer.toJson<String?>(characterId),
+      'is_goal': serializer.toJson<int?>(isGoal),
+    };
+  }
+
+  MmRoomData copyWith({
+    String? id,
+    Value<int?> area = const Value.absent(),
+    Value<String?> backdropId = const Value.absent(),
+    Value<String?> characterId = const Value.absent(),
+    Value<int?> isGoal = const Value.absent(),
+  }) => MmRoomData(
+    id: id ?? this.id,
+    area: area.present ? area.value : this.area,
+    backdropId: backdropId.present ? backdropId.value : this.backdropId,
+    characterId: characterId.present ? characterId.value : this.characterId,
+    isGoal: isGoal.present ? isGoal.value : this.isGoal,
+  );
+  MmRoomData copyWithCompanion(MmRoomCompanion data) {
+    return MmRoomData(
+      id: data.id.present ? data.id.value : this.id,
+      area: data.area.present ? data.area.value : this.area,
+      backdropId: data.backdropId.present
+          ? data.backdropId.value
+          : this.backdropId,
+      characterId: data.characterId.present
+          ? data.characterId.value
+          : this.characterId,
+      isGoal: data.isGoal.present ? data.isGoal.value : this.isGoal,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmRoomData(')
+          ..write('id: $id, ')
+          ..write('area: $area, ')
+          ..write('backdropId: $backdropId, ')
+          ..write('characterId: $characterId, ')
+          ..write('isGoal: $isGoal')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, area, backdropId, characterId, isGoal);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MmRoomData &&
+          other.id == this.id &&
+          other.area == this.area &&
+          other.backdropId == this.backdropId &&
+          other.characterId == this.characterId &&
+          other.isGoal == this.isGoal);
+}
+
+class MmRoomCompanion extends UpdateCompanion<MmRoomData> {
+  final Value<String> id;
+  final Value<int?> area;
+  final Value<String?> backdropId;
+  final Value<String?> characterId;
+  final Value<int?> isGoal;
+  final Value<int> rowid;
+  const MmRoomCompanion({
+    this.id = const Value.absent(),
+    this.area = const Value.absent(),
+    this.backdropId = const Value.absent(),
+    this.characterId = const Value.absent(),
+    this.isGoal = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MmRoomCompanion.insert({
+    required String id,
+    this.area = const Value.absent(),
+    this.backdropId = const Value.absent(),
+    this.characterId = const Value.absent(),
+    this.isGoal = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<MmRoomData> custom({
+    Expression<String>? id,
+    Expression<int>? area,
+    Expression<String>? backdropId,
+    Expression<String>? characterId,
+    Expression<int>? isGoal,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (area != null) 'area': area,
+      if (backdropId != null) 'backdrop_id': backdropId,
+      if (characterId != null) 'character_id': characterId,
+      if (isGoal != null) 'is_goal': isGoal,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MmRoomCompanion copyWith({
+    Value<String>? id,
+    Value<int?>? area,
+    Value<String?>? backdropId,
+    Value<String?>? characterId,
+    Value<int?>? isGoal,
+    Value<int>? rowid,
+  }) {
+    return MmRoomCompanion(
+      id: id ?? this.id,
+      area: area ?? this.area,
+      backdropId: backdropId ?? this.backdropId,
+      characterId: characterId ?? this.characterId,
+      isGoal: isGoal ?? this.isGoal,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (area.present) {
+      map['area'] = Variable<int>(area.value);
+    }
+    if (backdropId.present) {
+      map['backdrop_id'] = Variable<String>(backdropId.value);
+    }
+    if (characterId.present) {
+      map['character_id'] = Variable<String>(characterId.value);
+    }
+    if (isGoal.present) {
+      map['is_goal'] = Variable<int>(isGoal.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmRoomCompanion(')
+          ..write('id: $id, ')
+          ..write('area: $area, ')
+          ..write('backdropId: $backdropId, ')
+          ..write('characterId: $characterId, ')
+          ..write('isGoal: $isGoal, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class MmDoor extends Table with TableInfo<MmDoor, MmDoorData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MmDoor(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _roomIdMeta = const VerificationMeta('roomId');
+  late final GeneratedColumn<String> roomId = GeneratedColumn<String>(
+    'room_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _directionMeta = const VerificationMeta(
+    'direction',
+  );
+  late final GeneratedColumn<String> direction = GeneratedColumn<String>(
+    'direction',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _targetRoomIdMeta = const VerificationMeta(
+    'targetRoomId',
+  );
+  late final GeneratedColumn<String> targetRoomId = GeneratedColumn<String>(
+    'target_room_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [roomId, direction, targetRoomId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mm_door';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MmDoorData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('room_id')) {
+      context.handle(
+        _roomIdMeta,
+        roomId.isAcceptableOrUnknown(data['room_id']!, _roomIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roomIdMeta);
+    }
+    if (data.containsKey('direction')) {
+      context.handle(
+        _directionMeta,
+        direction.isAcceptableOrUnknown(data['direction']!, _directionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_directionMeta);
+    }
+    if (data.containsKey('target_room_id')) {
+      context.handle(
+        _targetRoomIdMeta,
+        targetRoomId.isAcceptableOrUnknown(
+          data['target_room_id']!,
+          _targetRoomIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {roomId, direction};
+  @override
+  MmDoorData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MmDoorData(
+      roomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_id'],
+      )!,
+      direction: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction'],
+      )!,
+      targetRoomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_room_id'],
+      ),
+    );
+  }
+
+  @override
+  MmDoor createAlias(String alias) {
+    return MmDoor(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(room_id, direction)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MmDoorData extends DataClass implements Insertable<MmDoorData> {
+  final String roomId;
+  final String direction;
+  final String? targetRoomId;
+  const MmDoorData({
+    required this.roomId,
+    required this.direction,
+    this.targetRoomId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['room_id'] = Variable<String>(roomId);
+    map['direction'] = Variable<String>(direction);
+    if (!nullToAbsent || targetRoomId != null) {
+      map['target_room_id'] = Variable<String>(targetRoomId);
+    }
+    return map;
+  }
+
+  MmDoorCompanion toCompanion(bool nullToAbsent) {
+    return MmDoorCompanion(
+      roomId: Value(roomId),
+      direction: Value(direction),
+      targetRoomId: targetRoomId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetRoomId),
+    );
+  }
+
+  factory MmDoorData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MmDoorData(
+      roomId: serializer.fromJson<String>(json['room_id']),
+      direction: serializer.fromJson<String>(json['direction']),
+      targetRoomId: serializer.fromJson<String?>(json['target_room_id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'room_id': serializer.toJson<String>(roomId),
+      'direction': serializer.toJson<String>(direction),
+      'target_room_id': serializer.toJson<String?>(targetRoomId),
+    };
+  }
+
+  MmDoorData copyWith({
+    String? roomId,
+    String? direction,
+    Value<String?> targetRoomId = const Value.absent(),
+  }) => MmDoorData(
+    roomId: roomId ?? this.roomId,
+    direction: direction ?? this.direction,
+    targetRoomId: targetRoomId.present ? targetRoomId.value : this.targetRoomId,
+  );
+  MmDoorData copyWithCompanion(MmDoorCompanion data) {
+    return MmDoorData(
+      roomId: data.roomId.present ? data.roomId.value : this.roomId,
+      direction: data.direction.present ? data.direction.value : this.direction,
+      targetRoomId: data.targetRoomId.present
+          ? data.targetRoomId.value
+          : this.targetRoomId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmDoorData(')
+          ..write('roomId: $roomId, ')
+          ..write('direction: $direction, ')
+          ..write('targetRoomId: $targetRoomId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(roomId, direction, targetRoomId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MmDoorData &&
+          other.roomId == this.roomId &&
+          other.direction == this.direction &&
+          other.targetRoomId == this.targetRoomId);
+}
+
+class MmDoorCompanion extends UpdateCompanion<MmDoorData> {
+  final Value<String> roomId;
+  final Value<String> direction;
+  final Value<String?> targetRoomId;
+  final Value<int> rowid;
+  const MmDoorCompanion({
+    this.roomId = const Value.absent(),
+    this.direction = const Value.absent(),
+    this.targetRoomId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MmDoorCompanion.insert({
+    required String roomId,
+    required String direction,
+    this.targetRoomId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : roomId = Value(roomId),
+       direction = Value(direction);
+  static Insertable<MmDoorData> custom({
+    Expression<String>? roomId,
+    Expression<String>? direction,
+    Expression<String>? targetRoomId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (roomId != null) 'room_id': roomId,
+      if (direction != null) 'direction': direction,
+      if (targetRoomId != null) 'target_room_id': targetRoomId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MmDoorCompanion copyWith({
+    Value<String>? roomId,
+    Value<String>? direction,
+    Value<String?>? targetRoomId,
+    Value<int>? rowid,
+  }) {
+    return MmDoorCompanion(
+      roomId: roomId ?? this.roomId,
+      direction: direction ?? this.direction,
+      targetRoomId: targetRoomId ?? this.targetRoomId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (roomId.present) {
+      map['room_id'] = Variable<String>(roomId.value);
+    }
+    if (direction.present) {
+      map['direction'] = Variable<String>(direction.value);
+    }
+    if (targetRoomId.present) {
+      map['target_room_id'] = Variable<String>(targetRoomId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmDoorCompanion(')
+          ..write('roomId: $roomId, ')
+          ..write('direction: $direction, ')
+          ..write('targetRoomId: $targetRoomId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class MmCharacter extends Table with TableInfo<MmCharacter, MmCharacterData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MmCharacter(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _spriteSetMeta = const VerificationMeta(
+    'spriteSet',
+  );
+  late final GeneratedColumn<String> spriteSet = GeneratedColumn<String>(
+    'sprite_set',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _greetingMeta = const VerificationMeta(
+    'greeting',
+  );
+  late final GeneratedColumn<String> greeting = GeneratedColumn<String>(
+    'greeting',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _banterJsonMeta = const VerificationMeta(
+    'banterJson',
+  );
+  late final GeneratedColumn<String> banterJson = GeneratedColumn<String>(
+    'banter_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, spriteSet, greeting, banterJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'mm_character';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MmCharacterData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('sprite_set')) {
+      context.handle(
+        _spriteSetMeta,
+        spriteSet.isAcceptableOrUnknown(data['sprite_set']!, _spriteSetMeta),
+      );
+    }
+    if (data.containsKey('greeting')) {
+      context.handle(
+        _greetingMeta,
+        greeting.isAcceptableOrUnknown(data['greeting']!, _greetingMeta),
+      );
+    }
+    if (data.containsKey('banter_json')) {
+      context.handle(
+        _banterJsonMeta,
+        banterJson.isAcceptableOrUnknown(data['banter_json']!, _banterJsonMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MmCharacterData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MmCharacterData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      spriteSet: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sprite_set'],
+      ),
+      greeting: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}greeting'],
+      ),
+      banterJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}banter_json'],
+      ),
+    );
+  }
+
+  @override
+  MmCharacter createAlias(String alias) {
+    return MmCharacter(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MmCharacterData extends DataClass implements Insertable<MmCharacterData> {
+  final String id;
+  final String? spriteSet;
+  final String? greeting;
+  final String? banterJson;
+  const MmCharacterData({
+    required this.id,
+    this.spriteSet,
+    this.greeting,
+    this.banterJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || spriteSet != null) {
+      map['sprite_set'] = Variable<String>(spriteSet);
+    }
+    if (!nullToAbsent || greeting != null) {
+      map['greeting'] = Variable<String>(greeting);
+    }
+    if (!nullToAbsent || banterJson != null) {
+      map['banter_json'] = Variable<String>(banterJson);
+    }
+    return map;
+  }
+
+  MmCharacterCompanion toCompanion(bool nullToAbsent) {
+    return MmCharacterCompanion(
+      id: Value(id),
+      spriteSet: spriteSet == null && nullToAbsent
+          ? const Value.absent()
+          : Value(spriteSet),
+      greeting: greeting == null && nullToAbsent
+          ? const Value.absent()
+          : Value(greeting),
+      banterJson: banterJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(banterJson),
+    );
+  }
+
+  factory MmCharacterData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MmCharacterData(
+      id: serializer.fromJson<String>(json['id']),
+      spriteSet: serializer.fromJson<String?>(json['sprite_set']),
+      greeting: serializer.fromJson<String?>(json['greeting']),
+      banterJson: serializer.fromJson<String?>(json['banter_json']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sprite_set': serializer.toJson<String?>(spriteSet),
+      'greeting': serializer.toJson<String?>(greeting),
+      'banter_json': serializer.toJson<String?>(banterJson),
+    };
+  }
+
+  MmCharacterData copyWith({
+    String? id,
+    Value<String?> spriteSet = const Value.absent(),
+    Value<String?> greeting = const Value.absent(),
+    Value<String?> banterJson = const Value.absent(),
+  }) => MmCharacterData(
+    id: id ?? this.id,
+    spriteSet: spriteSet.present ? spriteSet.value : this.spriteSet,
+    greeting: greeting.present ? greeting.value : this.greeting,
+    banterJson: banterJson.present ? banterJson.value : this.banterJson,
+  );
+  MmCharacterData copyWithCompanion(MmCharacterCompanion data) {
+    return MmCharacterData(
+      id: data.id.present ? data.id.value : this.id,
+      spriteSet: data.spriteSet.present ? data.spriteSet.value : this.spriteSet,
+      greeting: data.greeting.present ? data.greeting.value : this.greeting,
+      banterJson: data.banterJson.present
+          ? data.banterJson.value
+          : this.banterJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmCharacterData(')
+          ..write('id: $id, ')
+          ..write('spriteSet: $spriteSet, ')
+          ..write('greeting: $greeting, ')
+          ..write('banterJson: $banterJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, spriteSet, greeting, banterJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MmCharacterData &&
+          other.id == this.id &&
+          other.spriteSet == this.spriteSet &&
+          other.greeting == this.greeting &&
+          other.banterJson == this.banterJson);
+}
+
+class MmCharacterCompanion extends UpdateCompanion<MmCharacterData> {
+  final Value<String> id;
+  final Value<String?> spriteSet;
+  final Value<String?> greeting;
+  final Value<String?> banterJson;
+  final Value<int> rowid;
+  const MmCharacterCompanion({
+    this.id = const Value.absent(),
+    this.spriteSet = const Value.absent(),
+    this.greeting = const Value.absent(),
+    this.banterJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MmCharacterCompanion.insert({
+    required String id,
+    this.spriteSet = const Value.absent(),
+    this.greeting = const Value.absent(),
+    this.banterJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<MmCharacterData> custom({
+    Expression<String>? id,
+    Expression<String>? spriteSet,
+    Expression<String>? greeting,
+    Expression<String>? banterJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (spriteSet != null) 'sprite_set': spriteSet,
+      if (greeting != null) 'greeting': greeting,
+      if (banterJson != null) 'banter_json': banterJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MmCharacterCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? spriteSet,
+    Value<String?>? greeting,
+    Value<String?>? banterJson,
+    Value<int>? rowid,
+  }) {
+    return MmCharacterCompanion(
+      id: id ?? this.id,
+      spriteSet: spriteSet ?? this.spriteSet,
+      greeting: greeting ?? this.greeting,
+      banterJson: banterJson ?? this.banterJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (spriteSet.present) {
+      map['sprite_set'] = Variable<String>(spriteSet.value);
+    }
+    if (greeting.present) {
+      map['greeting'] = Variable<String>(greeting.value);
+    }
+    if (banterJson.present) {
+      map['banter_json'] = Variable<String>(banterJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MmCharacterCompanion(')
+          ..write('id: $id, ')
+          ..write('spriteSet: $spriteSet, ')
+          ..write('greeting: $greeting, ')
+          ..write('banterJson: $banterJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$EncartaDatabase extends GeneratedDatabase {
   _$EncartaDatabase(QueryExecutor e) : super(e);
   $EncartaDatabaseManager get managers => $EncartaDatabaseManager(this);
@@ -2758,6 +3723,9 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
   late final Xref xref = Xref(this);
   late final MmQuestion mmQuestion = MmQuestion(this);
   late final MmAnswer mmAnswer = MmAnswer(this);
+  late final MmRoom mmRoom = MmRoom(this);
+  late final MmDoor mmDoor = MmDoor(this);
+  late final MmCharacter mmCharacter = MmCharacter(this);
   Selectable<int> ftsRowidUnmapped() {
     return customSelect(
       'SELECT count(*) AS unmapped FROM article_fts AS f WHERE NOT EXISTS (SELECT 1 AS _c0 FROM article AS a WHERE a.refid = f."rowid")',
@@ -3013,6 +3981,51 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.read<int>('n'));
   }
 
+  Selectable<MmRoomData> mindmazeRooms() {
+    return customSelect(
+      'SELECT id AS id, area AS area, backdrop_id AS backdropId, character_id AS characterId, is_goal AS isGoal FROM mm_room ORDER BY id',
+      variables: [],
+      readsFrom: {mmRoom},
+    ).asyncMap(
+      (QueryRow row) async => mmRoom.mapFromRowWithAlias(row, const {
+        'id': 'id',
+        'area': 'area',
+        'backdropId': 'backdrop_id',
+        'characterId': 'character_id',
+        'isGoal': 'is_goal',
+      }),
+    );
+  }
+
+  Selectable<MmDoorData> mindmazeDoors() {
+    return customSelect(
+      'SELECT room_id AS roomId, direction AS direction, target_room_id AS targetRoomId FROM mm_door ORDER BY room_id, direction',
+      variables: [],
+      readsFrom: {mmDoor},
+    ).asyncMap(
+      (QueryRow row) async => mmDoor.mapFromRowWithAlias(row, const {
+        'roomId': 'room_id',
+        'direction': 'direction',
+        'targetRoomId': 'target_room_id',
+      }),
+    );
+  }
+
+  Selectable<MmCharacterData> mindmazeCharacters() {
+    return customSelect(
+      'SELECT id AS id, sprite_set AS spriteSet, greeting AS greeting, banter_json AS banterJson FROM mm_character ORDER BY id',
+      variables: [],
+      readsFrom: {mmCharacter},
+    ).asyncMap(
+      (QueryRow row) async => mmCharacter.mapFromRowWithAlias(row, const {
+        'id': 'id',
+        'spriteSet': 'sprite_set',
+        'greeting': 'greeting',
+        'banterJson': 'banter_json',
+      }),
+    );
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3027,6 +4040,9 @@ abstract class _$EncartaDatabase extends GeneratedDatabase {
     xref,
     mmQuestion,
     mmAnswer,
+    mmRoom,
+    mmDoor,
+    mmCharacter,
   ];
 }
 
@@ -4565,6 +5581,539 @@ typedef $MmAnswerProcessedTableManager =
       MmAnswerData,
       PrefetchHooks Function()
     >;
+typedef $MmRoomCreateCompanionBuilder =
+    MmRoomCompanion Function({
+      required String id,
+      Value<int?> area,
+      Value<String?> backdropId,
+      Value<String?> characterId,
+      Value<int?> isGoal,
+      Value<int> rowid,
+    });
+typedef $MmRoomUpdateCompanionBuilder =
+    MmRoomCompanion Function({
+      Value<String> id,
+      Value<int?> area,
+      Value<String?> backdropId,
+      Value<String?> characterId,
+      Value<int?> isGoal,
+      Value<int> rowid,
+    });
+
+class $MmRoomFilterComposer extends Composer<_$EncartaDatabase, MmRoom> {
+  $MmRoomFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get backdropId => $composableBuilder(
+    column: $table.backdropId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get characterId => $composableBuilder(
+    column: $table.characterId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isGoal => $composableBuilder(
+    column: $table.isGoal,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $MmRoomOrderingComposer extends Composer<_$EncartaDatabase, MmRoom> {
+  $MmRoomOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get backdropId => $composableBuilder(
+    column: $table.backdropId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get characterId => $composableBuilder(
+    column: $table.characterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isGoal => $composableBuilder(
+    column: $table.isGoal,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $MmRoomAnnotationComposer extends Composer<_$EncartaDatabase, MmRoom> {
+  $MmRoomAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get area =>
+      $composableBuilder(column: $table.area, builder: (column) => column);
+
+  GeneratedColumn<String> get backdropId => $composableBuilder(
+    column: $table.backdropId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get characterId => $composableBuilder(
+    column: $table.characterId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get isGoal =>
+      $composableBuilder(column: $table.isGoal, builder: (column) => column);
+}
+
+class $MmRoomTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          MmRoom,
+          MmRoomData,
+          $MmRoomFilterComposer,
+          $MmRoomOrderingComposer,
+          $MmRoomAnnotationComposer,
+          $MmRoomCreateCompanionBuilder,
+          $MmRoomUpdateCompanionBuilder,
+          (MmRoomData, BaseReferences<_$EncartaDatabase, MmRoom, MmRoomData>),
+          MmRoomData,
+          PrefetchHooks Function()
+        > {
+  $MmRoomTableManager(_$EncartaDatabase db, MmRoom table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $MmRoomFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $MmRoomOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $MmRoomAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int?> area = const Value.absent(),
+                Value<String?> backdropId = const Value.absent(),
+                Value<String?> characterId = const Value.absent(),
+                Value<int?> isGoal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmRoomCompanion(
+                id: id,
+                area: area,
+                backdropId: backdropId,
+                characterId: characterId,
+                isGoal: isGoal,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<int?> area = const Value.absent(),
+                Value<String?> backdropId = const Value.absent(),
+                Value<String?> characterId = const Value.absent(),
+                Value<int?> isGoal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmRoomCompanion.insert(
+                id: id,
+                area: area,
+                backdropId: backdropId,
+                characterId: characterId,
+                isGoal: isGoal,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $MmRoomProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      MmRoom,
+      MmRoomData,
+      $MmRoomFilterComposer,
+      $MmRoomOrderingComposer,
+      $MmRoomAnnotationComposer,
+      $MmRoomCreateCompanionBuilder,
+      $MmRoomUpdateCompanionBuilder,
+      (MmRoomData, BaseReferences<_$EncartaDatabase, MmRoom, MmRoomData>),
+      MmRoomData,
+      PrefetchHooks Function()
+    >;
+typedef $MmDoorCreateCompanionBuilder =
+    MmDoorCompanion Function({
+      required String roomId,
+      required String direction,
+      Value<String?> targetRoomId,
+      Value<int> rowid,
+    });
+typedef $MmDoorUpdateCompanionBuilder =
+    MmDoorCompanion Function({
+      Value<String> roomId,
+      Value<String> direction,
+      Value<String?> targetRoomId,
+      Value<int> rowid,
+    });
+
+class $MmDoorFilterComposer extends Composer<_$EncartaDatabase, MmDoor> {
+  $MmDoorFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetRoomId => $composableBuilder(
+    column: $table.targetRoomId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $MmDoorOrderingComposer extends Composer<_$EncartaDatabase, MmDoor> {
+  $MmDoorOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetRoomId => $composableBuilder(
+    column: $table.targetRoomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $MmDoorAnnotationComposer extends Composer<_$EncartaDatabase, MmDoor> {
+  $MmDoorAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get roomId =>
+      $composableBuilder(column: $table.roomId, builder: (column) => column);
+
+  GeneratedColumn<String> get direction =>
+      $composableBuilder(column: $table.direction, builder: (column) => column);
+
+  GeneratedColumn<String> get targetRoomId => $composableBuilder(
+    column: $table.targetRoomId,
+    builder: (column) => column,
+  );
+}
+
+class $MmDoorTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          MmDoor,
+          MmDoorData,
+          $MmDoorFilterComposer,
+          $MmDoorOrderingComposer,
+          $MmDoorAnnotationComposer,
+          $MmDoorCreateCompanionBuilder,
+          $MmDoorUpdateCompanionBuilder,
+          (MmDoorData, BaseReferences<_$EncartaDatabase, MmDoor, MmDoorData>),
+          MmDoorData,
+          PrefetchHooks Function()
+        > {
+  $MmDoorTableManager(_$EncartaDatabase db, MmDoor table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $MmDoorFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $MmDoorOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $MmDoorAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> roomId = const Value.absent(),
+                Value<String> direction = const Value.absent(),
+                Value<String?> targetRoomId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmDoorCompanion(
+                roomId: roomId,
+                direction: direction,
+                targetRoomId: targetRoomId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String roomId,
+                required String direction,
+                Value<String?> targetRoomId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmDoorCompanion.insert(
+                roomId: roomId,
+                direction: direction,
+                targetRoomId: targetRoomId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $MmDoorProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      MmDoor,
+      MmDoorData,
+      $MmDoorFilterComposer,
+      $MmDoorOrderingComposer,
+      $MmDoorAnnotationComposer,
+      $MmDoorCreateCompanionBuilder,
+      $MmDoorUpdateCompanionBuilder,
+      (MmDoorData, BaseReferences<_$EncartaDatabase, MmDoor, MmDoorData>),
+      MmDoorData,
+      PrefetchHooks Function()
+    >;
+typedef $MmCharacterCreateCompanionBuilder =
+    MmCharacterCompanion Function({
+      required String id,
+      Value<String?> spriteSet,
+      Value<String?> greeting,
+      Value<String?> banterJson,
+      Value<int> rowid,
+    });
+typedef $MmCharacterUpdateCompanionBuilder =
+    MmCharacterCompanion Function({
+      Value<String> id,
+      Value<String?> spriteSet,
+      Value<String?> greeting,
+      Value<String?> banterJson,
+      Value<int> rowid,
+    });
+
+class $MmCharacterFilterComposer
+    extends Composer<_$EncartaDatabase, MmCharacter> {
+  $MmCharacterFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get spriteSet => $composableBuilder(
+    column: $table.spriteSet,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get greeting => $composableBuilder(
+    column: $table.greeting,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get banterJson => $composableBuilder(
+    column: $table.banterJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $MmCharacterOrderingComposer
+    extends Composer<_$EncartaDatabase, MmCharacter> {
+  $MmCharacterOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get spriteSet => $composableBuilder(
+    column: $table.spriteSet,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get greeting => $composableBuilder(
+    column: $table.greeting,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get banterJson => $composableBuilder(
+    column: $table.banterJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $MmCharacterAnnotationComposer
+    extends Composer<_$EncartaDatabase, MmCharacter> {
+  $MmCharacterAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get spriteSet =>
+      $composableBuilder(column: $table.spriteSet, builder: (column) => column);
+
+  GeneratedColumn<String> get greeting =>
+      $composableBuilder(column: $table.greeting, builder: (column) => column);
+
+  GeneratedColumn<String> get banterJson => $composableBuilder(
+    column: $table.banterJson,
+    builder: (column) => column,
+  );
+}
+
+class $MmCharacterTableManager
+    extends
+        RootTableManager<
+          _$EncartaDatabase,
+          MmCharacter,
+          MmCharacterData,
+          $MmCharacterFilterComposer,
+          $MmCharacterOrderingComposer,
+          $MmCharacterAnnotationComposer,
+          $MmCharacterCreateCompanionBuilder,
+          $MmCharacterUpdateCompanionBuilder,
+          (
+            MmCharacterData,
+            BaseReferences<_$EncartaDatabase, MmCharacter, MmCharacterData>,
+          ),
+          MmCharacterData,
+          PrefetchHooks Function()
+        > {
+  $MmCharacterTableManager(_$EncartaDatabase db, MmCharacter table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $MmCharacterFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $MmCharacterOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $MmCharacterAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> spriteSet = const Value.absent(),
+                Value<String?> greeting = const Value.absent(),
+                Value<String?> banterJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmCharacterCompanion(
+                id: id,
+                spriteSet: spriteSet,
+                greeting: greeting,
+                banterJson: banterJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> spriteSet = const Value.absent(),
+                Value<String?> greeting = const Value.absent(),
+                Value<String?> banterJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MmCharacterCompanion.insert(
+                id: id,
+                spriteSet: spriteSet,
+                greeting: greeting,
+                banterJson: banterJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $MmCharacterProcessedTableManager =
+    ProcessedTableManager<
+      _$EncartaDatabase,
+      MmCharacter,
+      MmCharacterData,
+      $MmCharacterFilterComposer,
+      $MmCharacterOrderingComposer,
+      $MmCharacterAnnotationComposer,
+      $MmCharacterCreateCompanionBuilder,
+      $MmCharacterUpdateCompanionBuilder,
+      (
+        MmCharacterData,
+        BaseReferences<_$EncartaDatabase, MmCharacter, MmCharacterData>,
+      ),
+      MmCharacterData,
+      PrefetchHooks Function()
+    >;
 
 class $EncartaDatabaseManager {
   final _$EncartaDatabase _db;
@@ -4583,6 +6132,10 @@ class $EncartaDatabaseManager {
       $MmQuestionTableManager(_db, _db.mmQuestion);
   $MmAnswerTableManager get mmAnswer =>
       $MmAnswerTableManager(_db, _db.mmAnswer);
+  $MmRoomTableManager get mmRoom => $MmRoomTableManager(_db, _db.mmRoom);
+  $MmDoorTableManager get mmDoor => $MmDoorTableManager(_db, _db.mmDoor);
+  $MmCharacterTableManager get mmCharacter =>
+      $MmCharacterTableManager(_db, _db.mmCharacter);
 }
 
 class FtsSeedArticleResult {

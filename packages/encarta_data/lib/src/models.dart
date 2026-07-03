@@ -225,3 +225,67 @@ class MindMazeQuestion {
   @override
   int get hashCode => Object.hash(id, area, clue, answers.length);
 }
+
+/// The decoded MindMaze castle: its [rooms], directed [doors], and the
+/// [characters] that pose questions. Connectivity is the Phase 5a authored
+/// spine; room/character content and banter are authentic (decoded from
+/// ENCARTA.EXE). See `mindmazeCastle()`.
+class MindMazeCastle {
+  const MindMazeCastle({
+    required this.rooms,
+    required this.doors,
+    required this.characters,
+  });
+
+  final List<MindMazeRoom> rooms;
+  final List<MindMazeDoor> doors;
+  final List<MindMazeCharacter> characters;
+}
+
+/// A castle room: its question-pool [area] (nullable), [backdropId] art,
+/// resident [characterId], and whether it is the [isGoal] (throne) room.
+class MindMazeRoom {
+  const MindMazeRoom({
+    required this.id,
+    required this.area,
+    required this.backdropId,
+    required this.characterId,
+    required this.isGoal,
+  });
+
+  final String id;
+  final int? area;
+  final String backdropId;
+  final String characterId;
+  final bool isGoal;
+}
+
+/// A one-way navigation edge from [roomId] to [targetRoomId] via [direction]
+/// (one of left|right|tower|north|south).
+class MindMazeDoor {
+  const MindMazeDoor({
+    required this.roomId,
+    required this.direction,
+    required this.targetRoomId,
+  });
+
+  final String roomId;
+  final String direction;
+  final String targetRoomId;
+}
+
+/// A castle character: its [spriteSet] art id, authentic [greeting], and all
+/// recovered [banter] lines (parsed from banter_json).
+class MindMazeCharacter {
+  const MindMazeCharacter({
+    required this.id,
+    required this.spriteSet,
+    required this.greeting,
+    required this.banter,
+  });
+
+  final String id;
+  final String spriteSet;
+  final String greeting;
+  final List<String> banter;
+}

@@ -150,3 +150,20 @@ SELECT count(*) AS n FROM mm_question WHERE area = :area;
 
 mindmazeCountAll:
 SELECT count(*) AS n FROM mm_question;
+
+-- MindMaze castle graph (Phase 5b). Rooms, directed doors, and characters,
+-- each ordered by id for deterministic assembly.
+mindmazeRooms:
+SELECT id AS id, area AS area, backdrop_id AS backdropId,
+       character_id AS characterId, is_goal AS isGoal
+FROM mm_room ORDER BY id;
+
+mindmazeDoors:
+SELECT room_id AS roomId, direction AS direction,
+       target_room_id AS targetRoomId
+FROM mm_door ORDER BY room_id, direction;
+
+mindmazeCharacters:
+SELECT id AS id, sprite_set AS spriteSet, greeting AS greeting,
+       banter_json AS banterJson
+FROM mm_character ORDER BY id;

@@ -270,6 +270,52 @@ class EncartaDb {
         : _db.mindmazeCountByArea(area).getSingle();
   }
 
+  /// The decoded MindMaze castle (rooms, directed doors, characters). Rooms are
+  /// ordered by id; each character's `banter_json` is parsed to a line list.
+  /// Throws if the underlying db lacks the castle tables (an old corpus) — the
+  /// caller degrades gracefully.
+  Future<MindMazeCastle> mindmazeCastle() async {
+    final rooms = [
+      for (final r in await _db.mindmazeRooms().get())
+        MindMazeRoom(
+          id: r.id,
+          area: r.area,
+          backdropId: r.backdropId ?? '',
+          characterId: r.characterId ?? '',
+          isGoal: (r.isGoal ?? 0) != 0,
+        ),
+    ];
+    final doors = [
+      for (final d in await _db.mindmazeDoors().get())
+        MindMazeDoor(
+          roomId: d.roomId,
+          direction: d.direction,
+          targetRoomId: d.targetRoomId ?? '',
+        ),
+    ];
+    final characters = [
+      for (final c in await _db.mindmazeCharacters().get())
+        MindMazeCharacter(
+          id: c.id,
+          spriteSet: c.spriteSet ?? '',
+          greeting: c.greeting ?? '',
+          banter: _parseBanter(c.banterJson),
+        ),
+    ];
+    return MindMazeCastle(rooms: rooms, doors: doors, characters: characters);
+  }
+
+  static List<String> _parseBanter(String? json) {
+    if (json == null || json.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(json);
+      if (decoded is List) {
+        return [for (final e in decoded) '$e'];
+      }
+    } catch (_) {/* malformed banter → no lines */}
+    return const [];
+  }
+
   /// Looks up a single asset by its baggage_id (the `inlinebmp type=27` id),
   /// or null if absent. `path` is relative to `<dataDir>/assets/`.
   Future<AssetRow?> assetByBaggageId(String baggageId) async {
