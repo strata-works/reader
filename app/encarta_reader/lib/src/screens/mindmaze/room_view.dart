@@ -156,6 +156,7 @@ class _RoomViewState extends State<RoomView> {
               MindMazeEndScreen(
                 config: widget.config,
                 score: snap.score,
+                livesRemaining: snap.lives,
                 onPlayAgain: _restart,
               ),
             if (snap.status == GameStatus.lost)

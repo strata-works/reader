@@ -22,7 +22,7 @@ const _sprites = [
 ];
 const _backdrops = [
   'atrium', 'dunrm', 'walltre1', 'walltre2', 'bookshlf', 'plnwalls', 'rmofdoor',
-  'end1', 'trophy', // end-screen art (opaque, not cyan-keyed)
+  'end1', 'trophy', 'medal', 'ribbon', // end-screen art (opaque, not cyan-keyed)
 ];
 
 const _dataDir = '/Users/nexus/projects/experiments/strata/quarry/build';
