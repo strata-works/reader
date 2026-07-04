@@ -22,9 +22,46 @@ void main() {
     expect(audio.muted, isFalse);
     // None of these should throw or change observable state.
     audio.startBackground();
+    audio.stopBackground();
     audio.playSfx(GameSfx.correct);
     audio.setMuted(true);
     audio.dispose();
     expect(audio.muted, isFalse);
   });
+
+  group('applyMindMazeBackground', () {
+    test("starts background on '/mindmaze'", () {
+      final audio = _RecordingAudio();
+      applyMindMazeBackground('/mindmaze', audio);
+      expect(audio.started, isTrue);
+      expect(audio.stopped, isFalse);
+    });
+
+    test('stops background off the MindMaze route', () {
+      for (final location in ['/article/5', '/']) {
+        final audio = _RecordingAudio();
+        applyMindMazeBackground(location, audio);
+        expect(audio.started, isFalse);
+        expect(audio.stopped, isTrue);
+      }
+    });
+  });
+}
+
+class _RecordingAudio implements GameAudio {
+  bool started = false;
+  bool stopped = false;
+  bool _muted = false;
+  @override
+  void startBackground() => started = true;
+  @override
+  void stopBackground() => stopped = true;
+  @override
+  void playSfx(GameSfx sfx) {}
+  @override
+  void setMuted(bool muted) => _muted = muted;
+  @override
+  bool get muted => _muted;
+  @override
+  void dispose() {}
 }

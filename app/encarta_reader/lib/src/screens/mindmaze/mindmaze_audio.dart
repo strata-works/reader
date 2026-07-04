@@ -24,15 +24,28 @@ class MindMazeAudio implements GameAudio {
 
   @override
   void startBackground() {
-    if (_disposed || _bg != null) return;
-    try {
-      final bg = Player();
-      _bg = bg;
-      bg.setPlaylistMode(PlaylistMode.loop);
-      _openBackground(bg);
-    } catch (_) {
-      _bg = null;
+    if (_disposed) return;
+    if (_bg == null) {
+      try {
+        final bg = Player();
+        _bg = bg;
+        bg.setPlaylistMode(PlaylistMode.loop);
+        _openBackground(bg); // opens with play: !_muted
+      } catch (_) {
+        _bg = null;
+      }
+    } else if (!_muted) {
+      try {
+        _bg!.play(); // resume the existing loop (re-entering MindMaze)
+      } catch (_) {/* ignore */}
     }
+  }
+
+  @override
+  void stopBackground() {
+    try {
+      _bg?.pause();
+    } catch (_) {/* ignore */}
   }
 
   Future<void> _openBackground(Player bg) async {

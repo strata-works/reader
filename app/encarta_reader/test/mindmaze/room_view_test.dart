@@ -11,9 +11,12 @@ import 'package:flutter_test/flutter_test.dart';
 class _RecordingAudio implements GameAudio {
   final List<GameSfx> sfx = [];
   int backgroundStarts = 0;
+  int backgroundStops = 0;
   bool _muted = false;
   @override
   void startBackground() => backgroundStarts++;
+  @override
+  void stopBackground() => backgroundStops++;
   @override
   void playSfx(GameSfx s) => sfx.add(s);
   @override
@@ -140,7 +143,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('starts background music on entry and plays SFX on outcomes',
+  testWidgets('plays SFX on outcomes (background music is owned by the app root)',
       (tester) async {
     final audio = _RecordingAudio();
     await tester.pumpWidget(MaterialApp(
@@ -153,7 +156,6 @@ void main() {
       ),
     ));
     await tester.pump();
-    expect(audio.backgroundStarts, 1);
 
     await tester.tap(_wrongAnswerFinder(tester));
     await tester.pump();

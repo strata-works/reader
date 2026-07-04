@@ -53,7 +53,6 @@ class _RoomViewState extends State<RoomView> {
   void initState() {
     super.initState();
     _start();
-    if (!_startFailed) widget.audio.startBackground();
     _spriteTimer = Timer.periodic(const Duration(milliseconds: 800), (_) {
       if (mounted) setState(() => _frame++);
     });

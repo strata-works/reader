@@ -26,6 +26,7 @@ String audioAssetPath(AssetConfig config, String id, String ext) =>
 /// for real by [MindMazeAudio] (media_kit) and stubbed by [SilentGameAudio].
 abstract class GameAudio {
   void startBackground();
+  void stopBackground();
   void playSfx(GameSfx sfx);
   void setMuted(bool muted);
   bool get muted;
@@ -38,6 +39,8 @@ class SilentGameAudio implements GameAudio {
   @override
   void startBackground() {}
   @override
+  void stopBackground() {}
+  @override
   void playSfx(GameSfx sfx) {}
   @override
   void setMuted(bool muted) {}
@@ -45,4 +48,14 @@ class SilentGameAudio implements GameAudio {
   bool get muted => false;
   @override
   void dispose() {}
+}
+
+/// Plays MindMaze background music only while on the MindMaze route; stops it
+/// everywhere else. Called on every navigation from the app root.
+void applyMindMazeBackground(String location, GameAudio audio) {
+  if (location == '/mindmaze') {
+    audio.startBackground();
+  } else {
+    audio.stopBackground();
+  }
 }
