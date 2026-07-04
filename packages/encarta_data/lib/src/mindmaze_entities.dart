@@ -60,7 +60,7 @@ const Map<String, String> _entities = {
   'cbreve': 'c̆', 'sbreve': 's̆', 'zbreve': 'z̆',
 };
 
-final RegExp _numericEntity = RegExp(r'&#(x?)([0-9A-Fa-f]+);');
+final RegExp _numericEntity = RegExp(r'&#([xX]?)([0-9A-Fa-f]+);');
 
 /// Returns [text] with its MindMaze SGML/HTML entities decoded to Unicode.
 /// Unrecognized `&name;` tokens are left untouched; numeric `&#DDD;` / `&#xHH;`
@@ -72,7 +72,7 @@ String decodeMindMazeEntities(String text) {
     out = out.replaceAll('&${entry.key};', entry.value);
   }
   out = out.replaceAllMapped(_numericEntity, (m) {
-    final code = int.tryParse(m[2]!, radix: m[1] == 'x' ? 16 : 10);
+    final code = int.tryParse(m[2]!, radix: m[1]!.toLowerCase() == 'x' ? 16 : 10);
     return code == null ? m[0]! : String.fromCharCode(code);
   });
   return out.replaceAll('&amp;', '&'); // last, so &amp;foo; → &foo;
