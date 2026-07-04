@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/app_scope.dart';
 import 'castle_adapter.dart';
+import 'game_audio.dart';
+import 'mindmaze_audio.dart';
 import 'mindmaze_pools.dart';
 import 'room_view.dart';
 
@@ -27,6 +29,25 @@ class _Loaded {
 
 class _MindMazePageState extends State<MindMazePage> {
   Future<_Loaded?>? _future;
+  GameAudio? _audio;
+
+  GameAudio _audioFor(AssetConfig config) {
+    // Guard construction: in headless tests (or if mpv fails) fall back to
+    // silence instead of throwing.
+    if (_audio != null) return _audio!;
+    try {
+      _audio = MindMazeAudio(config);
+    } catch (_) {
+      _audio = const SilentGameAudio();
+    }
+    return _audio!;
+  }
+
+  @override
+  void dispose() {
+    _audio?.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -68,6 +89,7 @@ class _MindMazePageState extends State<MindMazePage> {
         return RoomView(
           maze: loaded.maze,
           config: config,
+          audio: _audioFor(config),
           newGame: () => mm.GameSession(
             maze: loaded.maze,
             pools: loaded.pools,

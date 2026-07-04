@@ -3,6 +3,7 @@ import 'package:encarta_mindmaze/encarta_mindmaze.dart';
 import 'package:flutter/material.dart';
 
 import 'end_screen.dart';
+import 'game_audio.dart';
 import 'mindmaze_art.dart';
 
 /// Renders and drives a MindMaze [GameSession] over [maze]. Owns the session
@@ -14,11 +15,13 @@ class RoomView extends StatefulWidget {
     required this.newGame,
     required this.maze,
     required this.config,
+    this.audio = const SilentGameAudio(),
   });
 
   final GameSession Function() newGame;
   final MazeGraph maze;
   final AssetConfig config;
+  final GameAudio audio;
 
   @override
   State<RoomView> createState() => _RoomViewState();
@@ -27,11 +30,13 @@ class RoomView extends StatefulWidget {
 class _RoomViewState extends State<RoomView> {
   late GameSession _session;
   bool _startFailed = false;
+  bool _muted = false;
 
   @override
   void initState() {
     super.initState();
     _start();
+    if (!_startFailed) widget.audio.startBackground();
   }
 
   // GameSession's constructor throws ArgumentError if an area's pool has no
@@ -47,8 +52,21 @@ class _RoomViewState extends State<RoomView> {
     }
   }
 
-  void _answer(int i) => setState(() => _session.answer(i));
-  void _move(Direction d) => setState(() => _session.move(d));
+  void _answer(int i) {
+    final outcome = _session.answer(i);
+    if (outcome == AnswerOutcome.correct || outcome == AnswerOutcome.won) {
+      widget.audio.playSfx(GameSfx.correct);
+    } else if (outcome == AnswerOutcome.wrong || outcome == AnswerOutcome.lost) {
+      widget.audio.playSfx(GameSfx.wrong);
+    }
+    setState(() {});
+  }
+
+  void _move(Direction d) {
+    widget.audio.playSfx(GameSfx.door);
+    setState(() => _session.move(d));
+  }
+
   void _restart() => setState(_start);
 
   String _directionLabel(Direction d) {
@@ -124,6 +142,18 @@ class _RoomViewState extends State<RoomView> {
             Row(
               key: const ValueKey('mm-lives'),
               children: [
+                IconButton(
+                  key: const ValueKey('mm-mute'),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 18,
+                  icon: Icon(_muted ? Icons.volume_off : Icons.volume_up,
+                      color: Colors.white54),
+                  onPressed: () => setState(() {
+                    _muted = !_muted;
+                    widget.audio.setMuted(_muted);
+                  }),
+                ),
                 for (var i = 0; i < snap.lives; i++)
                   const Icon(Icons.favorite, color: Color(0xFFE0557A), size: 18),
                 const SizedBox(width: 8),

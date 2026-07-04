@@ -2,9 +2,26 @@ import 'dart:math';
 
 import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
+import 'package:encarta_reader/src/screens/mindmaze/game_audio.dart';
 import 'package:encarta_reader/src/screens/mindmaze/room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _RecordingAudio implements GameAudio {
+  final List<GameSfx> sfx = [];
+  int backgroundStarts = 0;
+  bool _muted = false;
+  @override
+  void startBackground() => backgroundStarts++;
+  @override
+  void playSfx(GameSfx s) => sfx.add(s);
+  @override
+  void setMuted(bool m) => _muted = m;
+  @override
+  bool get muted => _muted;
+  @override
+  void dispose() {}
+}
 
 Question _q(int id, int area) => Question(
       id: id, area: area, clue: 'clue $id',
@@ -28,11 +45,12 @@ GameSession _newGame({int lives = 3}) => GameSession(
       random: Random(1),
     );
 
-Widget _app({int lives = 3}) => MaterialApp(
+Widget _app({int lives = 3, GameAudio? audio}) => MaterialApp(
       home: RoomView(
         newGame: () => _newGame(lives: lives),
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'), // art → placeholders
+        audio: audio ?? _RecordingAudio(),
       ),
     );
 
@@ -116,6 +134,49 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-start-failed')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('starts background music on entry and plays SFX on outcomes',
+      (tester) async {
+    final audio = _RecordingAudio();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        audio: audio,
+      ),
+    ));
+    await tester.pump();
+    expect(audio.backgroundStarts, 1);
+
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.wrong));
+
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.correct));
+
+    await tester.tap(find.byKey(const ValueKey('mm-door-right')));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.door));
+  });
+
+  testWidgets('mute button toggles audio mute', (tester) async {
+    final audio = _RecordingAudio();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        audio: audio,
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-mute')));
+    await tester.pump();
+    expect(audio.muted, isTrue);
   });
 }
 
