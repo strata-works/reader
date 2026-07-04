@@ -65,3 +65,25 @@ CREATE TABLE mm_answer (
   is_correct    INTEGER,
   flag          INTEGER
 );
+
+CREATE TABLE mm_room (
+  id           TEXT NOT NULL PRIMARY KEY,
+  area         INTEGER,
+  backdrop_id  TEXT,
+  character_id TEXT,
+  is_goal      INTEGER
+);
+
+CREATE TABLE mm_door (
+  room_id        TEXT NOT NULL,
+  direction      TEXT NOT NULL,
+  target_room_id TEXT,
+  PRIMARY KEY (room_id, direction)
+);
+
+CREATE TABLE mm_character (
+  id          TEXT NOT NULL PRIMARY KEY,
+  sprite_set  TEXT,
+  greeting    TEXT,
+  banter_json TEXT
+);

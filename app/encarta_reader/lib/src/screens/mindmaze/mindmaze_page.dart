@@ -6,6 +6,7 @@ import 'package:encarta_mindmaze/encarta_mindmaze.dart' as mm;
 import 'package:flutter/material.dart';
 
 import '../../widgets/app_scope.dart';
+import 'castle_adapter.dart';
 import 'mindmaze_pools.dart';
 import 'room_view.dart';
 
@@ -17,8 +18,15 @@ class MindMazePage extends StatefulWidget {
   State<MindMazePage> createState() => _MindMazePageState();
 }
 
+/// The loaded maze plus its question pools — everything RoomView needs.
+class _Loaded {
+  const _Loaded(this.maze, this.pools);
+  final mm.MazeGraph maze;
+  final Map<int, List<mm.Question>> pools;
+}
+
 class _MindMazePageState extends State<MindMazePage> {
-  Future<Map<int, List<mm.Question>>?>? _future;
+  Future<_Loaded?>? _future;
 
   @override
   void didChangeDependencies() {
@@ -29,18 +37,21 @@ class _MindMazePageState extends State<MindMazePage> {
       _future = Future.value(null);
       return;
     }
-    // Coupling: the loaded pools' areas must cover every room.area used by
-    // the maze below. buildMindMazePools defaults to areas [0,1], and
-    // minimalMaze() uses exactly {0,1} — keep them in sync if either changes.
-    _future = buildMindMazePools(
-      mindmazeQuestions: (area) => db.mindmazeQuestions(area: area),
-    );
+    _future = () async {
+      // Build the authentic castle, then load exactly the pools its rooms use.
+      final maze = castleToMaze(await db.mindmazeCastle());
+      final pools = await buildMindMazePools(
+        areas: mazeAreas(maze),
+        mindmazeQuestions: (area) => db.mindmazeQuestions(area: area),
+      );
+      return _Loaded(maze, pools);
+    }();
   }
 
   @override
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
-    return FutureBuilder<Map<int, List<mm.Question>>?>(
+    return FutureBuilder<_Loaded?>(
       future: _future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
@@ -49,18 +60,17 @@ class _MindMazePageState extends State<MindMazePage> {
         if (snap.hasError) {
           return const Center(child: Text('MindMaze could not start.'));
         }
-        final pools = snap.data;
-        if (pools == null || pools.values.any((l) => l.isEmpty)) {
+        final loaded = snap.data;
+        if (loaded == null || loaded.pools.values.any((l) => l.isEmpty)) {
           return const Center(child: Text('MindMaze questions are unavailable.'));
         }
-        final maze = mm.minimalMaze();
         final config = scope.assets?.config ?? const AssetConfig.defaultConfig();
         return RoomView(
-          maze: maze,
+          maze: loaded.maze,
           config: config,
           newGame: () => mm.GameSession(
-            maze: maze,
-            pools: pools,
+            maze: loaded.maze,
+            pools: loaded.pools,
             config: const mm.GameConfig(),
             random: Random(),
           ),

@@ -2,6 +2,7 @@ import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
 import 'package:flutter/material.dart';
 
+import 'end_screen.dart';
 import 'mindmaze_art.dart';
 
 /// Renders and drives a MindMaze [GameSession] over [maze]. Owns the session
@@ -92,12 +93,15 @@ class _RoomViewState extends State<RoomView> {
                 _dialogPanel(snap, room),
               ],
             ),
+            // The won end-screen and the lost overlay both key their restart
+            // button 'mm-restart'. That is safe only because these two branches
+            // are mutually exclusive (status is never both) — never render both
+            // at once or the shared key collides.
             if (snap.status == GameStatus.won)
-              _overlay(
-                key: const ValueKey('mm-won'),
-                title: "You've won the castle!",
-                subtitle: 'Final score: ${snap.score}',
-                buttonLabel: 'Play again',
+              MindMazeEndScreen(
+                config: widget.config,
+                score: snap.score,
+                onPlayAgain: _restart,
               ),
             if (snap.status == GameStatus.lost)
               _overlay(
@@ -207,10 +211,15 @@ class _RoomViewState extends State<RoomView> {
       width: double.infinity,
       color: const Color(0xFF201A2A),
       padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 260),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
       ),
     );
   }
