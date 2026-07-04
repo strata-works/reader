@@ -63,6 +63,11 @@ class _RoomViewState extends State<RoomView> {
   // mismatch. Guard construction so a bad pool degrades gracefully instead of
   // throwing inside initState/setState (never a red screen).
   void _start() {
+    _banterLine = null;
+    _banterRoom = '';
+    _banterIdx = 0;
+    _learnMoreRefid = null;
+    _frame = 0;
     try {
       _session = widget.newGame();
       _startFailed = false;

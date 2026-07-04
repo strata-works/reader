@@ -234,6 +234,21 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-learn-more')), findsNothing);
   });
+
+  testWidgets('restart after losing clears stale banter (no per-session UI state leak)',
+      (tester) async {
+    await tester.pumpWidget(_app(lives: 1));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-lost')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-restart')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+  });
 }
 
 // Helpers that locate the correct/wrong answer button by the label convention.
