@@ -188,6 +188,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byKey(const ValueKey('mm-art-missing-jester3')), findsOneWidget);
   });
+
+  testWidgets('tapping the character cycles its banter lines', (tester) async {
+    await tester.pumpWidget(_app()); // atrium jester has banter
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    // Next tap advances to the second line.
+    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
+    await tester.pump();
+    expect(find.text('Riddle me this, or riddle me that!'), findsOneWidget);
+  });
 }
 
 // Helpers that locate the correct/wrong answer button by the label convention.

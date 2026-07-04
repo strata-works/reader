@@ -67,4 +67,26 @@ void main() {
     );
     expect(() => castleToMaze(noAtrium), throwsArgumentError);
   });
+
+  test('castleToMaze carries character banter through', () {
+    final castle = data.MindMazeCastle(
+      characters: [
+        const data.MindMazeCharacter(
+            id: 'jester', spriteSet: 'jester', greeting: 'hi', banter: ['b1', 'b2']),
+      ],
+      rooms: [
+        const data.MindMazeRoom(
+            id: 'atrium', area: 0, backdropId: 'atrium',
+            characterId: 'jester', isGoal: false),
+        const data.MindMazeRoom(
+            id: 'throne', area: 0, backdropId: 'atrium',
+            characterId: 'jester', isGoal: true),
+      ],
+      doors: const [
+        data.MindMazeDoor(roomId: 'atrium', direction: 'right', targetRoomId: 'throne'),
+      ],
+    );
+    final maze = castleToMaze(castle);
+    expect(maze.room('atrium').character.banter, ['b1', 'b2']);
+  });
 }

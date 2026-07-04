@@ -35,6 +35,9 @@ class _RoomViewState extends State<RoomView> {
   bool _muted = false;
   Timer? _spriteTimer;
   int _frame = 0;
+  String? _banterLine;
+  int _banterIdx = 0;
+  String _banterRoom = '';
 
   @override
   void initState() {
@@ -81,6 +84,20 @@ class _RoomViewState extends State<RoomView> {
   }
 
   void _restart() => setState(_start);
+
+  void _tapCharacter(Room room) {
+    final banter = room.character.banter;
+    if (banter.isEmpty) return;
+    setState(() {
+      if (_banterRoom != room.id) {
+        _banterRoom = room.id;
+        _banterIdx = 0;
+      } else {
+        _banterIdx = (_banterIdx + 1) % banter.length;
+      }
+      _banterLine = banter[_banterIdx];
+    });
+  }
 
   String _directionLabel(Direction d) {
     switch (d) {
@@ -202,7 +219,11 @@ class _RoomViewState extends State<RoomView> {
           alignment: Alignment.bottomCenter,
           child: FractionallySizedBox(
             heightFactor: 0.8,
-            child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
+            child: GestureDetector(
+              key: const ValueKey('mm-character-tap'),
+              onTap: () => _tapCharacter(room),
+              child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
+            ),
           ),
         ),
       ],
@@ -217,6 +238,15 @@ class _RoomViewState extends State<RoomView> {
         child: Text(snap.lastCharacterLine!,
             style: const TextStyle(
                 color: Colors.white, fontStyle: FontStyle.italic)),
+      ));
+    }
+    if (_banterLine != null && _banterRoom == snap.currentRoomId) {
+      children.add(Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(_banterLine!,
+            key: const ValueKey('mm-banter'),
+            style: const TextStyle(
+                color: Colors.white70, fontStyle: FontStyle.italic)),
       ));
     }
     // Only show answer/door buttons while actually playing — once the game

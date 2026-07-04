@@ -55,6 +55,7 @@ mm.MazeGraph castleToMaze(data.MindMazeCastle castle) {
         greeting: c?.greeting ?? '',
         approve: _genericApprove,
         rebuff: _genericRebuff,
+        banter: c?.banter ?? const [],
       ),
       doors: doorsByRoom[r.id] ?? const [],
     );
