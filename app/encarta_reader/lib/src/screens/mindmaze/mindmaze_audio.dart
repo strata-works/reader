@@ -64,7 +64,7 @@ class MindMazeAudio implements GameAudio {
       p.stream.completed.listen((done) {
         if (done) p.dispose();
       });
-      p.open(Media(file.path), play: true);
+      p.open(Media(file.path), play: true).catchError((_) {});
     } catch (_) {/* ignore */}
   }
 
