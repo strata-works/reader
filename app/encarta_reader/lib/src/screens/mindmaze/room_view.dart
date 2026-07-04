@@ -18,12 +18,14 @@ class RoomView extends StatefulWidget {
     required this.maze,
     required this.config,
     this.audio = const SilentGameAudio(),
+    this.onOpenArticle,
   });
 
   final GameSession Function() newGame;
   final MazeGraph maze;
   final AssetConfig config;
   final GameAudio audio;
+  final void Function(int refid)? onOpenArticle;
 
   @override
   State<RoomView> createState() => _RoomViewState();
@@ -38,6 +40,7 @@ class _RoomViewState extends State<RoomView> {
   String? _banterLine;
   int _banterIdx = 0;
   String _banterRoom = '';
+  int? _learnMoreRefid;
 
   @override
   void initState() {
@@ -69,9 +72,12 @@ class _RoomViewState extends State<RoomView> {
   }
 
   void _answer(int i) {
+    final q = _session.snapshot.currentQuestion;
     final outcome = _session.answer(i);
     if (outcome == AnswerOutcome.correct || outcome == AnswerOutcome.won) {
       widget.audio.playSfx(GameSfx.correct);
+      _learnMoreRefid =
+          q?.choices.firstWhere((c) => c.isCorrect).articleRefid;
     } else if (outcome == AnswerOutcome.wrong || outcome == AnswerOutcome.lost) {
       widget.audio.playSfx(GameSfx.wrong);
     }
@@ -80,6 +86,7 @@ class _RoomViewState extends State<RoomView> {
 
   void _move(Direction d) {
     widget.audio.playSfx(GameSfx.door);
+    _learnMoreRefid = null;
     setState(() => _session.move(d));
   }
 
@@ -268,6 +275,17 @@ class _RoomViewState extends State<RoomView> {
           ));
         }
       } else if (snap.currentRoomCleared) {
+        if (widget.onOpenArticle != null && _learnMoreRefid != null) {
+          children.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: TextButton.icon(
+              key: const ValueKey('mm-learn-more'),
+              icon: const Icon(Icons.menu_book, size: 18),
+              label: const Text('Learn more'),
+              onPressed: () => widget.onOpenArticle!(_learnMoreRefid!),
+            ),
+          ));
+        }
         for (final door in room.doors) {
           children.add(Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),

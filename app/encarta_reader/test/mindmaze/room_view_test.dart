@@ -202,6 +202,38 @@ void main() {
     await tester.pump();
     expect(find.text('Riddle me this, or riddle me that!'), findsOneWidget);
   });
+
+  testWidgets('cleared room shows Learn more → opens the correct answer article',
+      (tester) async {
+    int? opened;
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        onOpenArticle: (refid) => opened = refid,
+      ),
+    ));
+    await tester.pump();
+    // Capture the correct choice's refid from the posed question before answering.
+    final correctBtn = _correctAnswerFinder(tester);
+    await tester.tap(correctBtn);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-learn-more')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-learn-more')));
+    await tester.pump();
+    // _q() sets the correct choice's articleRefid == its question id (>= 0).
+    expect(opened, isNotNull);
+    expect(opened! >= 0, isTrue);
+  });
+
+  testWidgets('no Learn more when onOpenArticle is not provided', (tester) async {
+    await tester.pumpWidget(_app()); // default: onOpenArticle == null
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-learn-more')), findsNothing);
+  });
 }
 
 // Helpers that locate the correct/wrong answer button by the label convention.

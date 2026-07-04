@@ -90,6 +90,7 @@ class _MindMazePageState extends State<MindMazePage> {
           maze: loaded.maze,
           config: config,
           audio: _audioFor(config),
+          onOpenArticle: (refid) => scope.navigator.openArticle(refid),
           newGame: () => mm.GameSession(
             maze: loaded.maze,
             pools: loaded.pools,
