@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
 import 'package:flutter/material.dart';
@@ -31,12 +33,23 @@ class _RoomViewState extends State<RoomView> {
   late GameSession _session;
   bool _startFailed = false;
   bool _muted = false;
+  Timer? _spriteTimer;
+  int _frame = 0;
 
   @override
   void initState() {
     super.initState();
     _start();
     if (!_startFailed) widget.audio.startBackground();
+    _spriteTimer = Timer.periodic(const Duration(milliseconds: 400), (_) {
+      if (mounted) setState(() => _frame++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _spriteTimer?.cancel();
+    super.dispose();
   }
 
   // GameSession's constructor throws ArgumentError if an area's pool has no
@@ -178,23 +191,23 @@ class _RoomViewState extends State<RoomView> {
         ),
       );
 
-  Widget _scene(Room room) => Stack(
-        fit: StackFit.expand,
-        children: [
-          mindMazeArt(widget.config, room.backdropId, fit: BoxFit.cover),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: 0.8,
-              child: mindMazeArt(
-                widget.config,
-                spriteFrameFor(room.character.spriteSetId),
-                fit: BoxFit.contain,
-              ),
-            ),
+  Widget _scene(Room room) {
+    final frames = framesFor(room.character.spriteSetId);
+    final frameId = frames[_frame % frames.length];
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        mindMazeArt(widget.config, room.backdropId, fit: BoxFit.cover),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            heightFactor: 0.8,
+            child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
   Widget _dialogPanel(GameSnapshot snap, Room room) {
     final children = <Widget>[];

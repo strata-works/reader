@@ -24,24 +24,24 @@ Widget _placeholder(String id) => Container(
       ),
     );
 
-// One representative transcoded frame per character sprite set (Phase 4 uses a
-// single frame; multi-frame animation is Phase 6).
-const _spriteFrame = <String, String>{
-  'jester': 'jester1',
-  'king': 'king1',
-  'duke': 'duke1',
-  'suitarm': 'suitarm1', // guard
-  'secnldy': 'secnldy1', // lady
-  'servant': 'servant1',
-  // Sets whose art id has no numeric suffix resolve to themselves via the
-  // fallback below, but list them for clarity:
-  'sorceres': 'sorceres',
-  'alchem': 'alchem',
-  'asiantra': 'asiantra', // merchant
-  'parrot': 'parrot',
-  'maninst': 'maninst', // prisoner
+// Ordered transcoded frames per character sprite set. Multi-frame sets animate
+// (Phase 6); single-frame sets render statically. Frame ids match the extracted
+// .dib names transcoded by tool/transcode_mindmaze_art.dart.
+const _spriteFrames = <String, List<String>>{
+  'jester': ['jester1', 'jester2', 'jester3', 'jester4'],
+  'duke': ['duke1', 'duke2', 'duke3'],
+  'suitarm': ['suitarm1', 'suitarm2'], // guard
+  'secnldy': ['secnldy1', 'secnldy2'], // lady
+  'servant': ['servant1', 'servant2'],
+  'king': ['king1'],
+  'sorceres': ['sorceres'],
+  'alchem': ['alchem'],
+  'asiantra': ['asiantra'], // merchant
+  'parrot': ['parrot'],
+  'maninst': ['maninst'], // prisoner
 };
 
-/// The transcoded frame id for a character [spriteSetId]; falls back to the id
-/// itself if the set is unknown.
-String spriteFrameFor(String spriteSetId) => _spriteFrame[spriteSetId] ?? spriteSetId;
+/// The ordered transcoded frame ids for a character [spriteSetId]; a single
+/// element for static sets, or `[spriteSetId]` if the set is unknown.
+List<String> framesFor(String spriteSetId) =>
+    _spriteFrames[spriteSetId] ?? [spriteSetId];

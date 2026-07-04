@@ -178,6 +178,16 @@ void main() {
     await tester.pump();
     expect(audio.muted, isTrue);
   });
+
+  testWidgets('the character sprite cycles frames over time', (tester) async {
+    await tester.pumpWidget(_app()); // atrium → jester (4 frames)
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-art-missing-jester1')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('mm-art-missing-jester2')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('mm-art-missing-jester3')), findsOneWidget);
+  });
 }
 
 // Helpers that locate the correct/wrong answer button by the label convention.
