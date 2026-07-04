@@ -6,6 +6,7 @@ import 'data/title_cache.dart';
 import 'nav/app_navigator.dart';
 import 'nav/app_router.dart';
 import 'nav/history_controller.dart';
+import 'screens/mindmaze/mindmaze_game_holder.dart';
 import 'widgets/app_scope.dart';
 import 'widgets/top_toolbar.dart';
 
@@ -23,6 +24,7 @@ class _EncartaReaderAppState extends State<EncartaReaderApp> {
   late final _theme = EncartaTheme.faithfulInSpirit();
   late final AppNavigator _navigator;
   late final ArticleTitleCache _titles;
+  final _mindMazeGame = MindMazeGameHolder();
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _EncartaReaderAppState extends State<EncartaReaderApp> {
       theme: _theme,
       navigator: _navigator,
       titles: _titles,
+      mindMazeGame: _mindMazeGame,
       child: MaterialApp.router(
         title: 'Encarta Reader',
         debugShowCheckedModeBanner: false,

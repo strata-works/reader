@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
 import 'package:encarta_reader/src/screens/mindmaze/game_audio.dart';
+import 'package:encarta_reader/src/screens/mindmaze/mindmaze_game_holder.dart';
 import 'package:encarta_reader/src/screens/mindmaze/room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,12 +46,14 @@ GameSession _newGame({int lives = 3}) => GameSession(
       random: Random(1),
     );
 
-Widget _app({int lives = 3, GameAudio? audio}) => MaterialApp(
+Widget _app({int lives = 3, GameAudio? audio, MindMazeGameHolder? holder}) =>
+    MaterialApp(
       home: RoomView(
         newGame: () => _newGame(lives: lives),
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'), // art → placeholders
         audio: audio ?? _RecordingAudio(),
+        holder: holder ?? MindMazeGameHolder(),
       ),
     );
 
@@ -129,6 +132,7 @@ void main() {
         newGame: () => throw ArgumentError('boom'),
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'),
+        holder: MindMazeGameHolder(),
       ),
     ));
     await tester.pump();
@@ -145,6 +149,7 @@ void main() {
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'),
         audio: audio,
+        holder: MindMazeGameHolder(),
       ),
     ));
     await tester.pump();
@@ -171,6 +176,7 @@ void main() {
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'),
         audio: audio,
+        holder: MindMazeGameHolder(),
       ),
     ));
     await tester.pump();
@@ -183,23 +189,21 @@ void main() {
     await tester.pumpWidget(_app()); // atrium → jester (4 frames)
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-art-missing-jester1')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 800));
     expect(find.byKey(const ValueKey('mm-art-missing-jester2')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 800));
     expect(find.byKey(const ValueKey('mm-art-missing-jester3')), findsOneWidget);
   });
 
-  testWidgets('tapping the character cycles its banter lines', (tester) async {
+  testWidgets('banter auto-advances over time without tapping', (tester) async {
     await tester.pumpWidget(_app()); // atrium jester has banter
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
-    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
     expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
     expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
-    // Next tap advances to the second line.
-    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
-    await tester.pump();
+    // The next tick advances to the second line.
+    await tester.pump(const Duration(seconds: 4));
     expect(find.text('Riddle me this, or riddle me that!'), findsOneWidget);
   });
 
@@ -212,6 +216,7 @@ void main() {
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'),
         onOpenArticle: (refid) => opened = refid,
+        holder: MindMazeGameHolder(),
       ),
     ));
     await tester.pump();
@@ -239,8 +244,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(_app(lives: 1));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('mm-character-tap')));
-    await tester.pump();
+    await tester.pump(const Duration(seconds: 4)); // auto-banter fires
     expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
     await tester.tap(_wrongAnswerFinder(tester));
     await tester.pump();
@@ -248,6 +252,53 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('mm-restart')));
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+  });
+
+  testWidgets('game state survives page re-inflation via the holder', (tester) async {
+    final holder = MindMazeGameHolder();
+    Widget app() => MaterialApp(
+          home: RoomView(
+            newGame: _newGame,
+            maze: minimalMaze(),
+            config: const AssetConfig('/no/such/dir'),
+            holder: holder,
+          ),
+        );
+    await tester.pumpWidget(app());
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester)); // clear the atrium
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-door-right')), findsOneWidget);
+
+    // Simulate Back re-inflating a fresh page: throw away this RoomView, build a new one.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(app());
+    await tester.pump();
+    // Restored: the atrium is still cleared (door buttons), NOT a fresh question.
+    expect(find.byKey(const ValueKey('mm-door-right')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mm-answer-0')), findsNothing);
+  });
+
+  testWidgets('explicit restart forces a fresh session even with a populated holder',
+      (tester) async {
+    final holder = MindMazeGameHolder();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: () => _newGame(lives: 1),
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        holder: holder,
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-lost')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-restart')));
+    await tester.pump();
+    // Fresh game: back to full lives and an answering state, not the lost overlay.
+    expect(find.byKey(const ValueKey('mm-lost')), findsNothing);
+    expect(find.byKey(const ValueKey('mm-answer-0')), findsOneWidget);
   });
 }
 

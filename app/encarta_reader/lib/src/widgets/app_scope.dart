@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../data/title_cache.dart';
 import '../nav/app_navigator.dart';
+import '../screens/mindmaze/mindmaze_game_holder.dart';
 
 /// Carries app-wide singletons to every screen.
 class AppScope extends InheritedWidget {
@@ -13,6 +14,7 @@ class AppScope extends InheritedWidget {
   final EncartaTheme theme;
   final AppNavigator navigator;
   final ArticleTitleCache titles;
+  final MindMazeGameHolder mindMazeGame;
 
   const AppScope({
     super.key,
@@ -21,6 +23,7 @@ class AppScope extends InheritedWidget {
     required this.theme,
     required this.navigator,
     required this.titles,
+    required this.mindMazeGame,
     required super.child,
   });
 
@@ -36,5 +39,6 @@ class AppScope extends InheritedWidget {
       assets != oldWidget.assets ||
       theme != oldWidget.theme ||
       navigator != oldWidget.navigator ||
-      titles != oldWidget.titles;
+      titles != oldWidget.titles ||
+      mindMazeGame != oldWidget.mindMazeGame;
 }

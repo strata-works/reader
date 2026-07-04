@@ -7,16 +7,22 @@ import 'package:flutter/material.dart';
 import 'end_screen.dart';
 import 'game_audio.dart';
 import 'mindmaze_art.dart';
+import 'mindmaze_game_holder.dart';
 
-/// Renders and drives a MindMaze [GameSession] over [maze]. Owns the session
-/// (built via [newGame], rebuilt on restart); every interaction mutates the
-/// session then setState, and the whole view re-derives from the new snapshot.
+/// Renders and drives a MindMaze [GameSession] over [maze]. The session lives
+/// in [holder] (owned above this page, at app root) so it survives page
+/// re-inflation from push-only navigation (see [MindMazeGameHolder]); this
+/// view restores the existing session on mount and only builds a fresh one
+/// (via [newGame]) when there isn't one yet, or on explicit restart. Every
+/// interaction mutates the session then setState, and the whole view
+/// re-derives from the new snapshot.
 class RoomView extends StatefulWidget {
   const RoomView({
     super.key,
     required this.newGame,
     required this.maze,
     required this.config,
+    required this.holder,
     this.audio = const SilentGameAudio(),
     this.onOpenArticle,
   });
@@ -24,6 +30,7 @@ class RoomView extends StatefulWidget {
   final GameSession Function() newGame;
   final MazeGraph maze;
   final AssetConfig config;
+  final MindMazeGameHolder holder;
   final GameAudio audio;
   final void Function(int refid)? onOpenArticle;
 
@@ -36,6 +43,7 @@ class _RoomViewState extends State<RoomView> {
   bool _startFailed = false;
   bool _muted = false;
   Timer? _spriteTimer;
+  Timer? _banterTimer;
   int _frame = 0;
   String? _banterLine;
   int _banterIdx = 0;
@@ -47,14 +55,30 @@ class _RoomViewState extends State<RoomView> {
     super.initState();
     _start();
     if (!_startFailed) widget.audio.startBackground();
-    _spriteTimer = Timer.periodic(const Duration(milliseconds: 400), (_) {
+    _spriteTimer = Timer.periodic(const Duration(milliseconds: 800), (_) {
       if (mounted) setState(() => _frame++);
+    });
+    _banterTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || _startFailed) return;
+      final room = widget.maze.room(_session.snapshot.currentRoomId);
+      final banter = room.character.banter;
+      if (banter.isEmpty) return;
+      setState(() {
+        if (_banterRoom != room.id) {
+          _banterRoom = room.id;
+          _banterIdx = 0;
+        } else {
+          _banterIdx = (_banterIdx + 1) % banter.length;
+        }
+        _banterLine = banter[_banterIdx];
+      });
     });
   }
 
   @override
   void dispose() {
     _spriteTimer?.cancel();
+    _banterTimer?.cancel();
     super.dispose();
   }
 
@@ -62,14 +86,22 @@ class _RoomViewState extends State<RoomView> {
   // posable question (exactly one correct choice) — e.g. a maze/pool area
   // mismatch. Guard construction so a bad pool degrades gracefully instead of
   // throwing inside initState/setState (never a red screen).
-  void _start() {
+  //
+  // The session lives in widget.holder so it survives page re-inflation
+  // (push-only navigation re-creates RoomView, e.g. after "Learn more" ->
+  // Back). Restore the holder's existing session unless fresh is requested
+  // (explicit restart) or there isn't one yet.
+  void _start({bool fresh = false}) {
     _banterLine = null;
     _banterRoom = '';
     _banterIdx = 0;
     _learnMoreRefid = null;
     _frame = 0;
     try {
-      _session = widget.newGame();
+      if (fresh || widget.holder.session == null) {
+        widget.holder.session = widget.newGame();
+      }
+      _session = widget.holder.session!;
       _startFailed = false;
     } catch (_) {
       _startFailed = true;
@@ -92,24 +124,13 @@ class _RoomViewState extends State<RoomView> {
   void _move(Direction d) {
     widget.audio.playSfx(GameSfx.door);
     _learnMoreRefid = null;
+    _banterLine = null;
+    _banterRoom = '';
+    _banterIdx = 0;
     setState(() => _session.move(d));
   }
 
-  void _restart() => setState(_start);
-
-  void _tapCharacter(Room room) {
-    final banter = room.character.banter;
-    if (banter.isEmpty) return;
-    setState(() {
-      if (_banterRoom != room.id) {
-        _banterRoom = room.id;
-        _banterIdx = 0;
-      } else {
-        _banterIdx = (_banterIdx + 1) % banter.length;
-      }
-      _banterLine = banter[_banterIdx];
-    });
-  }
+  void _restart() => setState(() => _start(fresh: true));
 
   String _directionLabel(Direction d) {
     switch (d) {
@@ -232,11 +253,7 @@ class _RoomViewState extends State<RoomView> {
           alignment: Alignment.bottomCenter,
           child: FractionallySizedBox(
             heightFactor: 0.8,
-            child: GestureDetector(
-              key: const ValueKey('mm-character-tap'),
-              onTap: () => _tapCharacter(room),
-              child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
-            ),
+            child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
           ),
         ),
       ],

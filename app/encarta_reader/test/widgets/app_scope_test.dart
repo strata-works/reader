@@ -1,6 +1,7 @@
 import 'package:encarta_reader/src/data/title_cache.dart';
 import 'package:encarta_reader/src/nav/app_navigator.dart';
 import 'package:encarta_reader/src/nav/history_controller.dart';
+import 'package:encarta_reader/src/screens/mindmaze/mindmaze_game_holder.dart';
 import 'package:encarta_reader/src/widgets/app_scope.dart';
 import 'package:encarta_render/encarta_render.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ void main() {
         theme: theme,
         navigator: nav,
         titles: titles,
+        mindMazeGame: MindMazeGameHolder(),
         child: Builder(
           builder: (context) {
             captured = AppScope.of(context);
