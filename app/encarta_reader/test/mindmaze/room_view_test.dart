@@ -159,6 +159,10 @@ void main() {
     await tester.pump();
     expect(audio.sfx, contains(GameSfx.wrong));
 
+    // The atrium's jester banter now occupies the scrollable dialog panel
+    // from the moment the room is entered, so scroll the (possibly
+    // off-screen) correct answer into view before tapping it.
+    await tester.ensureVisible(_correctAnswerFinder(tester));
     await tester.tap(_correctAnswerFinder(tester));
     await tester.pump();
     expect(audio.sfx, contains(GameSfx.correct));
@@ -195,16 +199,44 @@ void main() {
     expect(find.byKey(const ValueKey('mm-art-missing-jester3')), findsOneWidget);
   });
 
-  testWidgets('banter auto-advances over time without tapping', (tester) async {
-    await tester.pumpWidget(_app()); // atrium jester has banter
+  testWidgets('banter appears on entry and does NOT rotate while you answer', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // time passing must NOT change it
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    expect(find.text('Riddle me this, or riddle me that!'), findsNothing);
+  });
+
+  testWidgets('character with no banter shows no mm-banter slot', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester)); // clear the atrium
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-right'))); // atrium -> library (king)
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
-    await tester.pump(const Duration(seconds: 4));
-    expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
+  });
+
+  testWidgets('banter advances to the next line on re-encounter', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
     expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
-    // The next tick advances to the second line.
-    await tester.pump(const Duration(seconds: 4));
+
+    // atrium(jester) -> right -> library(king)
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-right')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+
+    // library(king) -> left -> atrium(jester again)
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-left')));
+    await tester.pump();
     expect(find.text('Riddle me this, or riddle me that!'), findsOneWidget);
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsNothing);
   });
 
   testWidgets('cleared room shows Learn more → opens the correct answer article',
@@ -240,18 +272,19 @@ void main() {
     expect(find.byKey(const ValueKey('mm-learn-more')), findsNothing);
   });
 
-  testWidgets('restart after losing clears stale banter (no per-session UI state leak)',
+  testWidgets('restart after losing shows the fresh first banter line (no stale index leak)',
       (tester) async {
     await tester.pumpWidget(_app(lives: 1));
     await tester.pump();
-    await tester.pump(const Duration(seconds: 4)); // auto-banter fires
-    expect(find.byKey(const ValueKey('mm-banter')), findsOneWidget);
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
     await tester.tap(_wrongAnswerFinder(tester));
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-lost')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('mm-restart')));
     await tester.pump();
-    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+    // Fresh restart re-meets the start-room jester: first line again, not stale/advanced.
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    expect(find.text('Riddle me this, or riddle me that!'), findsNothing);
   });
 
   testWidgets('game state survives page re-inflation via the holder', (tester) async {

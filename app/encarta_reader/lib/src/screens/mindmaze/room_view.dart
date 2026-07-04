@@ -43,10 +43,9 @@ class _RoomViewState extends State<RoomView> {
   bool _startFailed = false;
   bool _muted = false;
   Timer? _spriteTimer;
-  Timer? _banterTimer;
   int _frame = 0;
   String? _banterLine;
-  int _banterIdx = 0;
+  final Map<String, int> _banterSeen = {};
   String _banterRoom = '';
   int? _learnMoreRefid;
 
@@ -58,27 +57,11 @@ class _RoomViewState extends State<RoomView> {
     _spriteTimer = Timer.periodic(const Duration(milliseconds: 800), (_) {
       if (mounted) setState(() => _frame++);
     });
-    _banterTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted || _startFailed) return;
-      final room = widget.maze.room(_session.snapshot.currentRoomId);
-      final banter = room.character.banter;
-      if (banter.isEmpty) return;
-      setState(() {
-        if (_banterRoom != room.id) {
-          _banterRoom = room.id;
-          _banterIdx = 0;
-        } else {
-          _banterIdx = (_banterIdx + 1) % banter.length;
-        }
-        _banterLine = banter[_banterIdx];
-      });
-    });
   }
 
   @override
   void dispose() {
     _spriteTimer?.cancel();
-    _banterTimer?.cancel();
     super.dispose();
   }
 
@@ -94,7 +77,7 @@ class _RoomViewState extends State<RoomView> {
   void _start({bool fresh = false}) {
     _banterLine = null;
     _banterRoom = '';
-    _banterIdx = 0;
+    _banterSeen.clear();
     _learnMoreRefid = null;
     _frame = 0;
     try {
@@ -103,9 +86,27 @@ class _RoomViewState extends State<RoomView> {
       }
       _session = widget.holder.session!;
       _startFailed = false;
+      _showBanterForCurrentRoom();
     } catch (_) {
       _startFailed = true;
     }
+  }
+
+  // Banter changes per ENCOUNTER: show a fresh line the moment you meet a
+  // character (entering their room), then hold it fixed while you answer.
+  // The next line only appears the next time you meet that character again.
+  void _showBanterForCurrentRoom() {
+    if (_startFailed) return;
+    final room = widget.maze.room(_session.snapshot.currentRoomId);
+    _banterRoom = room.id;
+    final banter = room.character.banter;
+    if (banter.isEmpty) {
+      _banterLine = null;
+      return;
+    }
+    final n = _banterSeen[room.character.id] ?? 0;
+    _banterLine = banter[n % banter.length];
+    _banterSeen[room.character.id] = n + 1;
   }
 
   void _answer(int i) {
@@ -124,10 +125,10 @@ class _RoomViewState extends State<RoomView> {
   void _move(Direction d) {
     widget.audio.playSfx(GameSfx.door);
     _learnMoreRefid = null;
-    _banterLine = null;
-    _banterRoom = '';
-    _banterIdx = 0;
-    setState(() => _session.move(d));
+    setState(() {
+      _session.move(d);
+      _showBanterForCurrentRoom();
+    });
   }
 
   void _restart() => setState(() => _start(fresh: true));
