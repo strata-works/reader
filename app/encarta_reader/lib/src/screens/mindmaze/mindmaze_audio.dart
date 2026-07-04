@@ -5,10 +5,11 @@ import 'package:media_kit/media_kit.dart';
 
 import 'game_audio.dart';
 
-/// Real game audio over media_kit. One looping background player (MIDI, falling
-/// back to a looping ambience .wav if the .mid won't open) plus a short-lived
-/// player per SFX. Every media call is guarded so a playback failure degrades to
-/// silence rather than crashing the game. mpv is initialized at app bootstrap
+/// Real game audio over media_kit. One looping background player (the
+/// fluidsynth-rendered BGLOOP1.wav music, falling back to a looping ambience
+/// .wav if the rendered music is absent) plus a short-lived player per SFX.
+/// Every media call is guarded so a playback failure degrades to silence rather
+/// than crashing the game. mpv is initialized at app bootstrap
 /// (`MediaKit.ensureInitialized()`), so no per-instance init here.
 class MindMazeAudio implements GameAudio {
   MindMazeAudio(this.config);
@@ -35,13 +36,15 @@ class MindMazeAudio implements GameAudio {
   }
 
   Future<void> _openBackground(Player bg) async {
-    final mid = File(audioAssetPath(config, 'BGLOOP1', 'mid'));
+    // mpv cannot synthesize MIDI, so the background is the pre-rendered
+    // BGLOOP1.wav (fluidsynth-rendered from BGLOOP1.mid by the
+    // copy_mindmaze_audio dev tool). Fall back to a looping ambience .wav if the
+    // rendered music is absent, so there is always background audio.
+    final music = File(audioAssetPath(config, 'BGLOOP1', 'wav'));
     final amb = File(audioAssetPath(config, 'amb1', 'wav'));
-    // Prefer MIDI; if the file is absent or mpv fails to open it, fall back to a
-    // looping ambience .wav so there is always background audio.
     try {
-      if (mid.existsSync()) {
-        await bg.open(Media(mid.path), play: !_muted);
+      if (music.existsSync()) {
+        await bg.open(Media(music.path), play: !_muted);
         return;
       }
     } catch (_) {/* fall through to ambience */}
