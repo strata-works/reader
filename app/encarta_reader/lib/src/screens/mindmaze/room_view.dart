@@ -1,24 +1,38 @@
+import 'dart:async';
+
 import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
 import 'package:flutter/material.dart';
 
 import 'end_screen.dart';
+import 'game_audio.dart';
 import 'mindmaze_art.dart';
+import 'mindmaze_game_holder.dart';
 
-/// Renders and drives a MindMaze [GameSession] over [maze]. Owns the session
-/// (built via [newGame], rebuilt on restart); every interaction mutates the
-/// session then setState, and the whole view re-derives from the new snapshot.
+/// Renders and drives a MindMaze [GameSession] over [maze]. The session lives
+/// in [holder] (owned above this page, at app root) so it survives page
+/// re-inflation from push-only navigation (see [MindMazeGameHolder]); this
+/// view restores the existing session on mount and only builds a fresh one
+/// (via [newGame]) when there isn't one yet, or on explicit restart. Every
+/// interaction mutates the session then setState, and the whole view
+/// re-derives from the new snapshot.
 class RoomView extends StatefulWidget {
   const RoomView({
     super.key,
     required this.newGame,
     required this.maze,
     required this.config,
+    required this.holder,
+    this.audio = const SilentGameAudio(),
+    this.onOpenArticle,
   });
 
   final GameSession Function() newGame;
   final MazeGraph maze;
   final AssetConfig config;
+  final MindMazeGameHolder holder;
+  final GameAudio audio;
+  final void Function(int refid)? onOpenArticle;
 
   @override
   State<RoomView> createState() => _RoomViewState();
@@ -27,29 +41,96 @@ class RoomView extends StatefulWidget {
 class _RoomViewState extends State<RoomView> {
   late GameSession _session;
   bool _startFailed = false;
+  bool _muted = false;
+  Timer? _spriteTimer;
+  int _frame = 0;
+  String? _banterLine;
+  final Map<String, int> _banterSeen = {};
+  String _banterRoom = '';
+  int? _learnMoreRefid;
 
   @override
   void initState() {
     super.initState();
     _start();
+    _spriteTimer = Timer.periodic(const Duration(milliseconds: 800), (_) {
+      if (mounted) setState(() => _frame++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _spriteTimer?.cancel();
+    super.dispose();
   }
 
   // GameSession's constructor throws ArgumentError if an area's pool has no
   // posable question (exactly one correct choice) — e.g. a maze/pool area
   // mismatch. Guard construction so a bad pool degrades gracefully instead of
   // throwing inside initState/setState (never a red screen).
-  void _start() {
+  //
+  // The session lives in widget.holder so it survives page re-inflation
+  // (push-only navigation re-creates RoomView, e.g. after "Learn more" ->
+  // Back). Restore the holder's existing session unless fresh is requested
+  // (explicit restart) or there isn't one yet.
+  void _start({bool fresh = false}) {
+    _banterLine = null;
+    _banterRoom = '';
+    _banterSeen.clear();
+    _learnMoreRefid = null;
+    _frame = 0;
     try {
-      _session = widget.newGame();
+      if (fresh || widget.holder.session == null) {
+        widget.holder.session = widget.newGame();
+      }
+      _session = widget.holder.session!;
       _startFailed = false;
+      _showBanterForCurrentRoom();
     } catch (_) {
       _startFailed = true;
     }
   }
 
-  void _answer(int i) => setState(() => _session.answer(i));
-  void _move(Direction d) => setState(() => _session.move(d));
-  void _restart() => setState(_start);
+  // Banter changes per ENCOUNTER: show a fresh line the moment you meet a
+  // character (entering their room), then hold it fixed while you answer.
+  // The next line only appears the next time you meet that character again.
+  void _showBanterForCurrentRoom() {
+    if (_startFailed) return;
+    final room = widget.maze.room(_session.snapshot.currentRoomId);
+    _banterRoom = room.id;
+    final banter = room.character.banter;
+    if (banter.isEmpty) {
+      _banterLine = null;
+      return;
+    }
+    final n = _banterSeen[room.character.id] ?? 0;
+    _banterLine = banter[n % banter.length];
+    _banterSeen[room.character.id] = n + 1;
+  }
+
+  void _answer(int i) {
+    final q = _session.snapshot.currentQuestion;
+    final outcome = _session.answer(i);
+    if (outcome == AnswerOutcome.correct || outcome == AnswerOutcome.won) {
+      widget.audio.playSfx(GameSfx.correct);
+      _learnMoreRefid =
+          q?.choices.firstWhere((c) => c.isCorrect).articleRefid;
+    } else if (outcome == AnswerOutcome.wrong || outcome == AnswerOutcome.lost) {
+      widget.audio.playSfx(GameSfx.wrong);
+    }
+    setState(() {});
+  }
+
+  void _move(Direction d) {
+    widget.audio.playSfx(GameSfx.door);
+    _learnMoreRefid = null;
+    setState(() {
+      _session.move(d);
+      _showBanterForCurrentRoom();
+    });
+  }
+
+  void _restart() => setState(() => _start(fresh: true));
 
   String _directionLabel(Direction d) {
     switch (d) {
@@ -101,6 +182,7 @@ class _RoomViewState extends State<RoomView> {
               MindMazeEndScreen(
                 config: widget.config,
                 score: snap.score,
+                livesRemaining: snap.lives,
                 onPlayAgain: _restart,
               ),
             if (snap.status == GameStatus.lost)
@@ -124,6 +206,18 @@ class _RoomViewState extends State<RoomView> {
             Row(
               key: const ValueKey('mm-lives'),
               children: [
+                IconButton(
+                  key: const ValueKey('mm-mute'),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 18,
+                  icon: Icon(_muted ? Icons.volume_off : Icons.volume_up,
+                      color: Colors.white54),
+                  onPressed: () => setState(() {
+                    _muted = !_muted;
+                    widget.audio.setMuted(_muted);
+                  }),
+                ),
                 for (var i = 0; i < snap.lives; i++)
                   const Icon(Icons.favorite, color: Color(0xFFE0557A), size: 18),
                 const SizedBox(width: 8),
@@ -148,23 +242,23 @@ class _RoomViewState extends State<RoomView> {
         ),
       );
 
-  Widget _scene(Room room) => Stack(
-        fit: StackFit.expand,
-        children: [
-          mindMazeArt(widget.config, room.backdropId, fit: BoxFit.cover),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: 0.8,
-              child: mindMazeArt(
-                widget.config,
-                spriteFrameFor(room.character.spriteSetId),
-                fit: BoxFit.contain,
-              ),
-            ),
+  Widget _scene(Room room) {
+    final frames = framesFor(room.character.spriteSetId);
+    final frameId = frames[_frame % frames.length];
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        mindMazeArt(widget.config, room.backdropId, fit: BoxFit.cover),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            heightFactor: 0.8,
+            child: mindMazeArt(widget.config, frameId, fit: BoxFit.contain),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
   Widget _dialogPanel(GameSnapshot snap, Room room) {
     final children = <Widget>[];
@@ -174,6 +268,15 @@ class _RoomViewState extends State<RoomView> {
         child: Text(snap.lastCharacterLine!,
             style: const TextStyle(
                 color: Colors.white, fontStyle: FontStyle.italic)),
+      ));
+    }
+    if (_banterLine != null && _banterRoom == snap.currentRoomId) {
+      children.add(Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(_banterLine!,
+            key: const ValueKey('mm-banter'),
+            style: const TextStyle(
+                color: Colors.white70, fontStyle: FontStyle.italic)),
       ));
     }
     // Only show answer/door buttons while actually playing — once the game
@@ -195,6 +298,17 @@ class _RoomViewState extends State<RoomView> {
           ));
         }
       } else if (snap.currentRoomCleared) {
+        if (widget.onOpenArticle != null && _learnMoreRefid != null) {
+          children.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: TextButton.icon(
+              key: const ValueKey('mm-learn-more'),
+              icon: const Icon(Icons.menu_book, size: 18),
+              label: const Text('Learn more'),
+              onPressed: () => widget.onOpenArticle!(_learnMoreRefid!),
+            ),
+          ));
+        }
         for (final door in room.doors) {
           children.add(Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),

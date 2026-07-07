@@ -32,18 +32,25 @@ class _MindMazePageState extends State<MindMazePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_future != null) return;
-    final db = AppScope.of(context).db;
+    final scope = AppScope.of(context);
+    final db = scope.db;
+    final holder = scope.mindMazeGame;
     if (db == null) {
       _future = Future.value(null);
       return;
     }
     _future = () async {
+      if (holder.maze != null && holder.pools != null) {
+        return _Loaded(holder.maze!, holder.pools!);
+      }
       // Build the authentic castle, then load exactly the pools its rooms use.
       final maze = castleToMaze(await db.mindmazeCastle());
       final pools = await buildMindMazePools(
         areas: mazeAreas(maze),
         mindmazeQuestions: (area) => db.mindmazeQuestions(area: area),
       );
+      holder.maze = maze;
+      holder.pools = pools;
       return _Loaded(maze, pools);
     }();
   }
@@ -68,6 +75,9 @@ class _MindMazePageState extends State<MindMazePage> {
         return RoomView(
           maze: loaded.maze,
           config: config,
+          audio: scope.mindMazeAudio,
+          onOpenArticle: (refid) => scope.navigator.openArticle(refid),
+          holder: scope.mindMazeGame,
           newGame: () => mm.GameSession(
             maze: loaded.maze,
             pools: loaded.pools,

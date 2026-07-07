@@ -8,6 +8,12 @@ import 'question_picker.dart';
 /// The high-level game state.
 enum GameStatus { playing, won, lost }
 
+/// What a single [GameSession.answer] call did, for the UI's audio/feedback.
+/// `won`/`lost` mean the answer also ended the game. `null` (not a member) is
+/// returned when the call was a no-op (game already over, room already cleared,
+/// or an out-of-range index).
+enum AnswerOutcome { correct, wrong, won, lost }
+
 bool _setEquals(Set<String> a, Set<String> b) =>
     a.length == b.length && a.containsAll(b);
 
@@ -106,18 +112,22 @@ class GameSession {
       );
 
   /// Answer the current question by its index into `snapshot.currentQuestion.choices`.
-  void answer(int choiceIndex) {
-    if (_status != GameStatus.playing) return;
+  AnswerOutcome? answer(int choiceIndex) {
+    if (_status != GameStatus.playing) return null;
     final q = _currentQuestion;
-    if (q == null) return; // room already cleared, nothing to answer
-    if (choiceIndex < 0 || choiceIndex >= q.choices.length) return;
+    if (q == null) return null; // room already cleared, nothing to answer
+    if (choiceIndex < 0 || choiceIndex >= q.choices.length) return null;
     final room = _maze.room(_currentRoomId);
     if (q.choices[choiceIndex].isCorrect) {
       _cleared.add(_currentRoomId);
       _score += _config.pointsPerCorrect;
       _currentQuestion = null;
       _lastLine = _line(room.character.approve);
-      if (_currentRoomId == _maze.goalRoomId) _status = GameStatus.won;
+      if (_currentRoomId == _maze.goalRoomId) {
+        _status = GameStatus.won;
+        return AnswerOutcome.won;
+      }
+      return AnswerOutcome.correct;
     } else {
       _lives -= 1;
       _lastLine = _line(room.character.rebuff);
@@ -125,9 +135,10 @@ class GameSession {
         _lives = 0;
         _status = GameStatus.lost;
         _currentQuestion = null;
-      } else {
-        _poseQuestion(room, avoid: q.id); // retry with a fresh unseen question
+        return AnswerOutcome.lost;
       }
+      _poseQuestion(room, avoid: q.id); // retry with a fresh unseen question
+      return AnswerOutcome.wrong;
     }
   }
 

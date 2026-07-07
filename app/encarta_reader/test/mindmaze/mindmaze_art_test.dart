@@ -26,26 +26,15 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  test('spriteFrameFor maps set ids to representative frames', () {
-    expect(spriteFrameFor('jester'), 'jester1');
-    expect(spriteFrameFor('king'), 'king1');
-    expect(spriteFrameFor('sorceres'), 'sorceres');
-    expect(spriteFrameFor('unknown'), 'unknown'); // fallback: id itself
+  test('framesFor returns all frames of a multi-frame set, in order', () {
+    expect(framesFor('jester'), ['jester1', 'jester2', 'jester3', 'jester4']);
+    expect(framesFor('duke'), ['duke1', 'duke2', 'duke3']);
   });
-
-  test('spriteFrameFor resolves every decoded sprite set to a real frame', () {
-    // Numbered-only sets resolve to their first frame…
-    expect(spriteFrameFor('suitarm'), 'suitarm1');
-    expect(spriteFrameFor('secnldy'), 'secnldy1');
-    expect(spriteFrameFor('servant'), 'servant1');
-    expect(spriteFrameFor('duke'), 'duke1');
-    expect(spriteFrameFor('king'), 'king1');
-    expect(spriteFrameFor('jester'), 'jester1');
-    // …bare-id sets resolve to themselves.
-    expect(spriteFrameFor('alchem'), 'alchem');
-    expect(spriteFrameFor('asiantra'), 'asiantra');
-    expect(spriteFrameFor('parrot'), 'parrot');
-    expect(spriteFrameFor('maninst'), 'maninst');
-    expect(spriteFrameFor('sorceres'), 'sorceres');
+  test('framesFor returns a single frame for single-frame sets', () {
+    expect(framesFor('king'), ['king1']);
+    expect(framesFor('parrot'), ['parrot']);
+  });
+  test('framesFor falls back to the id itself for unknown sets', () {
+    expect(framesFor('nope'), ['nope']);
   });
 }

@@ -38,6 +38,30 @@ Map<int, List<Question>> _pools() => {
 GameSession _session({GameConfig config = const GameConfig()}) =>
     GameSession(maze: _maze(), pools: _pools(), config: config, random: Random(1));
 
+// Fixture for the answer()-outcome tests below: minimalMaze() with a pool per
+// area of 10 posable questions each, mirroring room_view_test.dart's _newGame.
+Question _minimalQ(int id, int area) => Question(
+      id: id, area: area, clue: 'clue $id',
+      choices: [
+        AnswerChoice(text: 'correct-$id', articleRefid: id, isCorrect: true),
+        const AnswerChoice(text: 'w1', articleRefid: 0, isCorrect: false),
+        const AnswerChoice(text: 'w2', articleRefid: 0, isCorrect: false),
+        const AnswerChoice(text: 'w3', articleRefid: 0, isCorrect: false),
+      ],
+    );
+
+Map<int, List<Question>> _minimalPools() => {
+      0: [for (var i = 0; i < 10; i++) _minimalQ(i, 0)],
+      1: [for (var i = 10; i < 20; i++) _minimalQ(i, 1)],
+    };
+
+GameSession session({int lives = 3}) => GameSession(
+      maze: minimalMaze(),
+      pools: _minimalPools(),
+      config: GameConfig(startingLives: lives),
+      random: Random(1),
+    );
+
 int _correctIndex(GameSession s) =>
     s.snapshot.currentQuestion!.choices.indexWhere((c) => c.isCorrect);
 int _wrongIndex(GameSession s) =>
@@ -202,5 +226,49 @@ void main() {
 
   test('construction does not throw when every room\'s area has a posable question', () {
     expect(() => _session(), returnsNormally);
+  });
+
+  group('answer() returns an outcome', () {
+    test('correct (non-goal) → AnswerOutcome.correct', () {
+      final s = session();
+      final q = s.snapshot.currentQuestion!;
+      final correct = q.choices.indexWhere((c) => c.isCorrect);
+      expect(s.answer(correct), AnswerOutcome.correct);
+    });
+
+    test('wrong (lives remain) → AnswerOutcome.wrong', () {
+      final s = session();
+      final q = s.snapshot.currentQuestion!;
+      final wrong = q.choices.indexWhere((c) => !c.isCorrect);
+      expect(s.answer(wrong), AnswerOutcome.wrong);
+    });
+
+    test('wrong at 1 life → AnswerOutcome.lost', () {
+      final s = session(lives: 1);
+      final q = s.snapshot.currentQuestion!;
+      final wrong = q.choices.indexWhere((c) => !c.isCorrect);
+      expect(s.answer(wrong), AnswerOutcome.lost);
+      expect(s.snapshot.status, GameStatus.lost);
+    });
+
+    test('no-op (already-answered / game over) → null', () {
+      final s = session();
+      final q = s.snapshot.currentQuestion!;
+      s.answer(q.choices.indexWhere((c) => c.isCorrect)); // clears room
+      expect(s.answer(0), isNull); // currentQuestion is null now
+    });
+
+    test('correct on the goal room → AnswerOutcome.won', () {
+      final s = session();
+      // Walk the known winning path over minimalMaze():
+      const path = [Direction.right, Direction.right, Direction.tower];
+      for (final d in path) {
+        s.answer(s.snapshot.currentQuestion!.choices.indexWhere((c) => c.isCorrect));
+        s.move(d);
+      }
+      final goalQ = s.snapshot.currentQuestion!;
+      expect(s.answer(goalQ.choices.indexWhere((c) => c.isCorrect)), AnswerOutcome.won);
+      expect(s.snapshot.status, GameStatus.won);
+    });
   });
 }

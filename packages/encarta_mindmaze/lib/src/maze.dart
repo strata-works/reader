@@ -18,12 +18,17 @@ class Character {
     required this.greeting,
     required this.approve,
     required this.rebuff,
+    this.banter = const [],
   });
   final String id;
   final String spriteSetId;
   final String greeting;
   final List<String> approve;
   final List<String> rebuff;
+
+  /// Recovered per-character monologue lines (Phase 5a decode); shown via
+  /// tap-to-chatter in the UI. Empty when a character has no recovered banter.
+  final List<String> banter;
 }
 
 /// A maze room: its question-pool [area], backdrop art, resident [character],

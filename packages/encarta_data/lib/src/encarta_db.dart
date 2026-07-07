@@ -10,6 +10,7 @@ import 'package:sqlite3/sqlite3.dart';
 // `hide Article` prevents a name clash with the Article data class below:
 // database.g.dart (part of database.dart) also exports an Article table class.
 import 'database.dart' hide Article;
+import 'mindmaze_entities.dart';
 import 'models.dart';
 
 /// Common shape shared by `mindmazeAllQuestions()` and
@@ -243,7 +244,7 @@ class EncartaDb {
       final r = rows[i];
       buf.add(MindMazeAnswer(
         ordinal: r.ordinal ?? 0,
-        text: r.text ?? '',
+        text: decodeMindMazeEntities(r.text ?? ''),
         articleRefid: r.articleRefid ?? 0,
         isCorrect: (r.isCorrect ?? 0) != 0,
       ));
@@ -254,7 +255,7 @@ class EncartaDb {
         out.add(MindMazeQuestion(
           id: r.questionId,
           area: r.area,
-          clue: r.clue ?? '',
+          clue: decodeMindMazeEntities(r.clue ?? ''),
           answers: List<MindMazeAnswer>.unmodifiable(buf),
         ));
         buf.clear();

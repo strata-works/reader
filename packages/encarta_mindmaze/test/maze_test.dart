@@ -29,4 +29,14 @@ void main() {
     expect(m.doorTarget('a', Direction.left), isNull);   // no such door
     expect(m.doorTarget('nope', Direction.right), isNull); // no such room
   });
+
+  test('Character.banter defaults to empty and round-trips', () {
+    const a = Character(
+        id: 'x', spriteSetId: 'x', greeting: 'g', approve: [], rebuff: []);
+    expect(a.banter, isEmpty);
+    const b = Character(
+        id: 'y', spriteSetId: 'y', greeting: 'g', approve: [], rebuff: [],
+        banter: ['one', 'two']);
+    expect(b.banter, ['one', 'two']);
+  });
 }

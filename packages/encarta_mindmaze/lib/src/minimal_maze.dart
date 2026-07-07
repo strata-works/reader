@@ -10,6 +10,10 @@ const _jester = Character(
   greeting: "Welcome, seeker! Answer true and the castle opens to you.",
   approve: ['Ha! Sharp as a tack.', 'The doors swing wide for a clever mind.'],
   rebuff: ['Tsk — think again, wanderer.', 'The stones themselves wince at that.'],
+  banter: [
+    'Hee hee! The walls have ears, you know.',
+    'Riddle me this, or riddle me that!',
+  ],
 );
 
 const _king = Character(

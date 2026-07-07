@@ -2,9 +2,30 @@ import 'dart:math';
 
 import 'package:encarta_assets/encarta_assets.dart';
 import 'package:encarta_mindmaze/encarta_mindmaze.dart';
+import 'package:encarta_reader/src/screens/mindmaze/game_audio.dart';
+import 'package:encarta_reader/src/screens/mindmaze/mindmaze_game_holder.dart';
 import 'package:encarta_reader/src/screens/mindmaze/room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _RecordingAudio implements GameAudio {
+  final List<GameSfx> sfx = [];
+  int backgroundStarts = 0;
+  int backgroundStops = 0;
+  bool _muted = false;
+  @override
+  void startBackground() => backgroundStarts++;
+  @override
+  void stopBackground() => backgroundStops++;
+  @override
+  void playSfx(GameSfx s) => sfx.add(s);
+  @override
+  void setMuted(bool m) => _muted = m;
+  @override
+  bool get muted => _muted;
+  @override
+  void dispose() {}
+}
 
 Question _q(int id, int area) => Question(
       id: id, area: area, clue: 'clue $id',
@@ -28,11 +49,14 @@ GameSession _newGame({int lives = 3}) => GameSession(
       random: Random(1),
     );
 
-Widget _app({int lives = 3}) => MaterialApp(
+Widget _app({int lives = 3, GameAudio? audio, MindMazeGameHolder? holder}) =>
+    MaterialApp(
       home: RoomView(
         newGame: () => _newGame(lives: lives),
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'), // art → placeholders
+        audio: audio ?? _RecordingAudio(),
+        holder: holder ?? MindMazeGameHolder(),
       ),
     );
 
@@ -111,11 +135,205 @@ void main() {
         newGame: () => throw ArgumentError('boom'),
         maze: minimalMaze(),
         config: const AssetConfig('/no/such/dir'),
+        holder: MindMazeGameHolder(),
       ),
     ));
     await tester.pump();
     expect(find.byKey(const ValueKey('mm-start-failed')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('plays SFX on outcomes (background music is owned by the app root)',
+      (tester) async {
+    final audio = _RecordingAudio();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        audio: audio,
+        holder: MindMazeGameHolder(),
+      ),
+    ));
+    await tester.pump();
+
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.wrong));
+
+    // The atrium's jester banter now occupies the scrollable dialog panel
+    // from the moment the room is entered, so scroll the (possibly
+    // off-screen) correct answer into view before tapping it.
+    await tester.ensureVisible(_correctAnswerFinder(tester));
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.correct));
+
+    await tester.tap(find.byKey(const ValueKey('mm-door-right')));
+    await tester.pump();
+    expect(audio.sfx, contains(GameSfx.door));
+  });
+
+  testWidgets('mute button toggles audio mute', (tester) async {
+    final audio = _RecordingAudio();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        audio: audio,
+        holder: MindMazeGameHolder(),
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-mute')));
+    await tester.pump();
+    expect(audio.muted, isTrue);
+  });
+
+  testWidgets('the character sprite cycles frames over time', (tester) async {
+    await tester.pumpWidget(_app()); // atrium → jester (4 frames)
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-art-missing-jester1')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const ValueKey('mm-art-missing-jester2')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const ValueKey('mm-art-missing-jester3')), findsOneWidget);
+  });
+
+  testWidgets('banter appears on entry and does NOT rotate while you answer', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // time passing must NOT change it
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    expect(find.text('Riddle me this, or riddle me that!'), findsNothing);
+  });
+
+  testWidgets('character with no banter shows no mm-banter slot', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester)); // clear the atrium
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-right'))); // atrium -> library (king)
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+  });
+
+  testWidgets('banter advances to the next line on re-encounter', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+
+    // atrium(jester) -> right -> library(king)
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-right')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-banter')), findsNothing);
+
+    // library(king) -> left -> atrium(jester again)
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mm-door-left')));
+    await tester.pump();
+    expect(find.text('Riddle me this, or riddle me that!'), findsOneWidget);
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsNothing);
+  });
+
+  testWidgets('cleared room shows Learn more → opens the correct answer article',
+      (tester) async {
+    int? opened;
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: _newGame,
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        onOpenArticle: (refid) => opened = refid,
+        holder: MindMazeGameHolder(),
+      ),
+    ));
+    await tester.pump();
+    // Capture the correct choice's refid from the posed question before answering.
+    final correctBtn = _correctAnswerFinder(tester);
+    await tester.tap(correctBtn);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-learn-more')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-learn-more')));
+    await tester.pump();
+    // _q() sets the correct choice's articleRefid == its question id (>= 0).
+    expect(opened, isNotNull);
+    expect(opened! >= 0, isTrue);
+  });
+
+  testWidgets('no Learn more when onOpenArticle is not provided', (tester) async {
+    await tester.pumpWidget(_app()); // default: onOpenArticle == null
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-learn-more')), findsNothing);
+  });
+
+  testWidgets('restart after losing shows the fresh first banter line (no stale index leak)',
+      (tester) async {
+    await tester.pumpWidget(_app(lives: 1));
+    await tester.pump();
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-lost')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-restart')));
+    await tester.pump();
+    // Fresh restart re-meets the start-room jester: first line again, not stale/advanced.
+    expect(find.text('Hee hee! The walls have ears, you know.'), findsOneWidget);
+    expect(find.text('Riddle me this, or riddle me that!'), findsNothing);
+  });
+
+  testWidgets('game state survives page re-inflation via the holder', (tester) async {
+    final holder = MindMazeGameHolder();
+    Widget app() => MaterialApp(
+          home: RoomView(
+            newGame: _newGame,
+            maze: minimalMaze(),
+            config: const AssetConfig('/no/such/dir'),
+            holder: holder,
+          ),
+        );
+    await tester.pumpWidget(app());
+    await tester.pump();
+    await tester.tap(_correctAnswerFinder(tester)); // clear the atrium
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-door-right')), findsOneWidget);
+
+    // Simulate Back re-inflating a fresh page: throw away this RoomView, build a new one.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(app());
+    await tester.pump();
+    // Restored: the atrium is still cleared (door buttons), NOT a fresh question.
+    expect(find.byKey(const ValueKey('mm-door-right')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mm-answer-0')), findsNothing);
+  });
+
+  testWidgets('explicit restart forces a fresh session even with a populated holder',
+      (tester) async {
+    final holder = MindMazeGameHolder();
+    await tester.pumpWidget(MaterialApp(
+      home: RoomView(
+        newGame: () => _newGame(lives: 1),
+        maze: minimalMaze(),
+        config: const AssetConfig('/no/such/dir'),
+        holder: holder,
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(_wrongAnswerFinder(tester));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('mm-lost')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mm-restart')));
+    await tester.pump();
+    // Fresh game: back to full lives and an answering state, not the lost overlay.
+    expect(find.byKey(const ValueKey('mm-lost')), findsNothing);
+    expect(find.byKey(const ValueKey('mm-answer-0')), findsOneWidget);
   });
 }
 

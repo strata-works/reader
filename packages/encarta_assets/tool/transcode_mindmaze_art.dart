@@ -11,12 +11,18 @@ import 'package:sqlite3/sqlite3.dart';
 import 'mindmaze_transcode_core.dart';
 
 const _sprites = [
-  'jester1', 'king1', 'duke1', 'suitarm1', 'secnldy1', 'servant1',
-  'sorceres', 'alchem', 'asiantra', 'parrot', 'maninst',
+  // multi-frame sets (animated in Phase 6)
+  'jester1', 'jester2', 'jester3', 'jester4',
+  'duke1', 'duke2', 'duke3',
+  'suitarm1', 'suitarm2',
+  'secnldy1', 'secnldy2',
+  'servant1', 'servant2',
+  // single-frame sets
+  'king1', 'sorceres', 'alchem', 'asiantra', 'parrot', 'maninst',
 ];
 const _backdrops = [
   'atrium', 'dunrm', 'walltre1', 'walltre2', 'bookshlf', 'plnwalls', 'rmofdoor',
-  'end1', 'trophy', // end-screen art (opaque, not cyan-keyed)
+  'end1', 'trophy', 'medal', 'ribbon', // end-screen art (opaque, not cyan-keyed)
 ];
 
 const _dataDir = '/Users/nexus/projects/experiments/strata/quarry/build';
