@@ -26,6 +26,7 @@ class TourLight {
     required this.g,
     required this.b,
   });
+  List<int> color3() => [r, g, b];
 }
 
 class Tour {
