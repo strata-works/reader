@@ -20,6 +20,8 @@ dependencies:
     path: ../../packages/encarta_assets
   encarta_mindmaze:
     path: ../../packages/encarta_mindmaze
+  encarta_3dtours:
+    path: ../../packages/encarta_3dtours
   auto_route: ^11.1.0
   media_kit: ^1.1.11
   # Bundles an FTS5-enabled libsqlite3 inside the packaged app so search works
@@ -58,6 +60,11 @@ flutter:
     # + decimated statue point cloud (positions+colors) for billboard quads.
     - assets/spike/acr.glb
     - assets/spike/acr_points.bin
+    # Task 5: canonical bundled Acropolis tour assets (materialized via
+    # tool/materialize_tour_assets.py). acr.glb is gitignored/regenerable;
+    # the directory entry bundles whatever is locally present, and the
+    # committed JSON + points-bin are sufficient for CI (no 3-D render there).
+    - assets/3dtours/acropolis/
   # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
   # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
   # is the period-accurate reading face for the reader.

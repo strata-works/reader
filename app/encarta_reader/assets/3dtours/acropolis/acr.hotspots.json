@@ -1,0 +1,1350 @@
+[
+  {
+    "id": "_ZEUS2",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_dot",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L1",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L2",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L3",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L4",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L5",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L6",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L7",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L8",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L9",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L10",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L11",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L12",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L13",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L14",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L15",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L16",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L17",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L18",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L19",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L20",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L21",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L22",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H1",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H2",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H3",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H4",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H5",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H6",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H7",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H8",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H9",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H10",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H11",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H12",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H13",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H14",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H15",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H16",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H17",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H18",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H19",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H20",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H21",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H22",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H23",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H24",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H25",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H26",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H27",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H28",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H29",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H30",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H31",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H32",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H33",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H34",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H35",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H36",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H37",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H38",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_dot",
+    "text": "",
+    "anchor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H26",
+    "text": "Coloring the Sculptures",
+    "anchor": [
+      0.422562,
+      1.442125,
+      3.977404,
+      183.64006
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504853)"
+    }
+  },
+  {
+    "id": "_L17",
+    "text": "Athena Parthenos",
+    "anchor": [
+      0.919988,
+      1.107907,
+      1.880497,
+      83.929237
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L18",
+    "text": "Sanctuary of Zeus Polieus",
+    "anchor": [
+      -0.236209,
+      0.608532,
+      6.576715,
+      343.317383
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L19",
+    "text": "Temple of Roma and Augustus",
+    "anchor": [
+      1.070073,
+      0.848532,
+      5.630246,
+      229.494217
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H25",
+    "text": "Elgin Marbles",
+    "anchor": [
+      0.282845,
+      0.842125,
+      3.9863,
+      183.64006
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504854)"
+    }
+  },
+  {
+    "id": "_H24",
+    "text": "Delivering the Peplos",
+    "anchor": [
+      1.87151,
+      0.476611,
+      3.995793,
+      187.512146
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504852)"
+    }
+  },
+  {
+    "id": "_H36",
+    "text": "East Pedimental Sculptures",
+    "anchor": [
+      1.988771,
+      0.936611,
+      3.98261,
+      186.320755
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701506292)"
+    }
+  },
+  {
+    "id": "_L20",
+    "text": "\"Building IV\"",
+    "anchor": [
+      1.640798,
+      0.632126,
+      7.656785,
+      325.594076
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H15",
+    "text": "Music of the Panathenaea",
+    "anchor": [
+      -1.845111,
+      0.325893,
+      -2.569798,
+      201.941971
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504864)"
+    }
+  },
+  {
+    "id": "_H13",
+    "text": "Panathenaic Games",
+    "anchor": [
+      -2.437621,
+      0.055615,
+      -2.831706,
+      346.785126
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504866)"
+    }
+  },
+  {
+    "id": "_L8",
+    "text": "Bronze Athena",
+    "anchor": [
+      -2.37223,
+      0.448532,
+      -2.612013,
+      175.236977
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L7",
+    "text": "Chalkotheke",
+    "anchor": [
+      0.577026,
+      0.448533,
+      -2.813757,
+      307.651774
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L6",
+    "text": "Sanctuary of Artemis Brauronia",
+    "anchor": [
+      -0.703991,
+      0.448533,
+      -4.751932,
+      272.000203
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H14",
+    "text": "Chariot Race",
+    "anchor": [
+      -1.206628,
+      0.128532,
+      -2.169918,
+      182.737335
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504865)"
+    }
+  },
+  {
+    "id": "_L5",
+    "text": "\"Northwest Building\"",
+    "anchor": [
+      -3.891671,
+      0.448533,
+      -4.998685,
+      97.880792
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H29",
+    "text": "Erechtheum, Now and Then",
+    "anchor": [
+      -2.731638,
+      0.282126,
+      1.087534,
+      350.985291
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504850)"
+    }
+  },
+  {
+    "id": "_H34",
+    "text": "Porch of Maidens",
+    "anchor": [
+      -2.695803,
+      0.508532,
+      1.26548,
+      260.618713
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504845)"
+    }
+  },
+  {
+    "id": "_H31",
+    "text": "Peplos Kore",
+    "anchor": [
+      -3.338698,
+      0.304905,
+      1.853709,
+      87.296249
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504848)"
+    }
+  },
+  {
+    "id": "_L12",
+    "text": "Athena Polias",
+    "anchor": [
+      -3.262791,
+      0.254579,
+      1.85585,
+      267.853699
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L15",
+    "text": "Altar of Athena",
+    "anchor": [
+      -2.052521,
+      0.552126,
+      3.48779,
+      356.636234
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L14",
+    "text": "Athenas Olive Tree",
+    "anchor": [
+      -3.266447,
+      0.208532,
+      0.753932,
+      7.189193
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L13",
+    "text": "Mark of Poseidons Trident",
+    "anchor": [
+      -3.717714,
+      0.109999,
+      1.403298,
+      185.942413
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L10",
+    "text": "House of the Arrephoroi",
+    "anchor": [
+      -4.355696,
+      0.528532,
+      -1.409233,
+      103.4551
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L11",
+    "text": "Erechtheum",
+    "anchor": [
+      -3.287048,
+      0.928532,
+      1.50416,
+      190.424448
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H33",
+    "text": "Mark of Poseidons Trident",
+    "anchor": [
+      -3.885606,
+      0.208532,
+      1.150915,
+      17.421379
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504846)"
+    }
+  },
+  {
+    "id": "_H18",
+    "text": "Sacrificial Bull",
+    "anchor": [
+      -1.68998,
+      0.448532,
+      3.524921,
+      183.272247
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504861)"
+    }
+  },
+  {
+    "id": "_H35",
+    "text": "Parthenon, Now and Then",
+    "anchor": [
+      0.702942,
+      0.346611,
+      4.027457,
+      184.244513
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504863)"
+    }
+  },
+  {
+    "id": "_H19",
+    "text": "Doric Columns, Parthenon",
+    "anchor": [
+      -0.013194,
+      1.008532,
+      -0.363067,
+      175.276825
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504860)"
+    }
+  },
+  {
+    "id": "_H20",
+    "text": "Parthenon Frieze",
+    "anchor": [
+      0.755328,
+      0.668532,
+      -0.206322,
+      193.299026
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504859)"
+    }
+  },
+  {
+    "id": "_H21",
+    "text": "Battle of Lapiths and Centaurs",
+    "anchor": [
+      1.791336,
+      1.168532,
+      -0.069646,
+      183.192139
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504858)"
+    }
+  },
+  {
+    "id": "_L16",
+    "text": "Parthenon",
+    "anchor": [
+      0.079962,
+      1.328532,
+      1.419463,
+      269.895844
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H7",
+    "text": "Construction Techniques",
+    "anchor": [
+      -2.520397,
+      -0.09092,
+      -6.030362,
+      4.088589
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504872)"
+    }
+  },
+  {
+    "id": "_L21",
+    "text": "Pinakotheke",
+    "anchor": [
+      -2.866673,
+      0.275596,
+      -7.157226,
+      113.446286
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L2",
+    "text": "Temple of Athena Nike",
+    "anchor": [
+      -3.609988,
+      0.858904,
+      -9.444571,
+      113.44606
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_L3",
+    "text": "Cult Statue of Athena Nike",
+    "anchor": [
+      -1.203477,
+      -0.111467,
+      -7.98475,
+      357.436341
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H1",
+    "text": "Propylaea, Now and Then",
+    "anchor": [
+      -2.03318,
+      -0.158687,
+      -6.823439,
+      207.685279
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504883)"
+    }
+  },
+  {
+    "id": "_H2",
+    "text": "Panathenaic Procession",
+    "anchor": [
+      -2.155922,
+      -0.008624,
+      -5.165509,
+      359.156944
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504877)"
+    }
+  },
+  {
+    "id": "_H4",
+    "text": "Pericles Oversees Construction",
+    "anchor": [
+      -2.093905,
+      0.01908,
+      -6.245606,
+      345.366974
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504880)"
+    }
+  },
+  {
+    "id": "_H5",
+    "text": "Greek Architectural Orders",
+    "anchor": [
+      -2.315249,
+      -0.031468,
+      -5.181672,
+      15.050744
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504874)"
+    }
+  },
+  {
+    "id": "_H6",
+    "text": "Acropolis from Afar",
+    "anchor": [
+      -2.459002,
+      -0.158694,
+      -6.823503,
+      11.917998
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504873)"
+    }
+  },
+  {
+    "id": "_L1",
+    "text": "Propylaea",
+    "anchor": [
+      -1.959998,
+      0.623022,
+      -6.821386,
+      113.446316
+    ],
+    "icon": null,
+    "macros": {}
+  },
+  {
+    "id": "_H10",
+    "text": "Athena Nike Frieze",
+    "anchor": [
+      -1.331772,
+      0.01975,
+      -7.588747,
+      179.998901
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504869)"
+    }
+  },
+  {
+    "id": "_H37",
+    "text": "Turkish Gravestones",
+    "anchor": [
+      -1.005792,
+      -0.04523,
+      -7.563045,
+      260.395734
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701506294)"
+    }
+  },
+  {
+    "id": "_H38",
+    "text": "Nike Parapet Frieze",
+    "anchor": [
+      -1.097354,
+      0.01975,
+      -7.588988,
+      179.452499
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701506293)"
+    }
+  },
+  {
+    "id": "_H8",
+    "text": "Nike Temple, Now and Then",
+    "anchor": [
+      -1.122656,
+      -0.111468,
+      -7.523577,
+      183.937515
+    ],
+    "icon": 6,
+    "macros": {
+      "MOUSEUP": "SCRIPT.EVENT(HotSpotClicked:hotSpotID=701504871)"
+    }
+  }
+]
