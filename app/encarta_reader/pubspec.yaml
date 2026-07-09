@@ -29,6 +29,19 @@ dependencies:
   archive: ^3.6.0
   path_provider: ^2.1.4
   path: ^1.9.0
+  # Task 1 SPIKE (gating): Impeller-native 3D renderer for the Encarta 3-D tour.
+  # flutter_scene bundles its own offline glTF importer (dart run
+  # flutter_scene:import); there is no separate flutter_scene_importer package
+  # in the current release.
+  flutter_scene: 0.16.0
+  vector_math: ^2.1.4
+
+# Task 1 SPIKE: flutter_scene 0.17.0 pulls image ^4.5.0 -> archive ^4.0.1,
+# but the app/encarta_data pin archive ^3.6.0. The one archive usage
+# (ZipDecoder().decodeBytes + iterate, corpus_provisioner.dart) is API-stable
+# across 3.x/4.x, so override to 4.x for the spike.
+dependency_overrides:
+  archive: ^4.0.1
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +54,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/sample_corpus.zip
+    # Task 1 SPIKE assets (throwaway): packed Acropolis GLB (triangle meshes)
+    # + decimated statue point cloud (positions+colors) for billboard quads.
+    - assets/spike/acr.glb
+    - assets/spike/acr_points.bin
   # Selawik — Microsoft's open-source, metric-compatible Segoe UI substitute
   # (SIL OFL). The Segoe family defined the Encarta 2009 / Windows-7 era, so this
   # is the period-accurate reading face for the reader.
