@@ -22,6 +22,7 @@ workspace:
   - packages/encarta_assets
   - app/encarta_reader
   - packages/encarta_mindmaze
+  - packages/encarta_3dtours
 
 dev_dependencies:
   lints: ^5.0.0
