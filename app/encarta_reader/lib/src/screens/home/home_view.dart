@@ -34,6 +34,7 @@ class HomeView extends StatefulWidget {
   final void Function(String query) onSearch;
   final VoidCallback onRandom;
   final VoidCallback? onPlayMindMaze;
+  final VoidCallback? onOpenTours;
 
   const HomeView({
     super.key,
@@ -43,6 +44,7 @@ class HomeView extends StatefulWidget {
     required this.onSearch,
     required this.onRandom,
     this.onPlayMindMaze,
+    this.onOpenTours,
   });
 
   @override
@@ -97,6 +99,18 @@ class _HomeViewState extends State<HomeView> {
                         onPressed: widget.onPlayMindMaze,
                         icon: const Icon(Icons.castle),
                         label: const Text('Play MindMaze'),
+                      ),
+                    ),
+                  ),
+                if (widget.onOpenTours != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Center(
+                      child: FilledButton.icon(
+                        key: const ValueKey('tours-open'),
+                        onPressed: widget.onOpenTours,
+                        icon: const Icon(Icons.view_in_ar),
+                        label: const Text('3-D Tours'),
                       ),
                     ),
                   ),

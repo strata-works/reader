@@ -148,3 +148,67 @@ class SearchRouteArgs {
   @override
   int get hashCode => key.hashCode ^ q.hashCode;
 }
+
+/// generated route for
+/// [ToursPage]
+class ToursRoute extends PageRouteInfo<ToursRouteArgs> {
+  ToursRoute({
+    Key? key,
+    required String tourId,
+    AssetBundle? bundleOverride,
+    List<PageRouteInfo>? children,
+  }) : super(
+         ToursRoute.name,
+         args: ToursRouteArgs(
+           key: key,
+           tourId: tourId,
+           bundleOverride: bundleOverride,
+         ),
+         rawPathParams: {'tourId': tourId},
+         initialChildren: children,
+       );
+
+  static const String name = 'ToursRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<ToursRouteArgs>(
+        orElse: () => ToursRouteArgs(tourId: pathParams.getString('tourId')),
+      );
+      return ToursPage(
+        key: args.key,
+        tourId: args.tourId,
+        bundleOverride: args.bundleOverride,
+      );
+    },
+  );
+}
+
+class ToursRouteArgs {
+  const ToursRouteArgs({this.key, required this.tourId, this.bundleOverride});
+
+  final Key? key;
+
+  final String tourId;
+
+  final AssetBundle? bundleOverride;
+
+  @override
+  String toString() {
+    return 'ToursRouteArgs{key: $key, tourId: $tourId, bundleOverride: $bundleOverride}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ToursRouteArgs) return false;
+    return key == other.key &&
+        tourId == other.tourId &&
+        bundleOverride == other.bundleOverride;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ tourId.hashCode ^ bundleOverride.hashCode;
+}

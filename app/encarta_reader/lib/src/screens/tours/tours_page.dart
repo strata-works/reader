@@ -25,7 +25,11 @@ class ToursPage extends StatefulWidget {
   @visibleForTesting
   final AssetBundle? bundleOverride;
 
-  const ToursPage({super.key, required this.tourId, this.bundleOverride});
+  const ToursPage({
+    super.key,
+    @PathParam('tourId') required this.tourId,
+    this.bundleOverride,
+  });
 
   @override
   State<ToursPage> createState() => _ToursPageState();
@@ -35,12 +39,35 @@ class _ToursPageState extends State<ToursPage> {
   late final Future<TourAssets> _future;
 
   // Initial framing for the Acropolis tour.
-  // TODO: tune framing after manual macOS check
+  //
+  // Mirrors the Task-1 spike's proven-working `buildTourCamera()` eye/target
+  // (tour_spike_app.dart), converted from a fixed eye position to
+  // azimuth/elevation/distance: target = scene AABB center shifted down
+  // ~40 units (the Parthenon body sits low; the raw AABB is inflated by
+  // spires/statues), distance/azimuth/elevation reproduce
+  // `target + Vector3(radius*0.9, radius*0.55, radius*1.15)` with radius=170.
+  //
+  // NOTE (manual macOS check, see task-10-report.md): during this task's
+  // end-to-end check, NEITHER this framing NOR the original guess rendered
+  // visible mesh/point content on this box — screen captures (both
+  // `screencapture -l` and the user's own physical-display screenshot) show
+  // only the app's watermark and hotspot markers, no Parthenon/statues, even
+  // though loading succeeds (mesh+points load with no exceptions) and
+  // Scene.render() is called every frame with this valid camera/viewport. We
+  // re-ran the ORIGINAL Task-1 spike unmodified on this same box and it is
+  // now equally blank, where it previously rendered (see
+  // docs/superpowers/plans/spike-screenshot.png) — so this is not a
+  // regression in this task's integration code; something about the
+  // environment's flutter_scene/Impeller-to-window compositing changed since
+  // the spike was last verified. Kept this framing (rather than the
+  // never-verified original guess) since it matches the spike's own
+  // known-correct math; re-verify visually once the environment issue is
+  // resolved.
   OrbitCamera _camera = OrbitCamera(
-    target: Vector3(5.8, 91.2, -15.6),
-    distance: 260,
-    azimuth: 0.6,
-    elevation: 0.35,
+    target: Vector3(-0.8, 82.55, -56.6),
+    distance: 265.27627108356296,
+    azimuth: 0.6640461628266847,
+    elevation: 0.3602014204225637,
     fovYRadians: 55 * math.pi / 180,
     near: 1.0,
     far: 4000.0,
@@ -57,6 +84,12 @@ class _ToursPageState extends State<ToursPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Dark background, matching the Task-1 spike's Scaffold, rather than
+      // the app's light theme default: a light background made it
+      // impossible to tell whether unrendered/transparent 3-D content was
+      // "blank" vs. simply blending into the page background during the
+      // manual render check.
+      backgroundColor: const Color(0xFF10131A),
       body: FutureBuilder<TourAssets>(
         future: _future,
         builder: (context, snapshot) {
@@ -81,11 +114,25 @@ class _ToursPageState extends State<ToursPage> {
               final size = Size(constraints.maxWidth, constraints.maxHeight);
               return Stack(
                 children: [
-                  TourView(
-                    glbAsset: assets.glbAsset,
-                    pointsAsset: assets.pointsAsset,
-                    camera: _camera,
-                    onCameraChanged: (c) => setState(() => _camera = c),
+                  // Positioned.fill gives TourView's CustomPaint(size:
+                  // Size.infinite) TIGHT constraints matching the viewport,
+                  // mirroring the Task-1 spike's Positioned.fill(...
+                  // RepaintBoundary(... CustomPaint...)). As a bare
+                  // (non-Positioned) Stack child it only gets LOOSE
+                  // constraints. This did NOT turn out to be the cause of the
+                  // blank render found during this task's manual check (see
+                  // the _camera comment above and task-10-report.md) — that
+                  // traced to an environment-level flutter_scene/Impeller
+                  // compositing issue affecting the spike too — but tightening
+                  // the constraints to match the spike's structure is still
+                  // correct and should be kept regardless.
+                  Positioned.fill(
+                    child: TourView(
+                      glbAsset: assets.glbAsset,
+                      pointsAsset: assets.pointsAsset,
+                      camera: _camera,
+                      onCameraChanged: (c) => setState(() => _camera = c),
+                    ),
                   ),
                   HotspotOverlay(
                     hotspots: assets.tour.hotspots,

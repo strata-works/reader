@@ -24,6 +24,8 @@ class AppNavigator {
 
   void openMindMaze() => _navigate('/mindmaze');
 
+  void openTour(String tourId) => _navigate('/tours/$tourId');
+
   void back() {
     final loc = history.back();
     if (loc != null) go(loc);

@@ -5,6 +5,7 @@ import '../screens/article/article_page.dart';
 import '../screens/home/home_page.dart';
 import '../screens/mindmaze/mindmaze_page.dart';
 import '../screens/search/search_page.dart';
+import '../screens/tours/tours_page.dart';
 
 part 'app_router.gr.dart';
 
@@ -27,5 +28,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: SearchRoute.page, path: '/search'),
         AutoRoute(page: ArticleRoute.page, path: '/article/:refid'),
         AutoRoute(page: MindMazeRoute.page, path: '/mindmaze'),
+        AutoRoute(page: ToursRoute.page, path: '/tours/:tourId'),
       ];
 }
