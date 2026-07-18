@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- flutter_scene (3-D Tours) needs Flutter GPU (Impeller is the iOS
+	     default). Without this key Scene.initializeStaticResources throws. -->
+	<key>FLTEnableFlutterGPU</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

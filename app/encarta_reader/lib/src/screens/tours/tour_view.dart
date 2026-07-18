@@ -80,6 +80,11 @@ class _TourViewState extends State<TourView> {
   // GL readiness. Until true, we render a placeholder (and still take gestures).
   bool _ready = false;
 
+  // Why the renderer failed to start, if it did. Shown in the placeholder so a
+  // GPU-init failure (e.g. Flutter GPU not enabled in the platform manifest)
+  // reads as an actionable error instead of an eternal "Loading 3-D tour…".
+  String? _loadError;
+
   // Raw point data (positions + colors), loaded once; billboards are rebuilt
   // from this against the current camera basis whenever the camera changes.
   Float32List? _pointPos; // planar xyz, count*3
@@ -145,9 +150,14 @@ class _TourViewState extends State<TourView> {
       }
 
       if (mounted) setState(() => _ready = true);
-    } catch (_) {
-      // Even static-resource init can fail in headless/test environments;
-      // stay in placeholder mode but keep handling gestures.
+    } catch (e) {
+      // Static-resource init fails in headless/test environments (expected)
+      // but also when Impeller/Flutter GPU is not enabled for the app (a real
+      // configuration bug — see FLTEnableFlutterGPU in the platform
+      // Info.plists). Stay in placeholder mode and keep handling gestures,
+      // but surface the reason instead of swallowing it.
+      _loadError = '$e';
+      if (mounted) setState(() {});
     }
   }
 
@@ -333,12 +343,19 @@ class _TourViewState extends State<TourView> {
                 painter: _ScenePainter(_scene!, _sceneCamera()),
                 size: Size.infinite,
               )
-            : const ColoredBox(
-                color: Color(0xFF10131A),
+            : ColoredBox(
+                color: const Color(0xFF10131A),
                 child: Center(
-                  child: Text(
-                    'Loading 3-D tour…',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      _loadError == null
+                          ? 'Loading 3-D tour…'
+                          : 'The 3-D renderer could not start:\n$_loadError',
+                      textAlign: TextAlign.center,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
                   ),
                 ),
               ),

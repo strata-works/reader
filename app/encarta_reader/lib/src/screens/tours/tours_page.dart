@@ -47,22 +47,14 @@ class _ToursPageState extends State<ToursPage> {
   // spires/statues), distance/azimuth/elevation reproduce
   // `target + Vector3(radius*0.9, radius*0.55, radius*1.15)` with radius=170.
   //
-  // NOTE (manual macOS check, see task-10-report.md): during this task's
-  // end-to-end check, NEITHER this framing NOR the original guess rendered
-  // visible mesh/point content on this box — screen captures (both
-  // `screencapture -l` and the user's own physical-display screenshot) show
-  // only the app's watermark and hotspot markers, no Parthenon/statues, even
-  // though loading succeeds (mesh+points load with no exceptions) and
-  // Scene.render() is called every frame with this valid camera/viewport. We
-  // re-ran the ORIGINAL Task-1 spike unmodified on this same box and it is
-  // now equally blank, where it previously rendered (see
-  // docs/superpowers/plans/spike-screenshot.png) — so this is not a
-  // regression in this task's integration code; something about the
-  // environment's flutter_scene/Impeller-to-window compositing changed since
-  // the spike was last verified. Kept this framing (rather than the
-  // never-verified original guess) since it matches the spike's own
-  // known-correct math; re-verify visually once the environment issue is
-  // resolved.
+  // NOTE: task-10-report.md's "environment-level compositing issue" theory
+  // about blank renders was wrong. The blank viewport happened whenever the
+  // app ran without Flutter GPU enabled: Scene.initializeStaticResources()
+  // throws, TourView used to swallow the error, and the placeholder sat on
+  // "Loading 3-D tour…" forever. Fixed by enabling Impeller + Flutter GPU in
+  // the platform Info.plists (FLTEnableImpeller / FLTEnableFlutterGPU) and
+  // surfacing renderer-init errors in TourView's placeholder. With GPU
+  // enabled this framing renders the Parthenon as expected.
   OrbitCamera _camera = OrbitCamera(
     target: Vector3(-0.8, 82.55, -56.6),
     distance: 265.27627108356296,
