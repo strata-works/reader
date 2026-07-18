@@ -2,11 +2,18 @@ import 'dart:math' as math;
 
 import 'package:vector_math/vector_math_64.dart';
 
+/// Renderer-agnostic contract shared by the tour camera modes ([OrbitCamera]
+/// orbit overview, WalkCamera first-person): everything projection consumers
+/// (hotspot overlay, scene view) need.
+abstract class TourCamera {
+  Matrix4 viewProjectionMatrix(double aspect);
+}
+
 /// A camera that orbits around [target] at a fixed [distance], driven by
 /// spherical [azimuth]/[elevation] angles. Renderer-agnostic: produces plain
 /// `vector_math` matrices/vectors so it can drive any 3-D backend
 /// (flutter_scene, etc.) without this package depending on Flutter.
-class OrbitCamera {
+class OrbitCamera implements TourCamera {
   Vector3 target;
   double azimuth; // radians, around +Y
   double elevation; // radians
@@ -46,6 +53,7 @@ class OrbitCamera {
   /// `Matrix4.operator*` in `vector_math` returns `dynamic`, so this method
   /// exists to give callers a properly-typed `Matrix4` without every call
   /// site needing an `as Matrix4` cast.
+  @override
   Matrix4 viewProjectionMatrix(double aspect) =>
       (projectionMatrix(aspect) * viewMatrix()) as Matrix4;
 }
