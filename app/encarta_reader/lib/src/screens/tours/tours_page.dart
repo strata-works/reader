@@ -161,7 +161,7 @@ class _ToursPageState extends State<ToursPage>
       final data = await (widget.bundleOverride ?? rootBundle).load(
         assets.walkmapAsset,
       );
-      map = Walkmap.fromBytes(ByteData.sublistView(data.buffer.asUint8List()));
+      map = Walkmap.fromBytes(data);
     } catch (_) {
       map = null;
     }
@@ -188,6 +188,14 @@ class _ToursPageState extends State<ToursPage>
     if (_mode == _TourMode.overview) {
       _enterWalkMode(stops);
     } else {
+      // Leaving walk mode mid-glide must stop the glide outright: otherwise
+      // input stays locked (TourView's inputLocked tracks _gliding) and, on
+      // completion, the status listener would advance _currentStop and pop
+      // narration while we're back in overview. stop() halts the ticker
+      // without transitioning to AnimationStatus.completed, but null the
+      // target too as defense-in-depth since the listener gates on it.
+      _glideCtrl.stop();
+      _glideTarget = null;
       setState(() => _mode = _TourMode.overview);
     }
   }

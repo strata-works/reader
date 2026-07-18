@@ -266,6 +266,20 @@ void main() {
     expect(toggle.onPressed, isNull);
   });
 
+  testWidgets(
+    'stops-panel tap does not enter walk mode when the walkmap asset is missing',
+    (tester) async {
+      await pumpToursPage(tester, bundle: _tourBundleMissingWalkmap());
+      await tester.tap(find.byKey(const ValueKey('tour-stops-panel-toggle')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('stop-h1')));
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('tour-narration')), findsNothing);
+      expect(find.textContaining('stop 1 /'), findsNothing);
+    },
+  );
+
   testWidgets('prev is disabled at the first stop, next at the last stop', (
     tester,
   ) async {

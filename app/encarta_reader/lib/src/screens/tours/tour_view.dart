@@ -159,6 +159,26 @@ class _TourViewState extends State<TourView> {
     if (widget.inputLocked && !oldWidget.inputLocked) {
       _keysDown.clear();
     }
+    // showPoints toggling after mount (overview<->walk): the state object
+    // survives the toggle, so without this the billboards would either stay
+    // in the scene during walk mode or never load at all if the tour
+    // started in walk mode.
+    if (widget.showPoints != oldWidget.showPoints) {
+      if (!widget.showPoints) {
+        if (_pointsNode != null) {
+          _scene?.remove(_pointsNode!);
+          _pointsNode = null;
+        }
+        // Cached point data (_pointPos/_pointCol) is deliberately kept so a
+        // later re-add doesn't have to reload the asset; reset the
+        // last-built-for basis so that re-add always rebuilds.
+        _lastBillboardForward = null;
+      } else if (_pointPos != null && _pointCol != null) {
+        _rebuildBillboards(widget.camera, force: true);
+      } else if (_scene != null) {
+        _ensurePoints();
+      }
+    }
   }
 
   @override
@@ -185,14 +205,10 @@ class _TourViewState extends State<TourView> {
 
       // (2) Statue point cloud -> billboard quads. Guarded independently.
       // Skipped entirely when showPoints is false (walk mode hides statue
-      // billboards).
+      // billboards); didUpdateWidget calls _ensurePoints() itself if
+      // showPoints later flips true (e.g. a tour that starts in walk mode).
       if (widget.showPoints) {
-        try {
-          await _loadPointData();
-          _rebuildBillboards(widget.camera, force: true);
-        } catch (_) {
-          // No points; the building mesh (if any) still renders.
-        }
+        await _ensurePoints();
       }
 
       if (mounted) setState(() => _ready = true);
@@ -204,6 +220,25 @@ class _TourViewState extends State<TourView> {
       // but surface the reason instead of swallowing it.
       _loadError = '$e';
       if (mounted) setState(() {});
+    }
+  }
+
+  // Loads the point cloud (if not already cached in _pointPos/_pointCol) and
+  // rebuilds the billboards against the current camera. Shared by _load()
+  // (initial mount, when showPoints starts true) and didUpdateWidget
+  // (showPoints flips true after mount — e.g. toggling from walk back to
+  // overview, or a tour that started in walk mode and never loaded points)
+  // so both paths share one guarded load-then-rebuild sequence. Guarded
+  // independently of the mesh load: a missing/unreadable points asset must
+  // not crash the widget.
+  Future<void> _ensurePoints() async {
+    try {
+      if (_pointPos == null || _pointCol == null) {
+        await _loadPointData();
+      }
+      _rebuildBillboards(widget.camera, force: true);
+    } catch (_) {
+      // No points; the building mesh (if any) still renders.
     }
   }
 
@@ -434,7 +469,11 @@ class _TourViewState extends State<TourView> {
 
     final run = _down(LogicalKeyboardKey.shiftLeft) ||
         _down(LogicalKeyboardKey.shiftRight);
-    final speed = _kWalkSpeed * (run ? _kRunFactor : 1.0) * dt;
+    // Clamp dt to 0.1 s: caps a post-suspend/hitch catch-up step to ~0.3
+    // units (run speed ~0.75) so a single huge dt can't tunnel through
+    // walkmap holes/walls.
+    final dtClamped = math.min(dt, 0.1);
+    final speed = _kWalkSpeed * (run ? _kRunFactor : 1.0) * dtClamped;
 
     // Yaw-plane basis (pitch does not affect ground movement).
     final fwd = vm64.Vector3(math.sin(cam.yaw), 0, math.cos(cam.yaw));
