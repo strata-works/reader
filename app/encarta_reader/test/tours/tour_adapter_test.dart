@@ -49,6 +49,7 @@ void main() {
     expect(a.tour.lights.single.b, 83);
     expect(a.glbAsset, 'assets/3dtours/acropolis/acr.glb');
     expect(a.pointsAsset, 'assets/3dtours/acropolis/acr_points.bin');
+    expect(a.walkmapAsset, 'assets/3dtours/acropolis/acr_walkmap.bin');
   });
 
   test('loadTour throws TourAssetsMissing when assets absent', () async {

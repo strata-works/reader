@@ -19,7 +19,8 @@ class TourAssets {
   final Tour tour;
   final String glbAsset;
   final String pointsAsset;
-  const TourAssets(this.tour, this.glbAsset, this.pointsAsset);
+  final String walkmapAsset;
+  const TourAssets(this.tour, this.glbAsset, this.pointsAsset, this.walkmapAsset);
 }
 
 const _tourNames = {'acropolis': 'Acropolis'};
@@ -52,5 +53,6 @@ Future<TourAssets> loadTour(String tourId, {AssetBundle? bundle}) async {
     hotspots: parseHotspots(hotspotsJson),
     lights: parseScene(sceneJson),
   );
-  return TourAssets(tour, '$baseDir/$stem.glb', '$baseDir/${stem}_points.bin');
+  return TourAssets(tour, '$baseDir/$stem.glb', '$baseDir/${stem}_points.bin',
+      '$baseDir/${stem}_walkmap.bin');
 }
