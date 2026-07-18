@@ -40,12 +40,17 @@ class _ToursPageState extends State<ToursPage> {
 
   // Initial framing for the Acropolis tour.
   //
-  // Mirrors the Task-1 spike's proven-working `buildTourCamera()` eye/target
-  // (tour_spike_app.dart), converted from a fixed eye position to
-  // azimuth/elevation/distance: target = scene AABB center shifted down
-  // ~40 units (the Parthenon body sits low; the raw AABB is inflated by
-  // spires/statues), distance/azimuth/elevation reproduce
-  // `target + Vector3(radius*0.9, radius*0.55, radius*1.15)` with radius=170.
+  // The tour is a small diorama meant to be seen from INSIDE its sky dome:
+  // the monuments (lod*/newcolumnt*/boxbase*/Torch* meshes) cluster within
+  // ~10 units of the origin at y~0-1, the walkable .3wm floor is ~14x19
+  // units, and the one giant mesh (sky6_8, ~116 units across) is the sky
+  // dome enclosing it all. Every AABB-derived framing (scene center y~122,
+  // statue centroid y~91, .x bbox center y~13) orbits OUTSIDE the dome and
+  // shows only its grey shell -- the `.3cl` statue clouds are UNPLACED
+  // (only scale is recoverable; see quarry/tour3d.py) and inflate every
+  // aggregate box. So: target the site center at torso height and orbit at
+  // ~25 units, comfortably inside the dome, with a gentle downward
+  // elevation. Azimuth keeps the Task-1 spike's three-quarter direction.
   //
   // NOTE: task-10-report.md's "environment-level compositing issue" theory
   // about blank renders was wrong. The blank viewport happened whenever the
@@ -56,12 +61,12 @@ class _ToursPageState extends State<ToursPage> {
   // surfacing renderer-init errors in TourView's placeholder. With GPU
   // enabled this framing renders the Parthenon as expected.
   OrbitCamera _camera = OrbitCamera(
-    target: Vector3(-0.8, 82.55, -56.6),
-    distance: 265.27627108356296,
+    target: Vector3(-1.3, 1.5, -4.1),
+    distance: 25.0,
     azimuth: 0.6640461628266847,
-    elevation: 0.3602014204225637,
+    elevation: 0.25,
     fovYRadians: 55 * math.pi / 180,
-    near: 1.0,
+    near: 0.5,
     far: 4000.0,
   );
 
