@@ -38,7 +38,8 @@ import 'package:encarta_3dtours/encarta_3dtours.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show KeyDownEvent, KeyUpEvent, LogicalKeyboardKey, rootBundle;
 import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
@@ -54,15 +55,23 @@ const double _kRotSpeed = 0.01;
 class TourView extends StatefulWidget {
   final String glbAsset;
   final String pointsAsset;
-  final OrbitCamera camera;
-  final void Function(OrbitCamera) onCameraChanged;
+  final TourCamera camera;
+  final void Function(OrbitCamera)? onOrbitChanged;
+  final void Function(WalkCamera)? onWalkChanged;
+  final Walkmap? walkmap;
+  final bool showPoints;
+  final bool inputLocked;
 
   const TourView({
     super.key,
     required this.glbAsset,
     required this.pointsAsset,
     required this.camera,
-    required this.onCameraChanged,
+    this.onOrbitChanged,
+    this.onWalkChanged,
+    this.walkmap,
+    this.showPoints = true,
+    this.inputLocked = false,
   });
 
   @override
@@ -105,16 +114,38 @@ class _TourViewState extends State<TourView> {
   // when the orbit has not moved materially.
   vm.Vector3? _lastBillboardForward;
 
+  OrbitCamera? get _asOrbit =>
+      widget.camera is OrbitCamera ? widget.camera as OrbitCamera : null;
+  WalkCamera? get _asWalk =>
+      widget.camera is WalkCamera ? widget.camera as WalkCamera : null;
+  OrbitCamera get _orbit => _asOrbit!;
+
+  // Held movement keys, integrated each ticker tick in walk mode.
+  final Set<LogicalKeyboardKey> _keysDown = {};
+  Duration? _lastTick;
+
   @override
   void initState() {
     super.initState();
-    final d = widget.camera.distance;
-    _minDistance = (d * 0.1).clamp(0.01, d);
-    _maxDistance = d * 20;
+    final cam = widget.camera;
+    if (cam is OrbitCamera) {
+      final d = cam.distance;
+      _minDistance = (d * 0.1).clamp(0.01, d);
+      _maxDistance = d * 20;
+    } else {
+      _minDistance = 0.01;
+      _maxDistance = double.infinity;
+    }
     _load();
     // Repaint every frame so Scene.render runs continuously (0.16.0 has no
-    // SceneView widget to own the ticker). Cheap when nothing changes.
-    _ticker = Ticker((_) {
+    // SceneView widget to own the ticker). Cheap when nothing changes. Also
+    // integrates any held walk-movement keys against the real elapsed dt.
+    _ticker = Ticker((elapsed) {
+      final dt = _lastTick == null
+          ? 0.0
+          : (elapsed - _lastTick!).inMicroseconds / 1e6;
+      _lastTick = elapsed;
+      _integrateWalkKeys(dt);
       if (mounted && _ready) setState(() {});
     })..start();
   }
@@ -142,11 +173,15 @@ class _TourViewState extends State<TourView> {
       }
 
       // (2) Statue point cloud -> billboard quads. Guarded independently.
-      try {
-        await _loadPointData();
-        _rebuildBillboards(widget.camera, force: true);
-      } catch (_) {
-        // No points; the building mesh (if any) still renders.
+      // Skipped entirely when showPoints is false (walk mode hides statue
+      // billboards).
+      if (widget.showPoints) {
+        try {
+          await _loadPointData();
+          _rebuildBillboards(widget.camera, force: true);
+        } catch (_) {
+          // No points; the building mesh (if any) still renders.
+        }
       }
 
       if (mounted) setState(() => _ready = true);
@@ -183,13 +218,21 @@ class _TourViewState extends State<TourView> {
   // using the given camera's right/up basis. Rebuilds the flutter_scene points
   // node in place. Skips work when the orbit has not rotated materially since
   // the last build (unless [force]).
-  void _rebuildBillboards(OrbitCamera cam, {bool force = false}) {
+  void _rebuildBillboards(TourCamera cam, {bool force = false}) {
     final scene = _scene;
     final pos = _pointPos, col = _pointCol;
     if (scene == null || pos == null || col == null || _pointCount == 0) return;
 
-    final eye = _toVm(cam.eyePosition());
-    final target = _toVm(cam.target);
+    final vm.Vector3 eye, target;
+    if (cam is OrbitCamera) {
+      eye = _toVm(cam.eyePosition());
+      target = _toVm(cam.target);
+    } else if (cam is WalkCamera) {
+      eye = _toVm(cam.position);
+      target = _toVm(cam.position + cam.forward());
+    } else {
+      return;
+    }
     final forward = (target - eye).normalized();
 
     if (!force && _lastBillboardForward != null) {
@@ -207,8 +250,10 @@ class _TourViewState extends State<TourView> {
     final up = right.cross(forward).normalized();
 
     // Quad half-size scales gently with distance so splats stay visible when
-    // zoomed out but don't swallow the scene when zoomed in.
-    final half = (cam.distance * 0.012).clamp(0.4, 6.0);
+    // zoomed out but don't swallow the scene when zoomed in; walk mode (a
+    // fixed-scale first-person view) uses a fixed small splat instead.
+    final half =
+        cam is OrbitCamera ? (cam.distance * 0.012).clamp(0.4, 6.0) : 0.4;
     final ru = right * half;
     final uu = up * half;
 
@@ -252,9 +297,22 @@ class _TourViewState extends State<TourView> {
 
   static vm.Vector3 _toVm(vm64.Vector3 v) => vm.Vector3(v.x, v.y, v.z);
 
-  // Builds the flutter_scene camera from the current OrbitCamera each frame.
+  // Builds the flutter_scene camera from the current TourCamera each frame,
+  // handling both orbit and walk modes.
   PerspectiveCamera _sceneCamera() {
-    final c = widget.camera;
+    final walk = _asWalk;
+    if (walk != null) {
+      final target = walk.position + walk.forward();
+      return PerspectiveCamera(
+        position: _toVm(walk.position),
+        target: _toVm(target),
+        up: vm.Vector3(0, 1, 0),
+        fovRadiansY: walk.fovYRadians,
+        fovNear: walk.near,
+        fovFar: walk.far,
+      );
+    }
+    final c = _orbit;
     return PerspectiveCamera(
       position: _toVm(c.eyePosition()),
       target: _toVm(c.target),
@@ -272,7 +330,7 @@ class _TourViewState extends State<TourView> {
     double? elevation,
     double? distance,
   }) {
-    final c = widget.camera;
+    final c = _orbit;
     return OrbitCamera(
       target: c.target,
       azimuth: azimuth ?? c.azimuth,
@@ -285,19 +343,21 @@ class _TourViewState extends State<TourView> {
   }
 
   void _emit(OrbitCamera next) {
-    widget.onCameraChanged(next);
+    widget.onOrbitChanged?.call(next);
     // Re-orient billboards toward the new view (throttled inside).
     _rebuildBillboards(next);
     if (mounted) setState(() {});
   }
 
   void _onScaleStart(ScaleStartDetails d) {
+    if (_asOrbit == null || widget.inputLocked) return;
     _lastFocalPoint = d.focalPoint;
-    _scaleStartDistance = widget.camera.distance;
+    _scaleStartDistance = _orbit.distance;
   }
 
   void _onScaleUpdate(ScaleUpdateDetails d) {
-    final c = widget.camera;
+    if (_asOrbit == null || widget.inputLocked) return;
+    final c = _orbit;
 
     // Rotation from focal-point delta.
     final delta = d.focalPoint - _lastFocalPoint;
@@ -321,8 +381,9 @@ class _TourViewState extends State<TourView> {
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
+    if (_asOrbit == null || widget.inputLocked) return;
     if (event is PointerScrollEvent) {
-      final c = widget.camera;
+      final c = _orbit;
       // Scroll down (positive dy) zooms out; scale ~1.0015 per pixel.
       final factor = math.pow(1.0015, event.scrollDelta.dy).toDouble();
       final distance =
@@ -331,34 +392,123 @@ class _TourViewState extends State<TourView> {
     }
   }
 
+  /// Walk speed in world units/second; Shift runs at 2.5x.
+  static const double _kWalkSpeed = 3.0;
+  static const double _kRunFactor = 2.5;
+  static const double _kLookSpeed = 0.005;
+
+  bool get _walkInputActive =>
+      _asWalk != null && !widget.inputLocked && widget.onWalkChanged != null;
+
+  void _integrateWalkKeys(double dt) {
+    final cam = _asWalk;
+    if (!_walkInputActive || cam == null || dt <= 0 || _keysDown.isEmpty) {
+      return;
+    }
+    var dz = 0.0, dx = 0.0; // forward / strafe in the yaw plane
+    if (_down(LogicalKeyboardKey.keyW) || _down(LogicalKeyboardKey.arrowUp)) {
+      dz += 1;
+    }
+    if (_down(LogicalKeyboardKey.keyS) || _down(LogicalKeyboardKey.arrowDown)) {
+      dz -= 1;
+    }
+    if (_down(LogicalKeyboardKey.keyD) ||
+        _down(LogicalKeyboardKey.arrowRight)) {
+      dx += 1;
+    }
+    if (_down(LogicalKeyboardKey.keyA) || _down(LogicalKeyboardKey.arrowLeft)) {
+      dx -= 1;
+    }
+    if (dz == 0 && dx == 0) return;
+
+    final run = _down(LogicalKeyboardKey.shiftLeft) ||
+        _down(LogicalKeyboardKey.shiftRight);
+    final speed = _kWalkSpeed * (run ? _kRunFactor : 1.0) * dt;
+
+    // Yaw-plane basis (pitch does not affect ground movement).
+    final fwd = vm64.Vector3(math.sin(cam.yaw), 0, math.cos(cam.yaw));
+    final right = vm64.Vector3(fwd.z, 0, -fwd.x) * -1.0; // fwd x up
+    final step = (fwd * dz + right * dx).normalized() * speed;
+
+    final next = _clampToWalkmap(cam.position, step);
+    if (next == null) return;
+    final out = cam.copy()..position = next;
+    widget.onWalkChanged!(out);
+  }
+
+  bool _down(LogicalKeyboardKey k) => _keysDown.contains(k);
+
+  /// Applies [step] to [from], keeping the eye on the walkmap: full step,
+  /// else X-only, else Z-only (wall-slide), else null (blocked). Off-map is
+  /// also blocked when no walkmap exists (walk mode is only offered with
+  /// one, but stay safe).
+  vm64.Vector3? _clampToWalkmap(vm64.Vector3 from, vm64.Vector3 step) {
+    final wm = widget.walkmap;
+    if (wm == null) return null;
+    for (final s in [
+      step,
+      vm64.Vector3(step.x, 0, 0),
+      vm64.Vector3(0, 0, step.z),
+    ]) {
+      if (s.length2 == 0) continue;
+      final nx = from.x + s.x, nz = from.z + s.z;
+      final h = wm.groundHeightAt(nx, nz);
+      if (h != null) return vm64.Vector3(nx, h + kWalkEyeHeight, nz);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final content = (_ready && _scene != null)
+        ? CustomPaint(
+            painter: _ScenePainter(_scene!, _sceneCamera()),
+            size: Size.infinite,
+          )
+        : ColoredBox(
+            color: const Color(0xFF10131A),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  _loadError == null
+                      ? 'Loading 3-D tour…'
+                      : 'The 3-D renderer could not start:\n$_loadError',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ),
+            ),
+          );
+
+    if (_asWalk != null) {
+      return Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (!_walkInputActive) return KeyEventResult.ignored;
+          if (event is KeyDownEvent) _keysDown.add(event.logicalKey);
+          if (event is KeyUpEvent) _keysDown.remove(event.logicalKey);
+          return KeyEventResult.handled;
+        },
+        child: GestureDetector(
+          onPanUpdate: (d) {
+            final cam = _asWalk;
+            if (!_walkInputActive || cam == null) return;
+            final out = cam.copy()
+              ..look(d.delta.dx * _kLookSpeed, -d.delta.dy * _kLookSpeed);
+            widget.onWalkChanged!(out);
+          },
+          child: content,
+        ),
+      );
+    }
+
     return Listener(
       onPointerSignal: _onPointerSignal,
       child: GestureDetector(
         onScaleStart: _onScaleStart,
         onScaleUpdate: _onScaleUpdate,
-        child: (_ready && _scene != null)
-            ? CustomPaint(
-                painter: _ScenePainter(_scene!, _sceneCamera()),
-                size: Size.infinite,
-              )
-            : ColoredBox(
-                color: const Color(0xFF10131A),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      _loadError == null
-                          ? 'Loading 3-D tour…'
-                          : 'The 3-D renderer could not start:\n$_loadError',
-                      textAlign: TextAlign.center,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ),
-                ),
-              ),
+        child: content,
       ),
     );
   }

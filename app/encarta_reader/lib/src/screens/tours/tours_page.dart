@@ -128,7 +128,7 @@ class _ToursPageState extends State<ToursPage> {
                       glbAsset: assets.glbAsset,
                       pointsAsset: assets.pointsAsset,
                       camera: _camera,
-                      onCameraChanged: (c) => setState(() => _camera = c),
+                      onOrbitChanged: (c) => setState(() => _camera = c),
                     ),
                   ),
                   HotspotOverlay(
