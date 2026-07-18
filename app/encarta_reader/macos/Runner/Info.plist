@@ -28,5 +28,13 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- flutter_scene (3-D Tours) needs Impeller + Flutter GPU. Without these
+	     keys, tours only render when launched via
+	     `flutter run --enable-impeller --enable-flutter-gpu`; a plain launch
+	     throws inside Scene.initializeStaticResources. -->
+	<key>FLTEnableImpeller</key>
+	<true/>
+	<key>FLTEnableFlutterGPU</key>
+	<true/>
 </dict>
 </plist>

@@ -142,6 +142,33 @@ for name in ("acr.scene.json", "acr.hotspots.json"):
     shutil.copyfile(src, dst)
     print(f"copied {src} -> {dst}  [committed]")
 
+# ---- 4. Walkmap sidecar (COMMITTED): the .3wm mesh's triangles, flattened ----
+# The .3wm is the original engine's walkmap (walkable ground). The reader's
+# Walkmap ground solver (packages/encarta_3dtours) consumes this flat soup:
+#   u32 triCount ; triCount * 9 f32 (three xyz vertices per triangle), LE.
+wm_tris = []
+for m in gltf["meshes"]:
+    if not m["name"].lower().endswith(".3wm"):
+        continue
+    for prim in m["primitives"]:
+        if prim.get("mode", 4) != 4 or "indices" not in prim:
+            continue
+        pos_acc = gltf["accessors"][prim["attributes"]["POSITION"]]
+        pos_off = gltf["bufferViews"][pos_acc["bufferView"]]["byteOffset"]
+        verts = struct.unpack_from(f"<{pos_acc['count'] * 3}f", binblob, pos_off)
+        idx_acc = gltf["accessors"][prim["indices"]]
+        idx_off = gltf["bufferViews"][idx_acc["bufferView"]]["byteOffset"]
+        fmt = {5125: "I", 5123: "H"}[idx_acc["componentType"]]
+        idx = struct.unpack_from(f"<{idx_acc['count']}{fmt}", binblob, idx_off)
+        for i in idx:
+            wm_tris.extend(verts[i * 3 : i * 3 + 3])
+
+walk_path = os.path.join(OUT_ASSETS, "acr_walkmap.bin")
+with open(walk_path, "wb") as f:
+    f.write(struct.pack("<I", len(wm_tris) // 9))
+    f.write(struct.pack(f"<{len(wm_tris)}f", *wm_tris))
+print(f"wrote {walk_path}  ({len(wm_tris) // 9} tris)  [committed]")
+
 # Also compute mesh bbox center + radius for camera framing (diagnostic only)
 mn = [1e30] * 3
 mx = [-1e30] * 3

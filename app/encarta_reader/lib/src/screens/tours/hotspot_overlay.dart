@@ -7,7 +7,7 @@ import 'package:vector_math/vector_math_64.dart' show Vector2;
 /// sit in a [Stack] above the 3-D [TourView] (Task 7).
 class HotspotOverlay extends StatelessWidget {
   final List<Hotspot> hotspots;
-  final OrbitCamera camera;
+  final TourCamera camera;
   final Size viewport;
   final void Function(Hotspot) onTap;
 
