@@ -151,6 +151,17 @@ class _TourViewState extends State<TourView> {
   }
 
   @override
+  void didUpdateWidget(covariant TourView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Defense-in-depth for the stuck-key bug: entering a lock (e.g. glide
+    // travel starting) drops all currently-held keys, so nothing can be
+    // replayed once the lock lifts even if a KeyUp was somehow missed.
+    if (widget.inputLocked && !oldWidget.inputLocked) {
+      _keysDown.clear();
+    }
+  }
+
+  @override
   void dispose() {
     _ticker?.dispose();
     super.dispose();
@@ -485,9 +496,14 @@ class _TourViewState extends State<TourView> {
       return Focus(
         autofocus: true,
         onKeyEvent: (node, event) {
+          // KeyUp must always be processed, even while input is locked
+          // (e.g. mid-glide travel): otherwise a key released during the
+          // lock stays stuck in _keysDown and the camera walks by itself
+          // once the lock lifts. Only KeyDown additions (and returning
+          // "handled") are gated behind _walkInputActive.
+          if (event is KeyUpEvent) _keysDown.remove(event.logicalKey);
           if (!_walkInputActive) return KeyEventResult.ignored;
           if (event is KeyDownEvent) _keysDown.add(event.logicalKey);
-          if (event is KeyUpEvent) _keysDown.remove(event.logicalKey);
           return KeyEventResult.handled;
         },
         child: GestureDetector(

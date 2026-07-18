@@ -171,6 +171,75 @@ void main() {
       expect(cam().position.z, lessThanOrEqualTo(20.0 + 1e-6));
     });
 
+    // Variant of pumpWalk that also exposes a setter to flip inputLocked mid-
+    // test (via the same StatefulBuilder's setState), so a test can simulate
+    // a key being released WHILE locked (e.g. mid glide-travel) and then
+    // observe what happens once the lock lifts.
+    Future<(WalkCamera Function(), void Function(bool))> pumpWalkLockable(
+      WidgetTester tester, {
+      required WalkCamera camera,
+      Walkmap? walkmap,
+      bool inputLocked = false,
+      void Function()? onEmit,
+    }) async {
+      var cam = camera;
+      var locked = inputLocked;
+      late void Function(void Function()) doSetState;
+      await tester.pumpWidget(MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            doSetState = setState;
+            return TourView(
+              glbAsset: 'missing.glb',
+              pointsAsset: 'missing.bin',
+              camera: cam,
+              onWalkChanged: (c) {
+                onEmit?.call();
+                setState(() => cam = c);
+              },
+              walkmap: walkmap,
+              showPoints: false,
+              inputLocked: locked,
+            );
+          },
+        ),
+      ));
+      return (() => cam, (bool v) => doSetState(() => locked = v));
+    }
+
+    testWidgets(
+        'W released while inputLocked does not cause auto-walk after unlock',
+        (tester) async {
+      final (cam, setLocked) = await pumpWalkLockable(tester,
+          camera: WalkCamera(position: Vector3(0, 1.45, 0)),
+          walkmap: flatGround);
+
+      // Press W and let it walk forward for a few frames.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyW);
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(cam().position.z, greaterThan(0.0)); // movement observed
+
+      // Lock input (e.g. glide travel begins), then release W WHILE locked.
+      // The bug: onKeyEvent bailed out on `!_walkInputActive` before ever
+      // processing the KeyUpEvent, so keyW stayed stuck in _keysDown.
+      setLocked(true);
+      await tester.pump();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyW);
+
+      // Unlock (glide finishes) and record the position right at that point.
+      setLocked(false);
+      await tester.pump();
+      final zAfterUnlock = cam().position.z;
+
+      // If keyW were still stuck, these frames would keep walking forward.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(cam().position.z, closeTo(zAfterUnlock, 1e-9));
+    });
+
     testWidgets('inputLocked ignores drags and keys', (tester) async {
       var emitted = false;
       final cam = await pumpWalk(tester,
