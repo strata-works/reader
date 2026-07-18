@@ -104,6 +104,14 @@ class _ToursPageState extends State<ToursPage>
   int? _glideTarget;
   bool get _gliding => _glideCtrl.isAnimating;
 
+  // The single walk-mode-entry gate: the walkmap must have loaded AND there
+  // must be at least one travelable (anchored) stop. EVERY path that can put
+  // the page into walk mode (the header toggle, tapping a stops-panel entry)
+  // must check this — see _enterWalkMode and _onStopTapped — so a
+  // still-loading or failed walkmap can never be bypassed by a route other
+  // than the toggle. Returning from walk mode to overview is never gated.
+  bool get _walkAvailable => _walkmap != null && (_stops?.isNotEmpty ?? false);
+
   @override
   void initState() {
     super.initState();
@@ -161,8 +169,11 @@ class _ToursPageState extends State<ToursPage>
   }
 
   // Enters walk mode, framing the first stop the first time; re-entering
-  // keeps whatever pose was last active.
+  // keeps whatever pose was last active. Gated on _walkAvailable: a
+  // still-loading or failed walkmap (or a tour with no anchored stops) must
+  // never enter walk mode, from ANY caller.
   void _enterWalkMode(List<Hotspot> stops) {
+    if (!_walkAvailable) return;
     setState(() {
       _mode = _TourMode.walk;
       if (_walkCamera == null && stops.isNotEmpty) {
@@ -184,6 +195,13 @@ class _ToursPageState extends State<ToursPage>
   // Glides from the current walk pose to `stops[index]` over 1200 ms
   // ease-in-out, locking TourView's input for the duration. On completion,
   // `_currentStop` advances and the narration card switches to the new stop.
+  //
+  // Callable while a glide is already in flight (the header's prev/next
+  // buttons disable themselves via `!_gliding`, but the stops panel and
+  // in-scene hotspot markers do not): retargeting mid-glide is intentional
+  // and safe — `from` becomes whatever pose the animation has already
+  // reached, so redirecting to a new target is a smooth continuation, not a
+  // jump.
   void _travelTo(List<Hotspot> stops, int index) {
     final from = _walkCamera ?? WalkCamera.fromHotspot(stops[index]);
     _glideFrom = from;
@@ -194,7 +212,12 @@ class _ToursPageState extends State<ToursPage>
       ..forward();
   }
 
+  // Entry point for the stops panel. Shares _walkAvailable with the header
+  // toggle and _enterWalkMode so a stops-panel tap can never enter walk mode
+  // when the walkmap failed to load, even though the panel itself has no
+  // enabled/disabled state of its own.
   void _onStopTapped(List<Hotspot> stops, int index) {
+    if (!_walkAvailable) return;
     if (_mode == _TourMode.overview) {
       _enterWalkMode(stops);
     }
@@ -250,6 +273,11 @@ class _ToursPageState extends State<ToursPage>
             builder: (context, constraints) {
               final size = Size(constraints.maxWidth, constraints.maxHeight);
               final camera = _mode == _TourMode.walk ? _walkCamera! : _camera;
+              // Single source of truth for "can prev/next fire right now"
+              // (walk mode and not mid-glide) computed once here rather than
+              // re-derived inside _TourHeader, which just renders whatever
+              // onPrev/onNext it's given.
+              final navEnabled = _mode == _TourMode.walk && !_gliding;
               return Stack(
                 children: [
                   // Positioned.fill gives TourView's CustomPaint(size:
@@ -286,13 +314,12 @@ class _ToursPageState extends State<ToursPage>
                     mode: _mode,
                     currentStop: _currentStop,
                     stopCount: stops.length,
-                    gliding: _gliding,
-                    walkAvailable: _walkmap != null && stops.isNotEmpty,
+                    walkAvailable: _walkAvailable,
                     onToggleMode: () => _onModeTogglePressed(stops),
-                    onPrev: (_currentStop ?? 0) > 0 && !_gliding
+                    onPrev: navEnabled && (_currentStop ?? 0) > 0
                         ? () => _travelTo(stops, _currentStop! - 1)
                         : null,
-                    onNext: (_currentStop ?? -1) < stops.length - 1 && !_gliding
+                    onNext: navEnabled && (_currentStop ?? -1) < stops.length - 1
                         ? () => _travelTo(stops, _currentStop! + 1)
                         : null,
                   ),
@@ -325,7 +352,6 @@ class _TourHeader extends StatelessWidget {
   final _TourMode mode;
   final int? currentStop;
   final int stopCount;
-  final bool gliding;
   final bool walkAvailable;
   final VoidCallback onToggleMode;
   final VoidCallback? onPrev;
@@ -335,7 +361,6 @@ class _TourHeader extends StatelessWidget {
     required this.mode,
     required this.currentStop,
     required this.stopCount,
-    required this.gliding,
     required this.walkAvailable,
     required this.onToggleMode,
     required this.onPrev,
@@ -348,7 +373,9 @@ class _TourHeader extends StatelessWidget {
     // always return to overview) even if the walkmap later became
     // unavailable; entering walk mode from overview requires it.
     final toggleEnabled = mode == _TourMode.walk || walkAvailable;
-    final navEnabled = mode == _TourMode.walk && !gliding;
+    // onPrev/onNext are already null whenever nav shouldn't fire (see the
+    // navEnabled computation in ToursPageState.build) — this widget just
+    // renders what it's given, no re-derivation here.
 
     return Positioned(
       top: 0,
@@ -377,15 +404,20 @@ class _TourHeader extends StatelessWidget {
                 key: const ValueKey('tour-prev-stop'),
                 tooltip: 'Previous stop',
                 icon: const Icon(Icons.chevron_left, color: Colors.white),
-                onPressed: navEnabled ? onPrev : null,
+                onPressed: onPrev,
               ),
               IconButton(
                 key: const ValueKey('tour-next-stop'),
                 tooltip: 'Next stop',
                 icon: const Icon(Icons.chevron_right, color: Colors.white),
-                onPressed: navEnabled ? onNext : null,
+                onPressed: onNext,
               ),
-              if (currentStop != null)
+              // Only shown in walk mode: _currentStop is left set after
+              // returning to overview (so re-entering walk mode resumes at
+              // the same stop), so gating on `mode` here — not just
+              // `currentStop != null` — is what actually hides the counter
+              // once back in overview.
+              if (mode == _TourMode.walk && currentStop != null)
                 Text(
                   'stop ${currentStop! + 1} / $stopCount',
                   style: const TextStyle(color: Colors.white),

@@ -106,12 +106,50 @@ _FakeTourBundle _tourBundleWithWalkmap() => _FakeTourBundle(
   binaries: {'assets/3dtours/acropolis/acr_walkmap.bin': flatWalkmapBytes()},
 );
 
-Future<void> pumpToursPage(WidgetTester tester) async {
+/// Same fixture as [_tourBundleWithWalkmap] but with NO walkmap binary
+/// registered, so `_FakeTourBundle.load()` falls through to its "Unable to
+/// load asset" throw for the walkmap key specifically — exercising ToursPage
+/// degrading `_walkmap` to null (see `_loadWalkmap`'s catch) without needing
+/// a dedicated throwing subclass.
+_FakeTourBundle _tourBundleMissingWalkmap() => _FakeTourBundle(
+  strings: {
+    'assets/3dtours/acropolis/acr.scene.json': '{"lights":[]}',
+    'assets/3dtours/acropolis/acr.hotspots.json': _hotspotsJson,
+  },
+);
+
+/// Two anchored hotspots where h2 sits directly along h1's facing direction
+/// (h1 at the origin facing +Z per angle 0; h2 straight ahead at z=10), so
+/// h2's marker is guaranteed to project inside the viewport from h1's
+/// WalkCamera viewpoint — see WalkCamera.forward()/fromHotspot in
+/// encarta_3dtours, where yaw 0 looks along +Z.
+final _alignedHotspotsJson = jsonEncode([
+  {
+    'id': 'h1',
+    'text': 'Stop one',
+    'anchor': [0, 1.44, 0, 0],
+  },
+  {
+    'id': 'h2',
+    'text': 'Stop two',
+    'anchor': [0, 1.44, 10, 0],
+  },
+]);
+
+_FakeTourBundle _tourBundleWithAlignedHotspots() => _FakeTourBundle(
+  strings: {
+    'assets/3dtours/acropolis/acr.scene.json': '{"lights":[]}',
+    'assets/3dtours/acropolis/acr.hotspots.json': _alignedHotspotsJson,
+  },
+  binaries: {'assets/3dtours/acropolis/acr_walkmap.bin': flatWalkmapBytes()},
+);
+
+Future<void> pumpToursPage(WidgetTester tester, {AssetBundle? bundle}) async {
   await tester.pumpWidget(
     MaterialApp(
       home: ToursPage(
         tourId: 'acropolis',
-        bundleOverride: _tourBundleWithWalkmap(),
+        bundleOverride: bundle ?? _tourBundleWithWalkmap(),
       ),
     ),
   );
@@ -184,5 +222,72 @@ void main() {
     await tester.pump(); // synchronously enters walk mode + starts the glide
     await tester.pump(const Duration(milliseconds: 1300)); // glide completes
     expect(find.textContaining('stop 2 /'), findsOneWidget);
+  });
+
+  testWidgets(
+    'tapping an in-scene hotspot marker in walk mode glides to that stop',
+    (tester) async {
+      // Uses the aligned fixture (h2 straight ahead of h1's facing
+      // direction) so h2's projected marker is on screen from stop 1's
+      // viewpoint, sharing the exact _travelTo path the stops panel and
+      // prev/next buttons use (HotspotOverlay -> _onHotspotTap -> _travelTo).
+      await pumpToursPage(tester, bundle: _tourBundleWithAlignedHotspots());
+      await tester.tap(find.byKey(const ValueKey('tour-mode-toggle')));
+      await tester.pump(); // entering walk mode is a synchronous setState
+
+      final marker = find.byKey(const ValueKey('hotspot-h2'));
+      expect(
+        marker,
+        findsOneWidget,
+        reason:
+            'h2 must project on screen from h1\'s viewpoint for this test '
+            'to exercise marker travel; adjust the aligned fixture anchors '
+            'if this fails',
+      );
+
+      await tester.tap(marker);
+      // Baseline ticker frame, then drive the 1200 ms glide in steps (see
+      // the "next glides..." test above for why the first bare pump matters).
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(find.textContaining('stop 2 /'), findsOneWidget);
+    },
+  );
+
+  testWidgets('walk toggle is disabled when the walkmap asset is missing', (
+    tester,
+  ) async {
+    await pumpToursPage(tester, bundle: _tourBundleMissingWalkmap());
+
+    final toggle = tester.widget<IconButton>(
+      find.byKey(const ValueKey('tour-mode-toggle')),
+    );
+    expect(toggle.onPressed, isNull);
+  });
+
+  testWidgets('prev is disabled at the first stop, next at the last stop', (
+    tester,
+  ) async {
+    await pumpToursPage(tester);
+    await tester.tap(find.byKey(const ValueKey('tour-mode-toggle')));
+    await tester.pump();
+
+    IconButton prevButton() =>
+        tester.widget<IconButton>(find.byKey(const ValueKey('tour-prev-stop')));
+    IconButton nextButton() =>
+        tester.widget<IconButton>(find.byKey(const ValueKey('tour-next-stop')));
+
+    expect(prevButton().onPressed, isNull);
+    expect(nextButton().onPressed, isNotNull);
+
+    await tester.tap(find.byKey(const ValueKey('tour-next-stop')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 700)); // glide completes
+    expect(find.textContaining('stop 2 /'), findsOneWidget);
+
+    expect(nextButton().onPressed, isNull);
+    expect(prevButton().onPressed, isNotNull);
   });
 }
